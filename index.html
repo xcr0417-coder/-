@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>三國志 Web：百將亂鬥 (極速自動版)</title>
+    <title>三國志 Web：56名將 極速自動版</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #1a1a1a; color: #ecf0f1; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
         .header { background: #2c3e50; width: 100%; padding: 10px 0; text-align: center; border-bottom: 4px solid #f1c40f; display: flex; justify-content: space-around; align-items: center; z-index: 100; flex-shrink: 0;}
@@ -60,7 +60,7 @@
                 <button style="background:#2980b9; color:white; width:48%" onclick="handleDraft()">📯 募兵</button>
             </div>
         </div>
-        <div class="log" id="logBox">> 天下大亂，50位名將已集結。</div>
+        <div class="log" id="logBox">> 終極爭霸！10大勢力、56位名將已部署。</div>
         <button class="btn-next" id="btnNextTurn" onclick="nextTurn()">⏳ 結束回合 (換手)</button>
     </div>
 </div>
@@ -71,16 +71,16 @@
     let selectedUnit = null;
     let isProcessingAI = false;
 
-    // --- 自動存檔 ---
+    // --- 自動存檔系統 ---
     function saveGame() {
-        localStorage.setItem('sanguo_v6_50units', JSON.stringify(gameState));
+        localStorage.setItem('sanguo_v6_56units', JSON.stringify(gameState));
         const notice = document.getElementById('saveNotice');
         notice.style.opacity = 1;
         setTimeout(() => notice.style.opacity = 0, 800);
     }
 
     function loadGame() {
-        const saved = localStorage.getItem('sanguo_v6_50units');
+        const saved = localStorage.getItem('sanguo_v6_56units');
         if (saved) {
             gameState = JSON.parse(saved);
         } else {
@@ -90,8 +90,8 @@
     }
 
     function resetGame() {
-        if(confirm("確定要重啟 50 名將大亂鬥嗎？")) {
-            localStorage.removeItem('sanguo_v6_50units');
+        if(confirm("確定要重啟 56 名將群雄割據嗎？")) {
+            localStorage.removeItem('sanguo_v6_56units');
             location.reload();
         }
     }
@@ -111,81 +111,96 @@
         }
     }
 
-    // --- 初始化 50 位武將數據 ---
+    // --- 初始化 10 大勢力與 56 位武將 ---
     function getDefaultState() {
         const factions = [
-            { id: 'shu', name: '劉備軍', color: '#2980b9', gold: 1000, isAI: false },
-            { id: 'wei', name: '曹操軍', color: '#c0392b', gold: 1200, isAI: true },
-            { id: 'wu', name: '孫權軍', color: '#27ae60', gold: 1200, isAI: true },
-            { id: 'dong', name: '董卓軍', color: '#8e44ad', gold: 1500, isAI: true },
+            { id: 'shu', name: '劉備軍', color: '#2980b9', gold: 1200, isAI: false },
+            { id: 'wei', name: '曹操軍', color: '#c0392b', gold: 1500, isAI: true },
+            { id: 'wu', name: '孫權軍', color: '#27ae60', gold: 1300, isAI: true },
+            { id: 'dong', name: '董卓軍', color: '#8e44ad', gold: 1600, isAI: true },
             { id: 'yuan', name: '袁紹軍', color: '#f1c40f', gold: 1500, isAI: true },
-            { id: 'lu', name: '呂布軍', color: '#34495e', gold: 800, isAI: true },
+            { id: 'lu', name: '呂布軍', color: '#34495e', gold: 1000, isAI: true },
             { id: 'liub', name: '劉表軍', color: '#16a085', gold: 1000, isAI: true },
-            { id: 'ma', name: '馬騰軍', color: '#e67e22', gold: 1000, isAI: true },
+            { id: 'ma', name: '馬騰軍', color: '#e67e22', gold: 1100, isAI: true },
             { id: 'gong', name: '公孫軍', color: '#d35400', gold: 1000, isAI: true },
-            { id: 'zhang', name: '張魯軍', color: '#95a5a6', gold: 800, isAI: true }
+            { id: 'zhang', name: '張魯軍', color: '#95a5a6', gold: 900, isAI: true }
         ];
 
         const units = [
-            // 劉備軍 (5人)
+            // 劉備軍 (6人)
             { name: "劉備", faction: 'shu', type: '步', x: 2, y: 16, troops: 5000, morale: 80, atk: 75, def: 85, int: 80 },
             { name: "關羽", faction: 'shu', type: '騎', x: 3, y: 17, troops: 6000, morale: 95, atk: 97, def: 90, int: 75 },
             { name: "張飛", faction: 'shu', type: '騎', x: 2, y: 18, troops: 5500, morale: 98, atk: 98, def: 80, int: 30 },
             { name: "孔明", faction: 'shu', type: '智', x: 1, y: 17, troops: 4000, morale: 100, atk: 35, def: 90, int: 100 },
             { name: "趙雲", faction: 'shu', type: '騎', x: 3, y: 16, troops: 5000, morale: 95, atk: 96, def: 95, int: 76 },
-            // 曹操軍 (5人)
+            { name: "龐統", faction: 'shu', type: '智', x: 1, y: 18, troops: 4000, morale: 95, atk: 40, def: 85, int: 98 },
+            
+            // 曹操軍 (6人)
             { name: "曹操", faction: 'wei', type: '騎', x: 10, y: 7, troops: 7000, morale: 90, atk: 85, def: 95, int: 92 },
             { name: "夏侯", faction: 'wei', type: '騎', x: 11, y: 8, troops: 6000, morale: 85, atk: 90, def: 85, int: 60 },
             { name: "司馬", faction: 'wei', type: '智', x: 9, y: 8, troops: 5000, morale: 90, atk: 40, def: 88, int: 98 },
             { name: "許褚", faction: 'wei', type: '步', x: 10, y: 9, troops: 6000, morale: 90, atk: 96, def: 70, int: 20 },
             { name: "郭嘉", faction: 'wei', type: '智', x: 11, y: 7, troops: 4000, morale: 95, atk: 30, def: 60, int: 99 },
-            // 孫權軍 (5人)
+            { name: "荀彧", faction: 'wei', type: '智', x: 9, y: 7, troops: 4000, morale: 90, atk: 35, def: 80, int: 97 },
+            
+            // 孫權軍 (6人)
             { name: "孫權", faction: 'wu', type: '弓', x: 16, y: 13, troops: 6000, morale: 85, atk: 75, def: 80, int: 80 },
             { name: "周瑜", faction: 'wu', type: '智', x: 15, y: 14, troops: 5000, morale: 95, atk: 70, def: 90, int: 96 },
             { name: "太史", faction: 'wu', type: '弓', x: 17, y: 14, troops: 5500, morale: 85, atk: 90, def: 82, int: 50 },
             { name: "甘寧", faction: 'wu', type: '騎', x: 16, y: 15, troops: 5000, morale: 90, atk: 94, def: 75, int: 45 },
             { name: "陸遜", faction: 'wu', type: '智', x: 17, y: 13, troops: 4500, morale: 90, atk: 65, def: 85, int: 95 },
-            // 董卓軍 (5人)
+            { name: "魯肅", faction: 'wu', type: '智', x: 15, y: 15, troops: 4500, morale: 85, atk: 50, def: 85, int: 92 },
+            
+            // 董卓軍 (6人)
             { name: "董卓", faction: 'dong', type: '步', x: 6, y: 7, troops: 8000, morale: 70, atk: 80, def: 75, int: 40 },
             { name: "華雄", faction: 'dong', type: '騎', x: 7, y: 8, troops: 6500, morale: 85, atk: 90, def: 70, int: 30 },
             { name: "李儒", faction: 'dong', type: '智', x: 5, y: 8, troops: 4000, morale: 80, atk: 30, def: 65, int: 93 },
             { name: "郭汜", faction: 'dong', type: '步', x: 6, y: 9, troops: 5000, morale: 75, atk: 75, def: 70, int: 35 },
             { name: "李傕", faction: 'dong', type: '騎', x: 7, y: 7, troops: 5000, morale: 75, atk: 78, def: 72, int: 40 },
-            // 袁紹軍 (5人)
+            { name: "賈詡", faction: 'dong', type: '智', x: 5, y: 7, troops: 4500, morale: 80, atk: 45, def: 75, int: 97 },
+            
+            // 袁紹軍 (6人)
             { name: "袁紹", faction: 'yuan', type: '步', x: 12, y: 3, troops: 8000, morale: 80, atk: 70, def: 80, int: 70 },
             { name: "顏良", faction: 'yuan', type: '騎', x: 13, y: 4, troops: 6000, morale: 85, atk: 93, def: 75, int: 35 },
             { name: "文醜", faction: 'yuan', type: '騎', x: 11, y: 4, troops: 6000, morale: 85, atk: 92, def: 75, int: 30 },
             { name: "田豐", faction: 'yuan', type: '智', x: 12, y: 2, troops: 4000, morale: 90, atk: 35, def: 70, int: 94 },
             { name: "沮授", faction: 'yuan', type: '智', x: 13, y: 3, troops: 4000, morale: 90, atk: 40, def: 72, int: 92 },
-            // 呂布軍 (5人)
+            { name: "張郃", faction: 'yuan', type: '騎', x: 11, y: 3, troops: 6500, morale: 85, atk: 90, def: 82, int: 65 },
+            
+            // 呂布軍 (6人)
             { name: "呂布", faction: 'lu', type: '騎', x: 15, y: 6, troops: 7500, morale: 100, atk: 100, def: 80, int: 20 },
             { name: "張遼", faction: 'lu', type: '騎', x: 14, y: 7, troops: 6000, morale: 90, atk: 92, def: 88, int: 75 },
             { name: "高順", faction: 'lu', type: '步', x: 15, y: 8, troops: 5500, morale: 95, atk: 88, def: 92, int: 50 },
             { name: "陳宮", faction: 'lu', type: '智', x: 16, y: 7, troops: 4000, morale: 90, atk: 45, def: 75, int: 94 },
             { name: "臧霸", faction: 'lu', type: '步', x: 14, y: 6, troops: 5000, morale: 80, atk: 82, def: 80, int: 45 },
+            { name: "貂蟬", faction: 'lu', type: '智', x: 16, y: 8, troops: 3000, morale: 100, atk: 20, def: 40, int: 85 },
+            
             // 劉表軍 (5人)
             { name: "劉表", faction: 'liub', type: '步', x: 9, y: 12, troops: 6000, morale: 75, atk: 60, def: 70, int: 70 },
             { name: "黃忠", faction: 'liub', type: '弓', x: 8, y: 13, troops: 5500, morale: 90, atk: 93, def: 80, int: 60 },
             { name: "魏延", faction: 'liub', type: '騎', x: 10, y: 13, troops: 5500, morale: 85, atk: 91, def: 82, int: 55 },
             { name: "蔡瑁", faction: 'liub', type: '步', x: 9, y: 14, troops: 5000, morale: 70, atk: 72, def: 75, int: 65 },
             { name: "蒯越", faction: 'liub', type: '智', x: 8, y: 12, troops: 4000, morale: 80, atk: 35, def: 65, int: 88 },
+            
             // 馬騰軍 (5人)
             { name: "馬騰", faction: 'ma', type: '騎', x: 1, y: 3, troops: 6000, morale: 85, atk: 82, def: 80, int: 50 },
             { name: "馬超", faction: 'ma', type: '騎', x: 2, y: 4, troops: 6500, morale: 95, atk: 97, def: 85, int: 40 },
             { name: "馬岱", faction: 'ma', type: '騎', x: 1, y: 5, troops: 5000, morale: 85, atk: 85, def: 78, int: 55 },
             { name: "韓遂", faction: 'ma', type: '步', x: 0, y: 4, troops: 5500, morale: 80, atk: 78, def: 80, int: 75 },
             { name: "龐德", faction: 'ma', type: '騎', x: 2, y: 3, troops: 6000, morale: 90, atk: 94, def: 82, int: 60 },
+            
             // 公孫瓚軍 (5人)
             { name: "公孫", faction: 'gong', type: '騎', x: 16, y: 1, troops: 6000, morale: 80, atk: 80, def: 75, int: 60 },
             { name: "田豫", faction: 'gong', type: '步', x: 15, y: 2, troops: 5000, morale: 85, atk: 78, def: 82, int: 80 },
             { name: "公孫越", faction: 'gong', type: '騎', x: 17, y: 1, troops: 5000, morale: 75, atk: 75, def: 70, int: 50 },
             { name: "單經", faction: 'gong', type: '步', x: 16, y: 0, troops: 4500, morale: 70, atk: 72, def: 68, int: 45 },
             { name: "嚴柔", faction: 'gong', type: '弓', x: 17, y: 2, troops: 4500, morale: 75, atk: 75, def: 72, int: 60 },
+            
             // 張魯軍 (5人)
             { name: "張魯", faction: 'zhang', type: '智', x: 5, y: 11, troops: 5000, morale: 80, atk: 65, def: 70, int: 80 },
             { name: "張衛", faction: 'zhang', type: '步', x: 4, y: 12, troops: 5000, morale: 75, atk: 75, def: 72, int: 50 },
             { name: "楊松", faction: 'zhang', type: '智', x: 6, y: 11, troops: 3500, morale: 60, atk: 20, def: 40, int: 75 },
-            { name: "閻圃", faction: 'zhang', type: '智', x: 5, y: 12, troops: 4000, morale: 85, atk: 35, def: 65, int: 85 },
+            { name: "閻圃", faction: 'zhang', type: '智', x: 4, y: 11, troops: 4000, morale: 85, atk: 35, def: 65, int: 85 },
             { name: "楊任", faction: 'zhang', type: '騎', x: 6, y: 12, troops: 5000, morale: 80, atk: 82, def: 75, int: 50 }
         ];
 
@@ -209,7 +224,7 @@
         };
     }
 
-    // --- 地圖渲染 (極速版) ---
+    // --- 極速地圖渲染 ---
     function initMap() {
         const mapEl = document.getElementById('map');
         mapEl.innerHTML = '';
@@ -339,7 +354,7 @@
         
         if (fac.isAI) {
             isProcessingAI = true;
-            setTimeout(runAI, 50); 
+            setTimeout(runAI, 50); // 極速運算
         } else {
             isProcessingAI = false;
             log(`--- 📅 第 ${gameState.turn} 旬：${fac.name} ---`, "#3498db");
