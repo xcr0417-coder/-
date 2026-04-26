@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>三國志 Web：群雄割據 v6.1 (極速流暢版)</title>
+    <title>三國志 Web：群雄割據 終極版 (極速+自動存檔)</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #1a1a1a; color: #ecf0f1; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
         .header { background: #2c3e50; width: 100%; padding: 10px 0; text-align: center; border-bottom: 4px solid #f1c40f; display: flex; justify-content: space-around; align-items: center; z-index: 100; flex-shrink: 0;}
@@ -60,7 +60,7 @@
                 <button style="background:#f39c12; color:white;" onclick="handleBuyEquip()">🛡️ 尋寶(金300)</button>
             </div>
         </div>
-        <div class="log" id="logBox">> 極速版啟動，運算延遲已解除。</div>
+        <div class="log" id="logBox">> 終極版啟動：自動記憶與極速運算已生效。</div>
         <button class="btn-next" id="btnNextTurn" onclick="nextTurn()">⏳ 結束回合 (換手)</button>
     </div>
 </div>
@@ -75,7 +75,7 @@
     let isProcessingAI = false;
     let mapInitialized = false;
 
-    // --- 自動存檔系統 ---
+    // --- 自動存檔系統 (來自 v6.0) ---
     function saveGame() {
         localStorage.setItem('sanguo_autosave_v6', JSON.stringify(gameState));
         const notice = document.getElementById('saveNotice');
@@ -143,7 +143,7 @@
         return state;
     }
 
-    // 優化：只在第一次載入時創建地圖格子，後續只更新內容
+    // --- 極速地圖渲染 (來自 v6.1) ---
     function initMap() {
         const mapEl = document.getElementById('map');
         if (!mapInitialized) {
@@ -213,7 +213,7 @@
                 checkCityCapture(selectedUnit);
                 showActionMenu(selectedUnit);
                 initMap();
-                saveGame();
+                saveGame(); // 移動後自動存檔
             }
         }
     }
@@ -294,12 +294,12 @@
         
         if (fac.isAI) {
             isProcessingAI = true;
-            // 極速優化：將原本的 1000 毫秒延遲縮短為 50 毫秒，AI瞬間完成動作！
+            // 極速運算：50毫秒完成，不讓主公久等
             setTimeout(runAI, 50); 
         } else {
             isProcessingAI = false;
             log(`--- 📅 第 ${gameState.turn} 旬：${fac.name} ---`, "#3498db");
-            saveGame();
+            saveGame(); // 回到玩家回合時自動存檔
         }
         initMap();
     }
@@ -334,7 +334,7 @@
         selectedUnit = null;
         document.getElementById('actionMenu').style.display = 'none';
         initMap();
-        saveGame();
+        saveGame(); // 執行任何動作後自動存檔
     }
 
     function updateUI() {
@@ -352,6 +352,7 @@
         box.scrollTop = box.scrollHeight;
     }
 
+    // 啟動遊戲
     loadGame();
 </script>
 </body>
