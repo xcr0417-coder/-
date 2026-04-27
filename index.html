@@ -3,45 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>三國志 Web：攻城掠地版 (v7.0)</title>
+    <title>三國志 Web：糧草大戰版 (v8.1)</title>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background: #1a1a1a; color: #ecf0f1; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
-        .header { background: #2c3e50; width: 100%; padding: 10px 0; text-align: center; border-bottom: 4px solid #f1c40f; display: flex; justify-content: space-around; align-items: center; z-index: 100; flex-shrink: 0;}
-        .game-area { display: flex; gap: 10px; padding: 10px; flex-wrap: wrap; justify-content: center; width: 100%; box-sizing: border-box; overflow: hidden; flex-grow: 1; align-items: flex-start;}
-        .map-container { width: 100%; max-width: 600px; height: 50vh; overflow: auto; border: 4px solid #3e2723; border-radius: 8px; background: #111; position: relative; touch-action: pan-x pan-y;}
-        .map-grid { display: grid; grid-template-columns: repeat(20, 40px); grid-template-rows: repeat(20, 40px); gap: 1px; background: #222; padding: 5px; width: fit-content; }
-        .cell { width: 40px; height: 40px; background: #2e7d32; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 0.1px solid rgba(255,255,255,0.05); }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #1a1a1a; color: #ecf0f1; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .header { background: #2c3e50; width: 100%; padding: 10px 0; text-align: center; border-bottom: 4px solid #f1c40f; display: flex; justify-content: space-around; align-items: center; z-index: 100; flex-shrink: 0; font-size: 14px;}
+        
+        /* 重新設計版面：地圖最大化 */
+        .game-area { display: flex; flex-direction: row; gap: 10px; padding: 10px; width: 100%; height: calc(100vh - 50px); box-sizing: border-box; }
+        .map-container { flex-grow: 1; height: 100%; overflow: auto; border: 4px solid #3e2723; border-radius: 8px; background: #111; position: relative; touch-action: pan-x pan-y;}
+        /* 地圖網格大小調整，以適應大視窗 */
+        .map-grid { display: grid; grid-template-columns: repeat(20, 50px); grid-template-rows: repeat(20, 50px); gap: 1px; background: #222; padding: 5px; width: fit-content; margin: auto; }
+        
+        .side-panel { width: 320px; flex-shrink: 0; background: #34495e; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; height: 100%; overflow-y: auto; box-sizing: border-box;}
+        
+        /* 手機版自適應：變成上下排列 */
+        @media (max-width: 768px) {
+            .game-area { flex-direction: column; }
+            .side-panel { width: 100%; height: 45vh; flex-shrink: 1; }
+            .map-container { height: 55vh; }
+            .map-grid { grid-template-columns: repeat(20, 40px); grid-template-rows: repeat(20, 40px); }
+        }
+
+        .cell { width: 100%; height: 100%; background: #2e7d32; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 0.1px solid rgba(255,255,255,0.05); box-sizing: border-box;}
         .cell.city { background: #546e7a; border: 2px inset #f1c40f; }
         .cell.building-cell { background: #795548; border: 2px solid; }
-        .unit { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff; position: absolute; z-index: 10; transition: 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+        .unit { width: 80%; height: 80%; border-radius: 50%; border: 2px solid #fff; position: absolute; z-index: 10; transition: 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.5);}
         .unit.selected { border-color: #f1c40f; box-shadow: 0 0 15px #f1c40f; transform: scale(1.15); z-index: 20;}
         .unit.confused { border-color: #9b59b6; border-style: dashed; animation: spin 2s linear infinite; }
         .building-icon { font-size: 24px; position: absolute; z-index: 5; text-shadow: 0 0 5px black;}
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        
         /* 10大勢力配色 */
         .u-shu { background: #2980b9; } .u-wei { background: #c0392b; } .u-wu { background: #27ae60; } 
         .u-dong { background: #8e44ad; } .u-yuan { background: #f1c40f; color: #000; text-shadow: none;} 
         .u-lu { background: #34495e; } .u-liub { background: #16a085; } .u-ma { background: #e67e22; } 
         .u-gong { background: #d35400; } .u-zhang { background: #95a5a6; color: #000; text-shadow: none;}
         
-        .side-panel { width: 100%; max-width: 400px; background: #34495e; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow-y: auto; box-sizing: border-box;}
         .action-menu { background: #2c3e50; padding: 10px; border-radius: 8px; display: none; border: 2px solid #f1c40f; }
-        .log { background: #000; padding: 8px; height: 90px; overflow-y: auto; font-size: 13px; color: #2ecc71; border-radius: 8px; border: 1px solid #555; line-height: 1.4;}
+        .log { background: #000; padding: 8px; flex-grow: 1; min-height: 80px; overflow-y: auto; font-size: 13px; color: #2ecc71; border-radius: 8px; border: 1px solid #555; line-height: 1.4;}
         button { padding: 8px; cursor: pointer; font-weight: bold; border: none; border-radius: 4px; margin: 2px 0; width: 100%; transition: 0.2s; }
         button:active { transform: scale(0.95); }
         .btn-attack { background: #e74c3c; color: white; } .btn-tactic { background: #d35400; color: white; } .btn-strategy { background: #8e44ad; color: white; } .btn-build { background: #f39c12; color: #000; }
-        .btn-next { background: #27ae60; color: white; padding: 12px; font-size: 1.1em; border: 2px solid #2ecc71; margin-top: 5px;}
+        .btn-next { background: #27ae60; color: white; padding: 12px; font-size: 1.1em; border: 2px solid #2ecc71; margin-top: auto;}
         .sys-btns { display: flex; gap: 5px; } .sys-btns button { background: #7f8c8d; color: white; font-size: 11px; padding: 5px;}
         .stats-box { font-size: 13px; background: #1a252f; padding: 6px; border-radius: 5px; margin-bottom: 5px; line-height: 1.5;}
         .auto-save-tag { font-size: 12px; color: #2ecc71; font-weight: normal; opacity: 0; transition: 0.5s; }
     </style>
 </head>
-<body>
+<body onload="loadGame()">
 
 <div class="header">
     <div id="playerIndicator" style="padding:4px 12px; border-radius:5px; font-weight:bold; color:white;">載入中...</div>
     <div>📅 第 <span id="uiTurn">1</span> 旬 <span id="saveNotice" class="auto-save-tag">● 存檔</span></div>
-    <div>💰 金：<span id="uiGold">0</span></div>
+    <div>💰 金：<span id="uiGold">0</span> | 🌾 糧：<span id="uiFood" style="color:#f39c12;">0</span></div>
 </div>
 
 <div class="game-area">
@@ -71,7 +85,7 @@
                 <button style="background:#2980b9; color:white; width:48%" onclick="handleDraft()">📯 募兵</button>
             </div>
         </div>
-        <div class="log" id="logBox">> 攻城掠地版上線！支援二次移動、設施建造與攻城器械。</div>
+        <div class="log" id="logBox">> 糧草大戰版上線！支援全螢幕地圖與嚴格兵糧限制。</div>
         <button class="btn-next" id="btnNextTurn" onclick="nextTurn()">⏳ 結束回合 (換手)</button>
     </div>
 </div>
@@ -82,36 +96,44 @@
         '步': { move: 2, range: 1, tactics: [{n:'槍突',c:10,m:1.2}, {n:'奮戰',c:20,m:1.5}, {n:'旋風',c:30,m:2.0}, {n:'無雙',c:40,m:3.0}] }, 
         '弓': { move: 1, range: 2, tactics: [{n:'火矢',c:10,m:1.2}, {n:'連弩',c:20,m:1.5}, {n:'齊射',c:30,m:2.0}, {n:'箭雨',c:40,m:3.0}] }, 
         '智': { move: 2, range: 2, tactics: [{n:'陷阱',c:10,m:1.2}, {n:'謾罵',c:20,m:1.5}, {n:'妖術',c:30,m:2.0}, {n:'落雷',c:40,m:3.0}] },
-        '石': { move: 1, range: 3, tactics: [{n:'巨石',c:15,m:1.5}, {n:'火石',c:30,m:2.5}, {n:'碎城',c:40,m:3.5}] }, // 投石車
-        '車': { move: 1, range: 1, tactics: [{n:'撞擊',c:15,m:1.5}, {n:'粉碎',c:30,m:2.5}, {n:'破牆',c:40,m:3.5}] }  // 衝車
+        '石': { move: 1, range: 3, tactics: [{n:'巨石',c:15,m:1.5}, {n:'火石',c:30,m:2.5}, {n:'碎城',c:40,m:3.5}] },
+        '車': { move: 1, range: 1, tactics: [{n:'撞擊',c:15,m:1.5}, {n:'粉碎',c:30,m:2.5}, {n:'破牆',c:40,m:3.5}] }
     };
 
     let gameState; let selectedUnit = null; let isProcessingAI = false; let pendingBuild = null;
 
     function saveGame() {
-        localStorage.setItem('sanguo_v7_siege', JSON.stringify(gameState));
+        localStorage.setItem('sanguo_v8_1', JSON.stringify(gameState));
         const notice = document.getElementById('saveNotice');
         notice.style.opacity = 1; setTimeout(() => notice.style.opacity = 0, 800);
     }
     function loadGame() {
-        const saved = localStorage.getItem('sanguo_v7_siege');
-        if (saved) gameState = JSON.parse(saved); else gameState = getDefaultState();
+        const saved = localStorage.getItem('sanguo_v8_1');
+        if (saved) {
+            gameState = JSON.parse(saved);
+            gameState.factions.forEach(f => { if(f.food === undefined) f.food = 100000; });
+        } else gameState = getDefaultState();
         initMap();
     }
-    function resetGame() { if(confirm("確定重啟嗎？")) { localStorage.removeItem('sanguo_v7_siege'); location.reload(); } }
+    function resetGame() { if(confirm("確定重啟嗎？")) { localStorage.removeItem('sanguo_v8_1'); location.reload(); } }
     function exportSave() { prompt("備份代碼：", btoa(encodeURIComponent(JSON.stringify(gameState)))); }
     function importSave() { const str = prompt("貼上代碼："); if(str) { try { gameState = JSON.parse(decodeURIComponent(atob(str))); saveGame(); location.reload(); } catch(e) { alert("錯誤！"); } } }
 
+    function log(msg, color = "#2ecc71") {
+        const box = document.getElementById('logBox');
+        box.innerHTML += `<br><span style="color:${color}">${msg}</span>`;
+        box.scrollTop = box.scrollHeight;
+    }
+
     function getDefaultState() {
         const factions = [
-            { id: 'shu', name: '劉備軍', color: '#2980b9', gold: 1200, isAI: false }, { id: 'wei', name: '曹操軍', color: '#c0392b', gold: 1500, isAI: true },
-            { id: 'wu', name: '孫權軍', color: '#27ae60', gold: 1300, isAI: true }, { id: 'dong', name: '董卓軍', color: '#8e44ad', gold: 1600, isAI: true },
-            { id: 'yuan', name: '袁紹軍', color: '#f1c40f', gold: 1500, isAI: true }, { id: 'lu', name: '呂布軍', color: '#34495e', gold: 1000, isAI: true },
-            { id: 'liub', name: '劉表軍', color: '#16a085', gold: 1000, isAI: true }, { id: 'ma', name: '馬騰軍', color: '#e67e22', gold: 1100, isAI: true },
-            { id: 'gong', name: '公孫軍', color: '#d35400', gold: 1000, isAI: true }, { id: 'zhang', name: '張魯軍', color: '#95a5a6', gold: 900, isAI: true }
+            { id: 'shu', name: '劉備軍', color: '#2980b9', gold: 1200, food: 100000, isAI: false }, { id: 'wei', name: '曹操軍', color: '#c0392b', gold: 1500, food: 100000, isAI: true },
+            { id: 'wu', name: '孫權軍', color: '#27ae60', gold: 1300, food: 100000, isAI: true }, { id: 'dong', name: '董卓軍', color: '#8e44ad', gold: 1600, food: 100000, isAI: true },
+            { id: 'yuan', name: '袁紹軍', color: '#f1c40f', gold: 1500, food: 100000, isAI: true }, { id: 'lu', name: '呂布軍', color: '#34495e', gold: 1000, food: 100000, isAI: true },
+            { id: 'liub', name: '劉表軍', color: '#16a085', gold: 1000, food: 100000, isAI: true }, { id: 'ma', name: '馬騰軍', color: '#e67e22', gold: 1100, food: 100000, isAI: true },
+            { id: 'gong', name: '公孫軍', color: '#d35400', gold: 1000, food: 100000, isAI: true }, { id: 'zhang', name: '張魯軍', color: '#95a5a6', gold: 900, food: 100000, isAI: true }
         ];
         let units = [
-            // 替換部分兵種為攻城兵器(石/車)
             { name: "劉備", faction: 'shu', type: '步', x: 2, y: 16, troops: 5000, morale: 80, atk: 75, def: 85, int: 80 },
             { name: "關羽", faction: 'shu', type: '騎', x: 3, y: 17, troops: 6000, morale: 95, atk: 97, def: 90, int: 75 },
             { name: "張飛", faction: 'shu', type: '騎', x: 2, y: 18, troops: 5500, morale: 98, atk: 98, def: 80, int: 30 },
@@ -197,7 +219,7 @@
                     cell.classList.add('building-cell');
                     cell.style.borderColor = gameState.factions.find(f=>f.id===b.faction).color;
                     cell.innerHTML += `<div class="building-icon">${b.type === 'tower' ? '🗼' : '🗿'}</div>`;
-                    const hpBar = document.createElement('div'); hpBar.style = `position:absolute; bottom:0; width:100%; height:3px; background:red; z-index:6;`;
+                    const hpBar = document.createElement('div'); hpBar.style = `position:absolute; bottom:0; width:100%; height:4px; background:red; z-index:6;`;
                     hpBar.innerHTML = `<div style="width:${(b.hp/b.maxHp)*100}%; background:lime; height:100%;"></div>`;
                     cell.appendChild(hpBar);
                 }
@@ -211,12 +233,21 @@
                     cell.appendChild(uEl);
                 }
                 if (pendingBuild && selectedUnit && Math.abs(x - selectedUnit.x) + Math.abs(y - selectedUnit.y) === 1 && !isOccupied(x, y)) {
-                    cell.style.background = "rgba(241, 196, 15, 0.4)"; cell.style.border = "1px dashed yellow";
+                    cell.style.background = "rgba(241, 196, 15, 0.4)"; cell.style.border = "2px dashed yellow";
                 }
                 mapEl.appendChild(cell);
             }
         }
         updateUI();
+    }
+
+    function updateUI() {
+        const fac = gameState.factions[gameState.currentPlayerIndex];
+        const ind = document.getElementById('playerIndicator');
+        ind.innerText = `🟢 目前回合：${fac.name}`; ind.style.background = fac.color;
+        document.getElementById('uiTurn').innerText = gameState.turn;
+        document.getElementById('uiGold').innerText = fac.gold;
+        document.getElementById('uiFood').innerText = fac.food;
     }
 
     function isOccupied(x, y) { return gameState.units.some(u => u.x===x && u.y===y && u.troops>0) || gameState.buildings.some(b => b.x===x && b.y===y) || gameState.cities.some(c => c.x===x && c.y===y); }
@@ -244,12 +275,28 @@
         } else if (selectedUnit) {
             const dist = Math.abs(x - selectedUnit.x) + Math.abs(y - selectedUnit.y);
             if (dist <= UNIT_TYPES[selectedUnit.type].move && selectedUnit.movesLeft > 0) {
-                if(isOccupied(x, y) && !gameState.cities.some(c=>c.x===x&&c.y===y)) return; // 不能踩在部隊或建築上
+                if(isOccupied(x, y) && !gameState.cities.some(c=>c.x===x&&c.y===y)) return; 
                 selectedUnit.x = x; selectedUnit.y = y; selectedUnit.movesLeft--;
                 checkCityCapture(selectedUnit); showActionMenu(selectedUnit); initMap(); saveGame();
             }
             document.getElementById('subMenu').style.display = 'none'; pendingBuild = null;
         }
+    }
+
+    function checkCityCapture(unit) {
+        const city = gameState.cities.find(c => c.x === unit.x && c.y === unit.y);
+        if (city && city.faction !== unit.faction) {
+            log(`🏰 ${unit.name} 攻佔了 ${city.name}！`, "#f1c40f");
+            city.faction = unit.faction;
+        }
+    }
+
+    function finishAction() {
+        if(selectedUnit) { selectedUnit.acted = true; selectedUnit = null; }
+        document.getElementById('actionMenu').style.display = 'none';
+        document.getElementById('subMenu').style.display = 'none';
+        pendingBuild = null;
+        initMap(); saveGame();
     }
 
     function showActionMenu(unit) {
@@ -258,7 +305,7 @@
         document.getElementById('unitStats').innerHTML = `兵: ${unit.troops} | 氣: <span style="color:#f1c40f">${unit.stamina}</span> | 移: <span style="color:#2ecc71">${unit.movesLeft}</span>/2`;
         const city = gameState.cities.find(c => c.x === unit.x && c.y === unit.y);
         document.getElementById('domesticActions').style.display = (city && city.faction === unit.faction) ? 'flex' : 'none';
-        if(city) { document.getElementById('cityStats').style.display = 'block'; document.getElementById('cityStats').innerText = `📍 ${city.name} (開:${city.dev})`; } else { document.getElementById('cityStats').style.display = 'none'; }
+        if(city) { document.getElementById('cityStats').style.display = 'block'; document.getElementById('cityStats').innerText = `📍 ${city.name} (發展度:${city.dev})`; } else { document.getElementById('cityStats').style.display = 'none'; }
     }
 
     function toggleSubMenu(type) {
@@ -291,7 +338,7 @@
         if (target.isBuilding) {
             const bIndex = gameState.buildings.findIndex(b => b.x === target.x && b.y === target.y);
             if (bIndex > -1) {
-                gameState.buildings[bIndex].hp -= dmg; log(`🧱 ${attackerName} 攻擊 ${target.name}，造成 ${dmg} 破壞`);
+                gameState.buildings[bIndex].hp -= dmg; log(`🧱 ${attackerName} 破壞 ${target.name}，耐久 -${dmg}`);
                 if (gameState.buildings[bIndex].hp <= 0) { log(`💥 ${target.name} 被摧毀了！`, "orange"); gameState.buildings.splice(bIndex, 1); }
             }
         } else {
@@ -329,8 +376,25 @@
         finishAction();
     }
 
-    function handleDevelop() { const city = gameState.cities.find(c => c.x === selectedUnit.x && c.y === selectedUnit.y); if (gameState.factions[gameState.currentPlayerIndex].gold >= 100) { gameState.factions[gameState.currentPlayerIndex].gold -= 100; city.dev += 20; log(`🔨 建設了 ${city.name}`); finishAction(); } }
-    function handleDraft() { const city = gameState.cities.find(c => c.x === selectedUnit.x && c.y === selectedUnit.y); if (gameState.factions[gameState.currentPlayerIndex].gold >= 200) { gameState.factions[gameState.currentPlayerIndex].gold -= 200; selectedUnit.troops += 1000; log(`📯 在 ${city.name} 募兵 1000`); finishAction(); } }
+    function handleDevelop() { 
+        const city = gameState.cities.find(c => c.x === selectedUnit.x && c.y === selectedUnit.y); 
+        if (gameState.factions[gameState.currentPlayerIndex].gold >= 100) { 
+            gameState.factions[gameState.currentPlayerIndex].gold -= 100; 
+            city.dev += 20; 
+            log(`🔨 ${city.name} 開發提升！未來的金錢與兵糧收入增加了。`, "#2ecc71"); 
+            finishAction(); 
+        } else { log("❌ 金錢不足 100", "red"); }
+    }
+    
+    function handleDraft() { 
+        const city = gameState.cities.find(c => c.x === selectedUnit.x && c.y === selectedUnit.y); 
+        if (gameState.factions[gameState.currentPlayerIndex].gold >= 200) { 
+            gameState.factions[gameState.currentPlayerIndex].gold -= 200; 
+            selectedUnit.troops += 1000; 
+            log(`📯 在 ${city.name} 募兵 1000 人。請注意兵糧消耗！`, "#f1c40f"); 
+            finishAction(); 
+        } else { log("❌ 金錢不足 200", "red"); }
+    }
 
     function nextTurn() {
         selectedUnit = null; pendingBuild = null; document.getElementById('actionMenu').style.display = 'none';
@@ -338,21 +402,55 @@
         let safety = 0;
         do {
             gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % gameState.factions.length;
+            
+            // 旬結算 (所有勢力一輪結束)
             if (gameState.currentPlayerIndex === 0) {
                 gameState.turn++;
-                gameState.cities.forEach(c => { const f = gameState.factions.find(fac => fac.id === c.faction); if(f) f.gold += Math.floor(c.dev / 2); });
+                gameState.cities.forEach(c => { 
+                    const f = gameState.factions.find(fac => fac.id === c.faction); 
+                    if(f) {
+                        f.gold += Math.floor(c.dev / 2);
+                        f.food += Math.floor(c.dev * 50); // 新增：開發度大幅提升兵糧產量
+                    }
+                });
             }
             safety++;
         } while (gameState.units.filter(u => u.faction === gameState.factions[gameState.currentPlayerIndex].id && u.troops > 0).length === 0 && safety < 11);
         
         const fac = gameState.factions[gameState.currentPlayerIndex];
-        gameState.units.forEach(u => { if(u.faction === fac.id) { u.acted = false; u.movesLeft = 2; } });
+        
+        // 兵糧消耗計算
+        let totalTroops = 0;
+        gameState.units.forEach(u => { 
+            if(u.faction === fac.id && u.troops > 0) { 
+                u.acted = false; 
+                u.movesLeft = 2; 
+                totalTroops += u.troops; 
+            } 
+        });
+        
+        fac.food -= totalTroops;
+        if (fac.food < 0) {
+            fac.food = 0;
+            gameState.units.forEach(u => { 
+                if(u.faction === fac.id && u.troops > 0) { 
+                    u.morale = Math.max(0, u.morale - 10);
+                    u.troops = Math.floor(u.troops * 0.9); // 逃跑 10%
+                } 
+            });
+            if (!fac.isAI) log(`⚠️ 【危機】兵糧耗盡！部隊士氣下降，且出現大量逃兵！`, "red");
+        }
         
         // 建築自動攻擊
         triggerBuildings(fac.id);
 
         if (fac.isAI) { isProcessingAI = true; setTimeout(runAI, 50); } 
-        else { isProcessingAI = false; log(`--- 📅 第 ${gameState.turn} 旬：${fac.name} ---`, "#3498db"); saveGame(); }
+        else { 
+            isProcessingAI = false; 
+            log(`--- 📅 第 ${gameState.turn} 旬：${fac.name} ---`, "#3498db"); 
+            log(`🌾 消耗兵糧 ${totalTroops} 單位。`, "#f39c12");
+            saveGame(); 
+        }
         initMap();
     }
 
@@ -378,31 +476,35 @@
             allTargets.forEach(tu => { let d = Math.abs(tu.x - u.x) + Math.abs(tu.y - u.y); if (d < minDist) { minDist = d; target = tu; } });
             
             if (target) {
-                // AI 兩次移動
+                // AI 移動邏輯
                 for(let m=0; m<2; m++) {
                     if(u.movesLeft > 0 && minDist > UNIT_TYPES[u.type].range) {
                         let nx = u.x, ny = u.y;
                         if (u.x < target.x) nx++; else if (u.x > target.x) nx--; else if (u.y < target.y) ny++; else if (u.y > target.y) ny--;
-                        if(!isOccupied(nx, ny) || gameState.cities.some(c=>c.x===nx&&c.y===ny)) { u.x = nx; u.y = ny; u.movesLeft--; checkCityCapture(u); minDist = Math.abs(target.x - u.x) + Math.abs(target.y - u.y); }
+                        if(!isOccupied(nx, ny) || gameState.cities.some(c=>c.x===nx&&c.y===ny)) { 
+                            u.x = nx; u.y = ny; u.movesLeft--; 
+                            checkCityCapture(u); 
+                            minDist = Math.abs(target.x - u.x) + Math.abs(target.y - u.y); 
+                        }
                     }
                 }
-                if (minDist <= UNIT_TYPES[u.type].range && u.stamina >= 20 && Math.random() > 0.5) {
-                    u.stamina -= 20; let dmg = Math.floor((u.atk * (u.troops||2000) / 250) * 1.5); dealDamage(target, dmg, `[AI]${u.name}`);
-                } else if (minDist <= UNIT_TYPES[u.type].range) {
-                    let dmg = Math.floor((u.atk * (u.troops||2000) / 250)); dealDamage(target, dmg, `[AI]${u.name}`);
+                // AI 攻擊邏輯
+                if (minDist <= UNIT_TYPES[u.type].range) {
+                    let dmg = Math.floor(u.atk * u.troops / 250);
+                    if (u.stamina >= 20 && Math.random() > 0.5) {
+                        u.stamina -= 20; 
+                        dmg = Math.floor(dmg * 1.5);
+                        dealDamage(target, dmg, `${u.name} 施展戰法`);
+                    } else {
+                        dealDamage(target, dmg, u.name);
+                    }
                 }
             }
             u.acted = true;
         });
-        nextTurn();
+        
+        setTimeout(() => { nextTurn(); }, 300);
     }
-
-    function checkCityCapture(u) { const city = gameState.cities.find(c => c.x === u.x && c.y === u.y); if (city && city.faction !== u.faction) { city.faction = u.faction; log(`🚩 ${u.name} 攻佔 ${city.name}！`, "gold"); } }
-    function finishAction() { selectedUnit.acted = true; selectedUnit = null; pendingBuild = null; document.getElementById('actionMenu').style.display = 'none'; initMap(); saveGame(); }
-    function updateUI() { const fac = gameState.factions[gameState.currentPlayerIndex]; document.getElementById('uiTurn').innerText = gameState.turn; document.getElementById('uiGold').innerText = fac.gold; const ind = document.getElementById('playerIndicator'); ind.innerText = fac.name; ind.style.backgroundColor = fac.color; }
-    function log(msg, color="#ecf0f1") { const box = document.getElementById('logBox'); box.innerHTML += `<div style="color:${color}">> ${msg}</div>`; box.scrollTop = box.scrollHeight; }
-
-    loadGame();
 </script>
 </body>
 </html>
