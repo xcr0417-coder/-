@@ -3,20 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>三國志 Web：糧草大戰版 (v8.1)</title>
+    <title>三國志 Web：糧草大戰 v8.2 (新增劉璋)</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #1a1a1a; color: #ecf0f1; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .header { background: #2c3e50; width: 100%; padding: 10px 0; text-align: center; border-bottom: 4px solid #f1c40f; display: flex; justify-content: space-around; align-items: center; z-index: 100; flex-shrink: 0; font-size: 14px;}
         
-        /* 重新設計版面：地圖最大化 */
+        /* 地圖最大化佈局 */
         .game-area { display: flex; flex-direction: row; gap: 10px; padding: 10px; width: 100%; height: calc(100vh - 50px); box-sizing: border-box; }
         .map-container { flex-grow: 1; height: 100%; overflow: auto; border: 4px solid #3e2723; border-radius: 8px; background: #111; position: relative; touch-action: pan-x pan-y;}
-        /* 地圖網格大小調整，以適應大視窗 */
         .map-grid { display: grid; grid-template-columns: repeat(20, 50px); grid-template-rows: repeat(20, 50px); gap: 1px; background: #222; padding: 5px; width: fit-content; margin: auto; }
         
         .side-panel { width: 320px; flex-shrink: 0; background: #34495e; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; height: 100%; overflow-y: auto; box-sizing: border-box;}
         
-        /* 手機版自適應：變成上下排列 */
         @media (max-width: 768px) {
             .game-area { flex-direction: column; }
             .side-panel { width: 100%; height: 45vh; flex-shrink: 1; }
@@ -33,11 +31,12 @@
         .building-icon { font-size: 24px; position: absolute; z-index: 5; text-shadow: 0 0 5px black;}
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        /* 10大勢力配色 */
+        /* 11大勢力配色 */
         .u-shu { background: #2980b9; } .u-wei { background: #c0392b; } .u-wu { background: #27ae60; } 
         .u-dong { background: #8e44ad; } .u-yuan { background: #f1c40f; color: #000; text-shadow: none;} 
         .u-lu { background: #34495e; } .u-liub { background: #16a085; } .u-ma { background: #e67e22; } 
         .u-gong { background: #d35400; } .u-zhang { background: #95a5a6; color: #000; text-shadow: none;}
+        .u-liuz { background: #5d4037; } /* 劉璋軍：深褐色 */
         
         .action-menu { background: #2c3e50; padding: 10px; border-radius: 8px; display: none; border: 2px solid #f1c40f; }
         .log { background: #000; padding: 8px; flex-grow: 1; min-height: 80px; overflow-y: auto; font-size: 13px; color: #2ecc71; border-radius: 8px; border: 1px solid #555; line-height: 1.4;}
@@ -85,7 +84,7 @@
                 <button style="background:#2980b9; color:white; width:48%" onclick="handleDraft()">📯 募兵</button>
             </div>
         </div>
-        <div class="log" id="logBox">> 糧草大戰版上線！支援全螢幕地圖與嚴格兵糧限制。</div>
+        <div class="log" id="logBox">> 益州之主劉璋加入戰場。</div>
         <button class="btn-next" id="btnNextTurn" onclick="nextTurn()">⏳ 結束回合 (換手)</button>
     </div>
 </div>
@@ -103,19 +102,18 @@
     let gameState; let selectedUnit = null; let isProcessingAI = false; let pendingBuild = null;
 
     function saveGame() {
-        localStorage.setItem('sanguo_v8_1', JSON.stringify(gameState));
+        localStorage.setItem('sanguo_v8_2', JSON.stringify(gameState));
         const notice = document.getElementById('saveNotice');
         notice.style.opacity = 1; setTimeout(() => notice.style.opacity = 0, 800);
     }
     function loadGame() {
-        const saved = localStorage.getItem('sanguo_v8_1');
+        const saved = localStorage.getItem('sanguo_v8_2');
         if (saved) {
             gameState = JSON.parse(saved);
-            gameState.factions.forEach(f => { if(f.food === undefined) f.food = 100000; });
         } else gameState = getDefaultState();
         initMap();
     }
-    function resetGame() { if(confirm("確定重啟嗎？")) { localStorage.removeItem('sanguo_v8_1'); location.reload(); } }
+    function resetGame() { if(confirm("確定重啟嗎？")) { localStorage.removeItem('sanguo_v8_2'); location.reload(); } }
     function exportSave() { prompt("備份代碼：", btoa(encodeURIComponent(JSON.stringify(gameState)))); }
     function importSave() { const str = prompt("貼上代碼："); if(str) { try { gameState = JSON.parse(decodeURIComponent(atob(str))); saveGame(); location.reload(); } catch(e) { alert("錯誤！"); } } }
 
@@ -131,65 +129,58 @@
             { id: 'wu', name: '孫權軍', color: '#27ae60', gold: 1300, food: 100000, isAI: true }, { id: 'dong', name: '董卓軍', color: '#8e44ad', gold: 1600, food: 100000, isAI: true },
             { id: 'yuan', name: '袁紹軍', color: '#f1c40f', gold: 1500, food: 100000, isAI: true }, { id: 'lu', name: '呂布軍', color: '#34495e', gold: 1000, food: 100000, isAI: true },
             { id: 'liub', name: '劉表軍', color: '#16a085', gold: 1000, food: 100000, isAI: true }, { id: 'ma', name: '馬騰軍', color: '#e67e22', gold: 1100, food: 100000, isAI: true },
-            { id: 'gong', name: '公孫軍', color: '#d35400', gold: 1000, food: 100000, isAI: true }, { id: 'zhang', name: '張魯軍', color: '#95a5a6', gold: 900, food: 100000, isAI: true }
+            { id: 'gong', name: '公孫軍', color: '#d35400', gold: 1000, food: 100000, isAI: true }, { id: 'zhang', name: '張魯軍', color: '#95a5a6', gold: 900, food: 100000, isAI: true },
+            { id: 'liuz', name: '劉璋軍', color: '#5d4037', gold: 1100, food: 100000, isAI: true }
         ];
         let units = [
+            // 劉備軍
             { name: "劉備", faction: 'shu', type: '步', x: 2, y: 16, troops: 5000, morale: 80, atk: 75, def: 85, int: 80 },
             { name: "關羽", faction: 'shu', type: '騎', x: 3, y: 17, troops: 6000, morale: 95, atk: 97, def: 90, int: 75 },
             { name: "張飛", faction: 'shu', type: '騎', x: 2, y: 18, troops: 5500, morale: 98, atk: 98, def: 80, int: 30 },
             { name: "孔明", faction: 'shu', type: '石', x: 1, y: 17, troops: 4000, morale: 100, atk: 35, def: 90, int: 100 },
             { name: "趙雲", faction: 'shu', type: '騎', x: 3, y: 16, troops: 5000, morale: 95, atk: 96, def: 95, int: 76 },
-            { name: "龐統", faction: 'shu', type: '智', x: 1, y: 18, troops: 4000, morale: 95, atk: 40, def: 85, int: 98 },
+            // 曹操軍
             { name: "曹操", faction: 'wei', type: '騎', x: 10, y: 7, troops: 7000, morale: 90, atk: 85, def: 95, int: 92 },
             { name: "夏侯", faction: 'wei', type: '車', x: 11, y: 8, troops: 6000, morale: 85, atk: 90, def: 85, int: 60 },
             { name: "司馬", faction: 'wei', type: '智', x: 9, y: 8, troops: 5000, morale: 90, atk: 40, def: 88, int: 98 },
             { name: "許褚", faction: 'wei', type: '步', x: 10, y: 9, troops: 6000, morale: 90, atk: 96, def: 70, int: 20 },
             { name: "郭嘉", faction: 'wei', type: '石', x: 11, y: 7, troops: 4000, morale: 95, atk: 30, def: 60, int: 99 },
-            { name: "荀彧", faction: 'wei', type: '智', x: 9, y: 7, troops: 4000, morale: 90, atk: 35, def: 80, int: 97 },
+            // 孫權軍
             { name: "孫權", faction: 'wu', type: '弓', x: 16, y: 13, troops: 6000, morale: 85, atk: 75, def: 80, int: 80 },
             { name: "周瑜", faction: 'wu', type: '智', x: 15, y: 14, troops: 5000, morale: 95, atk: 70, def: 90, int: 96 },
             { name: "太史", faction: 'wu', type: '車', x: 17, y: 14, troops: 5500, morale: 85, atk: 90, def: 82, int: 50 },
             { name: "甘寧", faction: 'wu', type: '騎', x: 16, y: 15, troops: 5000, morale: 90, atk: 94, def: 75, int: 45 },
             { name: "陸遜", faction: 'wu', type: '石', x: 17, y: 13, troops: 4500, morale: 90, atk: 65, def: 85, int: 95 },
-            { name: "魯肅", faction: 'wu', type: '智', x: 15, y: 15, troops: 4500, morale: 85, atk: 50, def: 85, int: 92 },
+            // 劉璋軍 (新增)
+            { name: "劉璋", faction: 'liuz', type: '步', x: 4, y: 15, troops: 6000, morale: 70, atk: 55, def: 80, int: 65 },
+            { name: "張任", faction: 'liuz', type: '騎', x: 5, y: 14, troops: 5500, morale: 95, atk: 92, def: 88, int: 70 },
+            { name: "嚴顏", faction: 'liuz', type: '車', x: 4, y: 14, troops: 5000, morale: 90, atk: 88, def: 92, int: 60 },
+            { name: "吳懿", faction: 'liuz', type: '步', x: 3, y: 15, troops: 5000, morale: 80, atk: 82, def: 80, int: 72 },
+            { name: "黃權", faction: 'liuz', type: '智', x: 5, y: 15, troops: 4000, morale: 85, atk: 50, def: 75, int: 88 },
+            // 董卓軍
             { name: "董卓", faction: 'dong', type: '步', x: 6, y: 7, troops: 8000, morale: 70, atk: 80, def: 75, int: 40 },
             { name: "華雄", faction: 'dong', type: '騎', x: 7, y: 8, troops: 6500, morale: 85, atk: 90, def: 70, int: 30 },
             { name: "李儒", faction: 'dong', type: '智', x: 5, y: 8, troops: 4000, morale: 80, atk: 30, def: 65, int: 93 },
-            { name: "郭汜", faction: 'dong', type: '車', x: 6, y: 9, troops: 5000, morale: 75, atk: 75, def: 70, int: 35 },
-            { name: "李傕", faction: 'dong', type: '石', x: 7, y: 7, troops: 5000, morale: 75, atk: 78, def: 72, int: 40 },
-            { name: "賈詡", faction: 'dong', type: '智', x: 5, y: 7, troops: 4500, morale: 80, atk: 45, def: 75, int: 97 },
+            // 袁紹軍
             { name: "袁紹", faction: 'yuan', type: '步', x: 12, y: 3, troops: 8000, morale: 80, atk: 70, def: 80, int: 70 },
             { name: "顏良", faction: 'yuan', type: '騎', x: 13, y: 4, troops: 6000, morale: 85, atk: 93, def: 75, int: 35 },
             { name: "文醜", faction: 'yuan', type: '騎', x: 11, y: 4, troops: 6000, morale: 85, atk: 92, def: 75, int: 30 },
-            { name: "田豐", faction: 'yuan', type: '智', x: 12, y: 2, troops: 4000, morale: 90, atk: 35, def: 70, int: 94 },
-            { name: "沮授", faction: 'yuan', type: '石', x: 13, y: 3, troops: 4000, morale: 90, atk: 40, def: 72, int: 92 },
-            { name: "張郃", faction: 'yuan', type: '車', x: 11, y: 3, troops: 6500, morale: 85, atk: 90, def: 82, int: 65 },
+            // 呂布軍
             { name: "呂布", faction: 'lu', type: '騎', x: 15, y: 6, troops: 7500, morale: 100, atk: 100, def: 80, int: 20 },
             { name: "張遼", faction: 'lu', type: '騎', x: 14, y: 7, troops: 6000, morale: 90, atk: 92, def: 88, int: 75 },
             { name: "高順", faction: 'lu', type: '車', x: 15, y: 8, troops: 5500, morale: 95, atk: 88, def: 92, int: 50 },
-            { name: "陳宮", faction: 'lu', type: '石', x: 16, y: 7, troops: 4000, morale: 90, atk: 45, def: 75, int: 94 },
-            { name: "臧霸", faction: 'lu', type: '步', x: 14, y: 6, troops: 5000, morale: 80, atk: 82, def: 80, int: 45 },
-            { name: "貂蟬", faction: 'lu', type: '智', x: 16, y: 8, troops: 3000, morale: 100, atk: 20, def: 40, int: 85 },
+            // 劉表軍
             { name: "劉表", faction: 'liub', type: '步', x: 9, y: 12, troops: 6000, morale: 75, atk: 60, def: 70, int: 70 },
             { name: "黃忠", faction: 'liub', type: '弓', x: 8, y: 13, troops: 5500, morale: 90, atk: 93, def: 80, int: 60 },
-            { name: "魏延", faction: 'liub', type: '車', x: 10, y: 13, troops: 5500, morale: 85, atk: 91, def: 82, int: 55 },
-            { name: "蔡瑁", faction: 'liub', type: '石', x: 9, y: 14, troops: 5000, morale: 70, atk: 72, def: 75, int: 65 },
-            { name: "蒯越", faction: 'liub', type: '智', x: 8, y: 12, troops: 4000, morale: 80, atk: 35, def: 65, int: 88 },
+            // 馬騰軍
             { name: "馬騰", faction: 'ma', type: '騎', x: 1, y: 3, troops: 6000, morale: 85, atk: 82, def: 80, int: 50 },
             { name: "馬超", faction: 'ma', type: '騎', x: 2, y: 4, troops: 6500, morale: 95, atk: 97, def: 85, int: 40 },
-            { name: "馬岱", faction: 'ma', type: '騎', x: 1, y: 5, troops: 5000, morale: 85, atk: 85, def: 78, int: 55 },
-            { name: "韓遂", faction: 'ma', type: '車', x: 0, y: 4, troops: 5500, morale: 80, atk: 78, def: 80, int: 75 },
-            { name: "龐德", faction: 'ma', type: '車', x: 2, y: 3, troops: 6000, morale: 90, atk: 94, def: 82, int: 60 },
+            // 公孫軍
             { name: "公孫", faction: 'gong', type: '騎', x: 16, y: 1, troops: 6000, morale: 80, atk: 80, def: 75, int: 60 },
             { name: "田豫", faction: 'gong', type: '步', x: 15, y: 2, troops: 5000, morale: 85, atk: 78, def: 82, int: 80 },
-            { name: "公孫越", faction: 'gong', type: '車', x: 17, y: 1, troops: 5000, morale: 75, atk: 75, def: 70, int: 50 },
-            { name: "單經", faction: 'gong', type: '石', x: 16, y: 0, troops: 4500, morale: 70, atk: 72, def: 68, int: 45 },
-            { name: "嚴柔", faction: 'gong', type: '弓', x: 17, y: 2, troops: 4500, morale: 75, atk: 75, def: 72, int: 60 },
+            // 張魯軍
             { name: "張魯", faction: 'zhang', type: '智', x: 5, y: 11, troops: 5000, morale: 80, atk: 65, def: 70, int: 80 },
-            { name: "張衛", faction: 'zhang', type: '步', x: 4, y: 12, troops: 5000, morale: 75, atk: 75, def: 72, int: 50 },
-            { name: "楊松", faction: 'zhang', type: '石', x: 6, y: 11, troops: 3500, morale: 60, atk: 20, def: 40, int: 75 },
-            { name: "閻圃", faction: 'zhang', type: '智', x: 4, y: 11, troops: 4000, morale: 85, atk: 35, def: 65, int: 85 },
-            { name: "楊任", faction: 'zhang', type: '車', x: 6, y: 12, troops: 5000, morale: 80, atk: 82, def: 75, int: 50 }
+            { name: "張衛", faction: 'zhang', type: '步', x: 4, y: 12, troops: 5000, morale: 75, atk: 75, def: 72, int: 50 }
         ];
         units.forEach((u, idx) => { u.id = idx + 1; u.acted = false; u.stamina = 100; u.confused = false; u.movesLeft = 2; });
 
@@ -200,7 +191,8 @@
                 { x: 16, y: 14, faction: 'wu', name: "建業", dev: 400, pop: 6000 }, { x: 6, y: 8, faction: 'dong', name: "長安", dev: 600, pop: 7000 },
                 { x: 12, y: 4, faction: 'yuan', name: "鄴城", dev: 500, pop: 6000 }, { x: 15, y: 7, faction: 'lu', name: "下邳", dev: 350, pop: 4000 },
                 { x: 9, y: 13, faction: 'liub', name: "襄陽", dev: 450, pop: 5000 }, { x: 1, y: 4, faction: 'ma', name: "西涼", dev: 200, pop: 3000 },
-                { x: 16, y: 2, faction: 'gong', name: "北平", dev: 300, pop: 4000 }, { x: 5, y: 12, faction: 'zhang', name: "漢中", dev: 250, pop: 3500 }
+                { x: 16, y: 2, faction: 'gong', name: "北平", dev: 300, pop: 4000 }, { x: 5, y: 12, faction: 'zhang', name: "漢中", dev: 250, pop: 3500 },
+                { x: 4, y: 15, faction: 'liuz', name: "涪城", dev: 300, pop: 4500 }
             ], units
         };
     }
@@ -210,10 +202,8 @@
         for (let y = 0; y < 20; y++) {
             for (let x = 0; x < 20; x++) {
                 const cell = document.createElement('div'); cell.className = 'cell'; cell.onclick = () => handleCellClick(x, y);
-                
                 const city = gameState.cities.find(c => c.x === x && c.y === y);
                 if(city) { cell.classList.add('city'); cell.innerHTML = `🏰`; cell.style.borderColor = gameState.factions.find(f=>f.id===city.faction).color; }
-                
                 const b = gameState.buildings.find(b => b.x === x && b.y === y);
                 if(b) {
                     cell.classList.add('building-cell');
@@ -223,7 +213,6 @@
                     hpBar.innerHTML = `<div style="width:${(b.hp/b.maxHp)*100}%; background:lime; height:100%;"></div>`;
                     cell.appendChild(hpBar);
                 }
-
                 const u = gameState.units.find(u => u.x === x && u.y === y && u.troops > 0);
                 if(u) {
                     const uEl = document.createElement('div');
@@ -398,59 +387,37 @@
 
     function nextTurn() {
         selectedUnit = null; pendingBuild = null; document.getElementById('actionMenu').style.display = 'none';
-        
         let safety = 0;
         do {
             gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % gameState.factions.length;
-            
-            // 旬結算 (所有勢力一輪結束)
             if (gameState.currentPlayerIndex === 0) {
                 gameState.turn++;
                 gameState.cities.forEach(c => { 
                     const f = gameState.factions.find(fac => fac.id === c.faction); 
-                    if(f) {
-                        f.gold += Math.floor(c.dev / 2);
-                        f.food += Math.floor(c.dev * 50); // 新增：開發度大幅提升兵糧產量
-                    }
+                    if(f) { f.gold += Math.floor(c.dev / 2); f.food += Math.floor(c.dev * 50); }
                 });
             }
             safety++;
-        } while (gameState.units.filter(u => u.faction === gameState.factions[gameState.currentPlayerIndex].id && u.troops > 0).length === 0 && safety < 11);
+        } while (gameState.units.filter(u => u.faction === gameState.factions[gameState.currentPlayerIndex].id && u.troops > 0).length === 0 && safety < 12);
         
         const fac = gameState.factions[gameState.currentPlayerIndex];
-        
-        // 兵糧消耗計算
         let totalTroops = 0;
         gameState.units.forEach(u => { 
-            if(u.faction === fac.id && u.troops > 0) { 
-                u.acted = false; 
-                u.movesLeft = 2; 
-                totalTroops += u.troops; 
-            } 
+            if(u.faction === fac.id && u.troops > 0) { u.acted = false; u.movesLeft = 2; totalTroops += u.troops; } 
         });
         
         fac.food -= totalTroops;
         if (fac.food < 0) {
             fac.food = 0;
             gameState.units.forEach(u => { 
-                if(u.faction === fac.id && u.troops > 0) { 
-                    u.morale = Math.max(0, u.morale - 10);
-                    u.troops = Math.floor(u.troops * 0.9); // 逃跑 10%
-                } 
+                if(u.faction === fac.id && u.troops > 0) { u.morale = Math.max(0, u.morale - 10); u.troops = Math.floor(u.troops * 0.9); } 
             });
-            if (!fac.isAI) log(`⚠️ 【危機】兵糧耗盡！部隊士氣下降，且出現大量逃兵！`, "red");
+            if (!fac.isAI) log(`⚠️ 【危機】兵糧耗盡！部隊發生逃亡！`, "red");
         }
         
-        // 建築自動攻擊
         triggerBuildings(fac.id);
-
         if (fac.isAI) { isProcessingAI = true; setTimeout(runAI, 50); } 
-        else { 
-            isProcessingAI = false; 
-            log(`--- 📅 第 ${gameState.turn} 旬：${fac.name} ---`, "#3498db"); 
-            log(`🌾 消耗兵糧 ${totalTroops} 單位。`, "#f39c12");
-            saveGame(); 
-        }
+        else { isProcessingAI = false; log(`--- 📅 第 ${gameState.turn} 旬：${fac.name} ---`, "#3498db"); log(`🌾 本旬消耗兵糧 ${totalTroops}。`, "#f39c12"); saveGame(); }
         initMap();
     }
 
@@ -468,41 +435,26 @@
         myUnits.forEach(u => {
             if (u.confused) { u.confused = false; u.acted = true; return; }
             let target = null; let minDist = 99;
-            
             let allTargets = gameState.units.filter(tu => tu.faction !== u.faction && tu.troops > 0);
             let bTargets = gameState.buildings.filter(b => b.faction !== u.faction).map(b => ({...b, isBuilding:true}));
             allTargets = allTargets.concat(bTargets);
-
             allTargets.forEach(tu => { let d = Math.abs(tu.x - u.x) + Math.abs(tu.y - u.y); if (d < minDist) { minDist = d; target = tu; } });
-            
             if (target) {
-                // AI 移動邏輯
                 for(let m=0; m<2; m++) {
                     if(u.movesLeft > 0 && minDist > UNIT_TYPES[u.type].range) {
                         let nx = u.x, ny = u.y;
                         if (u.x < target.x) nx++; else if (u.x > target.x) nx--; else if (u.y < target.y) ny++; else if (u.y > target.y) ny--;
-                        if(!isOccupied(nx, ny) || gameState.cities.some(c=>c.x===nx&&c.y===ny)) { 
-                            u.x = nx; u.y = ny; u.movesLeft--; 
-                            checkCityCapture(u); 
-                            minDist = Math.abs(target.x - u.x) + Math.abs(target.y - u.y); 
-                        }
+                        if(!isOccupied(nx, ny) || gameState.cities.some(c=>c.x===nx&&c.y===ny)) { u.x = nx; u.y = ny; u.movesLeft--; checkCityCapture(u); minDist = Math.abs(target.x - u.x) + Math.abs(target.y - u.y); }
                     }
                 }
-                // AI 攻擊邏輯
                 if (minDist <= UNIT_TYPES[u.type].range) {
                     let dmg = Math.floor(u.atk * u.troops / 250);
-                    if (u.stamina >= 20 && Math.random() > 0.5) {
-                        u.stamina -= 20; 
-                        dmg = Math.floor(dmg * 1.5);
-                        dealDamage(target, dmg, `${u.name} 施展戰法`);
-                    } else {
-                        dealDamage(target, dmg, u.name);
-                    }
+                    if (u.stamina >= 20 && Math.random() > 0.5) { u.stamina -= 20; dmg = Math.floor(dmg * 1.5); dealDamage(target, dmg, `${u.name} 施展戰法`); } 
+                    else { dealDamage(target, dmg, u.name); }
                 }
             }
             u.acted = true;
         });
-        
         setTimeout(() => { nextTurn(); }, 300);
     }
 </script>
