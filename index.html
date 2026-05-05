@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>三國志 Web v8.10：極速演算版</title>
+    <title>三國志 Web v8.11：真極速版</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #1a1a1a; color: #ecf0f1; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         #setupOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; overflow-y: auto;}
@@ -22,7 +22,7 @@
         .cell { width: 100%; height: 100%; background: #2e7d32; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 0.1px solid rgba(255,255,255,0.05); }
         .cell.city { background: #546e7a; border: 2px inset #f1c40f; }
         .cell.empty-city { background: #7f8c8d; border: 2px dashed #bdc3c7; }
-        .unit { width: 85%; height: 85%; border-radius: 50%; border: 2px solid #fff; position: absolute; z-index: 10; font-size: 14px; display: flex; align-items: center; justify-content: center; font-weight: bold; text-shadow: 1px 1px 2px black; transition: all 0.1s;}
+        .unit { width: 85%; height: 85%; border-radius: 50%; border: 2px solid #fff; position: absolute; z-index: 10; font-size: 14px; display: flex; align-items: center; justify-content: center; font-weight: bold; text-shadow: 1px 1px 2px black;}
         .unit.selected { border-color: #f1c40f; box-shadow: 0 0 15px #f1c40f; z-index: 30; transform: scale(1.1);}
         .stack-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid white;}
 
@@ -39,7 +39,7 @@
 
 <div id="setupOverlay">
     <div class="setup-box">
-        <h1 style="color:#f1c40f; margin-top:0;">三國志 Web v8.10</h1>
+        <h1 style="color:#f1c40f; margin-top:0;">三國志 Web v8.11</h1>
         <div class="setup-grid">
             <div>
                 <label>選擇或創建勢力</label>
@@ -117,8 +117,8 @@
             </div>
             <div id="subMenu" style="display:none; flex-wrap:wrap; gap:4px; margin-top:8px;"></div>
         </div>
-        <div class="log" id="logBox">> 歡迎來到三國 Web v8.10。</div>
-        <button class="btn-next" onclick="nextTurn()">⏳ 結束回合</button>
+        <div class="log" id="logBox">> 歡迎來到三國 Web v8.11。</div>
+        <button class="btn-next" onclick="nextTurn(false)">⏳ 結束回合</button>
         <button onclick="location.reload()" style="background:#c0392b; color:white; font-size:10px; margin-top:5px; padding:5px;">🔄 重新開局</button>
     </div>
 </div>
@@ -190,7 +190,7 @@
         
         if (firstFac.isAI) {
             isProcessingAI = true;
-            setTimeout(runAI, 30); // ★ 極速演算
+            setTimeout(runAI, 30);
         } else {
             isProcessingAI = false;
             log(`--- 第 ${gameState.turn} 旬：您的回合 ---`, "#3498db");
@@ -359,8 +359,9 @@
         initMap();
     }
 
-    function nextTurn() {
-        if(isProcessingAI) return; 
+    // ★ 關鍵修復：加入 isAuto 參數，讓系統自動接續時不會被鎖住
+    function nextTurn(isAuto = false) {
+        if(isProcessingAI && !isAuto) return; 
         
         selectedUnit = null;
         gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % gameState.factions.length;
@@ -389,7 +390,7 @@
 
         if (fac.isAI) { 
             isProcessingAI = true; 
-            setTimeout(runAI, 30); // ★ 極速演算
+            setTimeout(runAI, 30); 
         } 
         else { 
             isProcessingAI = false; 
@@ -421,14 +422,16 @@
             u.acted = true;
         });
         
-        setTimeout(nextTurn, 30); // ★ 極速交接下一回合
+        // ★ 關鍵修復：傳入 true，告訴系統這是 AI 自動呼叫的，不要擋下來
+        setTimeout(() => nextTurn(true), 30); 
     }
 
     function updateUI() {
         if(!gameState) return;
         const fac = gameState.factions[gameState.currentPlayerIndex];
         const ind = document.getElementById('playerIndicator');
-        ind.innerText = fac.name + (fac.isAI ? " (運算中...)" : " (您的回合)");
+        // AI 回合太快了，指示燈甚至可能只閃一下，不再顯示漫長的運算中
+        ind.innerText = fac.name + (fac.isAI ? " (連動中)" : " (您的回合)");
         ind.style.background = fac.isAI ? "#555" : fac.color;
         document.getElementById('uiTurn').innerText = gameState.turn;
         document.getElementById('uiGold').innerText = fac.gold;
