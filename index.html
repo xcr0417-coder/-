@@ -3,19 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>三國志 Web v8.12：兵書解惑版</title>
+    <title>三國志 Web v8.15：屯兵出征版</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #1a1a1a; color: #ecf0f1; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* 彈窗樣式共用 */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; overflow-y: auto;}
         .modal-box { background: #2c3e50; padding: 25px; border-radius: 15px; border: 3px solid #f1c40f; width: 90%; max-width: 600px; margin: 20px;}
-        
-        /* 說明書特有樣式 */
-        .manual-content { background: #1a252f; padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.6; max-height: 50vh; overflow-y: auto; margin-bottom: 15px; border: 1px solid #7f8c8d; }
-        .manual-content h4 { color: #3498db; margin: 10px 0 5px 0; border-bottom: 1px solid #3498db; padding-bottom: 3px;}
-        .manual-content li { margin-bottom: 5px; }
-
+        .manual-content { background: #1a252f; padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.6; max-height: 40vh; overflow-y: auto; margin-bottom: 15px; border: 1px solid #7f8c8d; }
         .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-bottom: 20px;}
         input, select, button { padding: 10px; border-radius: 5px; border: none; font-size: 14px; width: 100%; box-sizing: border-box;}
         label { font-size: 13px; color: #f1c40f; display: block; margin-bottom: 5px;}
@@ -27,21 +20,22 @@
         .map-grid { display: grid; grid-template-columns: repeat(30, 50px); grid-template-rows: repeat(30, 50px); gap: 1px; background: #222; padding: 5px; width: fit-content; }
         .side-panel { width: 320px; background: #34495e; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto;}
         
-        .cell { width: 100%; height: 100%; background: #2e7d32; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 0.1px solid rgba(255,255,255,0.05); }
+        .cell { width: 100%; height: 100%; background: #2e7d32; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; border: 0.1px solid rgba(255,255,255,0.05); }
         .cell.city { background: #546e7a; border: 2px inset #f1c40f; }
         .cell.empty-city { background: #7f8c8d; border: 2px dashed #bdc3c7; }
-        .cell.in-range { border: 2px dashed #f1c40f; background-color: rgba(241, 196, 15, 0.3); z-index: 5;} /* 移動範圍高光 */
+        .cell.in-range { border: 2px dashed #f1c40f; background-color: rgba(241, 196, 15, 0.3); z-index: 5;}
+        
+        .city-label { font-size: 10px; color: #fff; background: rgba(0,0,0,0.6); padding: 0 2px; border-radius: 3px; position: absolute; bottom: 2px; transform: scale(0.8); }
 
-        .unit { width: 85%; height: 85%; border-radius: 50%; border: 2px solid #fff; position: absolute; z-index: 10; font-size: 14px; display: flex; align-items: center; justify-content: center; font-weight: bold; text-shadow: 1px 1px 2px black; transition: all 0.1s;}
+        .unit { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #fff; position: absolute; z-index: 10; font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; text-shadow: 1px 1px 2px black; transition: all 0.1s;}
         .unit.selected { border-color: #f1c40f; box-shadow: 0 0 15px #f1c40f; z-index: 30; transform: scale(1.1);}
-        .stack-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid white;}
 
         .action-menu { background: #2c3e50; padding: 10px; border-radius: 8px; display: none; border: 2px solid #f1c40f; }
         .deploy-list { max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 5px; margin: 5px 0; border-radius: 4px;}
-        .deploy-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid #555; font-size: 12px; cursor: pointer; }
+        .deploy-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #555; font-size: 13px; cursor: pointer; background: #34495e; margin-bottom: 2px;}
         .deploy-item:hover { background: #2980b9; }
 
-        .log { background: #000; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 13px; color: #2ecc71; border-radius: 8px; min-height: 120px; line-height: 1.4;}
+        .log { background: #000; padding: 8px; flex-grow: 1; overflow-y: auto; font-size: 13px; color: #2ecc71; border-radius: 8px; min-height: 100px; line-height: 1.4;}
         .btn-next { background: #27ae60; color: white; padding: 12px; font-size: 1.1em; cursor: pointer; font-weight: bold;}
     </style>
 </head>
@@ -49,156 +43,102 @@
 
 <div id="manualOverlay" class="overlay">
     <div class="modal-box">
-        <h1 style="color:#f1c40f; margin-top:0; text-align:center;">📜 遊戲說明書</h1>
+        <h1 style="color:#f1c40f; margin-top:0; text-align:center;">📜 兵書 (v8.15)</h1>
         <div class="manual-content">
-            <h4>🎯 遊戲目標</h4>
-            <p>攻城掠地，消滅其他諸侯，統一天下。當部隊移動到敵方城池或中立空城時，即可佔領該城池。</p>
-            
-            <h4>🏰 城池指令 (點擊己方城池)</h4>
-            <ul>
-                <li><b>點將出征 (200金)</b>：派遣一名武將至城池上方。<b>注意：剛出征的部隊當回合無法立刻行動</b>，需等待至下一旬。</li>
-                <li><b>募兵 (300金)</b>：隨機為該勢力場上的一支連隊補充兵力。</li>
-            </ul>
-
-            <h4>⚔️ 部隊指令 (點擊己方未行動的部隊)</h4>
-            <ul>
-                <li><b>移動</b>：部隊每次最高可移動 2 格。點擊部隊後，地圖會亮起<b>黃色虛線</b>，點擊虛線範圍內即可移動。</li>
-                <li><b>攻擊</b>：點選選單的攻擊後，會自動對周圍相鄰的敵軍造成普攻傷害。</li>
-                <li><b>戰法</b>：消耗氣力施展強大技能，不同兵種有專屬戰法，傷害更高！</li>
-                <li><b>待命</b>：結束該部隊的回合。在城池內待命可大幅恢復氣力。</li>
-            </ul>
+            <h4>🏮 屯兵系統</h4>
+            <p>城池現在擁有**預備兵**。募兵會增加城內的兵員，而非直接增加部隊兵力。</p>
+            <h4>🚩 出征規則</h4>
+            <p>點擊城池，選取武將並**輸入帶兵數**。士兵會從城池庫存中扣除，武將出征當回合無法行動。</p>
+            <h4>🏰 佔領與補給</h4>
+            <p>部隊進入敵城或空城即佔領。佔領後可點擊城池進行募兵，每旬（回合）城池也會自動產出少量兵金。</p>
         </div>
-        <button class="start-btn" onclick="closeManual()">我明白了，準備開局</button>
+        <button class="start-btn" onclick="closeManual()">閱讀完畢，進入設定</button>
     </div>
 </div>
 
 <div id="setupOverlay" class="overlay" style="display: none;">
     <div class="modal-box">
-        <h1 style="color:#f1c40f; margin-top:0;">三國志 Web v8.12</h1>
+        <h1 style="color:#f1c40f; margin:0 0 15px 0;">勢力與英雄設定</h1>
         <div class="setup-grid">
             <div>
-                <label>選擇或創建勢力</label>
+                <label>選擇勢力</label>
                 <select id="factionSelect" onchange="toggleCustomFields()">
                     <option value="shu">劉備軍</option>
                     <option value="wei">曹操軍</option>
                     <option value="wu">孫權軍</option>
-                    <option value="dong">董卓軍</option>
-                    <option value="yuan">袁紹軍</option>
-                    <option value="ma">馬騰軍</option>
                     <option value="custom">★ 自創勢力 ★</option>
                 </select>
             </div>
             <div>
-                <label>電腦強度</label>
-                <select id="difficultySelect">
-                    <option value="1">初級 (AI不主動攻擊)</option>
-                    <option value="2" selected>中級 (正常擴張)</option>
-                    <option value="3">高級 (AI資源加倍)</option>
-                </select>
+                <label>難度</label>
+                <select id="difficultySelect"><option value="1">初級</option><option value="2" selected>中級</option></select>
             </div>
-            <div id="customNameBox" style="display:none; grid-column: span 2; border-top: 1px solid #555; padding-top: 10px;">
-                <div class="setup-grid" style="margin-bottom:0;">
-                    <div>
-                        <label>勢力名稱</label>
-                        <input type="text" id="customFacName" placeholder="例如：新興軍">
-                    </div>
-                    <div>
-                        <label>主公姓名</label>
-                        <input type="text" id="customHeroName" placeholder="例如：龍傲天">
-                    </div>
-                    <div>
-                        <label>主公兵種</label>
-                        <select id="customType">
-                            <option value="騎">騎兵 (高移動)</option>
-                            <option value="步">步兵 (均衡)</option>
-                            <option value="弓">弓兵 (遠程)</option>
-                            <option value="智">智將 (強力計謀)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>勢力顏色</label>
-                        <input type="color" id="customColor" value="#9b59b6">
-                    </div>
-                </div>
+            <div id="customNameBox" style="display:none; grid-column: span 2;">
+                <label>勢力名稱</label>
+                <input type="text" id="customFacName" placeholder="例如：新興軍" style="margin-bottom:10px;">
+                <label>自創武將 (多位請用逗號隔開)</label>
+                <input type="text" id="customHeros" placeholder="例如：龍傲天, 趙小虎, 王大錘">
+                <label>勢力顏色</label>
+                <input type="color" id="customColor" value="#9b59b6">
             </div>
-            <button class="start-btn" onclick="startGame()">建立霸業 · 開啟征途</button>
+            <button class="start-btn" onclick="startGame()">開啟霸業</button>
         </div>
     </div>
 </div>
 
 <div class="header">
-    <div id="playerIndicator" style="padding:4px 12px; border-radius:5px; font-weight:bold;">等待開局...</div>
+    <div id="playerIndicator" style="padding:4px 12px; border-radius:5px; font-weight:bold;">等待中</div>
     <div>📅 第 <span id="uiTurn">1</span> 旬</div>
-    <div>💰 金：<span id="uiGold">0</span> | 🌾 糧：<span id="uiFood">0</span></div>
+    <div>💰 <span id="uiGold">0</span> | 🌾 <span id="uiFood">0</span></div>
 </div>
 
 <div class="game-area">
     <div class="map-container"><div id="map" class="map-grid"></div></div>
     <div class="side-panel">
         <div id="actionMenu" class="action-menu">
-            <h3 id="activeTitle" style="margin:0; color:#f1c40f;">指令選單</h3>
-            <div id="unitStats" style="font-size:12px; background:#1a252f; padding:5px; border-radius:5px; margin:5px 0;"></div>
+            <h3 id="activeTitle" style="margin:0; color:#f1c40f;"></h3>
+            <div id="unitStats" style="font-size:12px; padding:5px; color:#bdc3c7;"></div>
             
             <div id="unitControls" style="display:none; grid-template-columns: 1fr 1fr; gap:5px;">
                 <button style="background:#e74c3c; color:white;" onclick="handleAttack()">⚔️ 攻擊</button>
-                <button style="background:#d35400; color:white;" onclick="toggleSubMenu('tactic')">🔥 戰法</button>
-                <button style="background:#7f8c8d; color:white; grid-column: span 2;" onclick="finishAction()">⌛ 待命</button>
+                <button style="background:#7f8c8d; color:white;" onclick="finishAction()">⌛ 待命</button>
             </div>
 
             <div id="cityControls" style="display:none;">
-                <p style="margin:5px 0; font-size:12px;">🚩 點將出征 (200金)：</p>
+                <label>欲帶兵數：</label>
+                <input type="number" id="deployCount" value="3000" step="500" style="margin-bottom:5px; color:#000;">
+                <p style="margin:5px 0; font-size:12px; color:#f1c40f;">點選下方將領出征：</p>
                 <div id="deployList" class="deploy-list"></div>
-                <button style="background:#2980b9; color:white; width:100%" onclick="handleDraft()">📯 募兵(300金)</button>
+                <button style="background:#2980b9; color:white; width:100%" onclick="handleDraft()">📯 募兵 (300金/2000人)</button>
             </div>
-            <div id="subMenu" style="display:none; flex-wrap:wrap; gap:4px; margin-top:8px;"></div>
         </div>
-        <div class="log" id="logBox">> 歡迎來到三國 Web v8.12。請先閱讀說明書並進行設定。</div>
-        <button class="btn-next" onclick="nextTurn(false)">⏳ 結束回合</button>
-        <button onclick="location.reload()" style="background:#c0392b; color:white; font-size:10px; margin-top:5px; padding:5px;">🔄 重新開局</button>
+        <div class="log" id="logBox">> 歡迎。</div>
+        <button class="btn-next" onclick="nextTurn(false)">⏳ 結束旬日</button>
     </div>
 </div>
 
 <script>
-    const TACTICS = {
-        '騎': [{n:'突擊',c:20,m:1.3}, {n:'疾風',c:45,m:2.0}],
-        '步': [{n:'槍突',c:20,m:1.3}, {n:'奮戰',c:45,m:2.0}],
-        '弓': [{n:'火矢',c:25,m:1.4}, {n:'貫穿',c:50,m:2.1}],
-        '智': [{n:'妖術',c:30,m:1.5}, {n:'落石',c:60,m:2.5}]
-    };
-
     let gameState; let selectedUnit = null; let isProcessingAI = false;
-
     const BASE_FACTIONS = [
-        { id: 'shu', name: '劉備軍', color: '#2980b9', x: 5, y: 25, units: ["劉備","關羽","張飛","趙雲","諸葛亮","黃忠"] },
-        { id: 'wei', name: '曹操軍', color: '#c0392b', x: 15, y: 3, units: ["曹操","夏侯惇","張遼","司馬懿","郭嘉","許褚"] },
-        { id: 'wu', name: '孫權軍', color: '#27ae60', x: 25, y: 22, units: ["孫權","周瑜","陸遜","甘寧","太史慈","呂蒙"] },
-        { id: 'dong', name: '董卓軍', color: '#8e44ad', x: 5, y: 8, units: ["董卓","呂布","華雄","李儒","郭汜","李傕"] },
-        { id: 'yuan', name: '袁紹軍', color: '#f1c40f', x: 25, y: 8, units: ["袁紹","顏良","文醜","田豐","沮授","高覽"] },
-        { id: 'ma', name: '馬騰軍', color: '#e67e22', x: 2, y: 15, units: ["馬騰","馬超","馬岱","龐德","韓遂","馬雲騄"] }
+        { id: 'shu', name: '劉備軍', color: '#2980b9', x: 5, y: 25, units: ["劉備","關羽","張飛","趙雲","諸葛亮"] },
+        { id: 'wei', name: '曹操軍', color: '#c0392b', x: 15, y: 3, units: ["曹操","夏侯惇","張遼","司馬懿","郭嘉"] },
+        { id: 'wu', name: '孫權軍', color: '#27ae60', x: 25, y: 22, units: ["孫權","周瑜","陸遜","甘寧","太史慈"] }
     ];
 
-    function closeManual() {
-        document.getElementById('manualOverlay').style.display = 'none';
-        document.getElementById('setupOverlay').style.display = 'flex';
-    }
-
-    function toggleCustomFields() {
-        document.getElementById('customNameBox').style.display = (document.getElementById('factionSelect').value === 'custom') ? 'block' : 'none';
-    }
+    function closeManual() { document.getElementById('manualOverlay').style.display = 'none'; document.getElementById('setupOverlay').style.display = 'flex'; }
+    function toggleCustomFields() { document.getElementById('customNameBox').style.display = (document.getElementById('factionSelect').value === 'custom') ? 'block' : 'none'; }
 
     function startGame() {
         const facType = document.getElementById('factionSelect').value;
-        const difficulty = parseInt(document.getElementById('difficultySelect').value);
-        let playerFactionId = facType;
         let factions = [...BASE_FACTIONS];
+        let playerFacId = facType;
 
         if (facType === 'custom') {
-            playerFactionId = 'custom';
-            const cFacName = document.getElementById('customFacName').value || "自創軍";
-            const cHeroName = document.getElementById('customHeroName').value || "新武將";
+            playerFacId = 'custom';
+            const names = document.getElementById('customHeros').value.split(',').map(n => n.trim()).filter(n => n);
             factions.push({
-                id: 'custom', name: cFacName, color: document.getElementById('customColor').value,
-                x: 15, y: 28, units: [cHeroName, "部將A", "部將B", "部將C", "部將D", "部將E"]
+                id: 'custom', name: document.getElementById('customFacName').value || "新勢力",
+                color: document.getElementById('customColor').value, x: 15, y: 28, units: names.length ? names : ["自創武將"]
             });
         }
 
@@ -206,87 +146,56 @@
         factions.forEach(f => {
             f.units.forEach((uName, i) => {
                 units.push({
-                    id: units.length, name: uName, faction: f.id, 
-                    type: (f.id==='custom' && i===0) ? document.getElementById('customType').value : ['步','騎','弓','智'][i % 4],
-                    x: f.x, y: f.y, troops: 5000, stamina: 100, isDeployed: false, acted: false, movesLeft: 2, atk: 85
+                    id: units.length, name: uName, faction: f.id, type: ['步','騎','弓','智'][i % 4],
+                    x: f.x, y: f.y, troops: 0, stamina: 100, isDeployed: false, acted: false, movesLeft: 2, atk: 80 + Math.floor(Math.random()*20)
                 });
             });
         });
 
         gameState = {
-            turn: 1, currentPlayerIndex: 0, difficulty: difficulty, playerFaction: playerFactionId,
-            factions: factions.map(f => ({ ...f, gold: 2000, food: 100000, isAI: f.id !== playerFactionId })),
+            turn: 1, currentPlayerIndex: 0, playerFaction: playerFacId,
+            factions: factions.map(f => ({ ...f, gold: 2000, food: 10000, isAI: f.id !== playerFacId })),
             cities: [
-                ...factions.map(f => ({ x: f.x, y: f.y, faction: f.id, name: f.name[0] + "城" })),
-                { x: 15, y: 15, faction: null, name: "洛陽" } 
+                ...factions.map(f => ({ x: f.x, y: f.y, faction: f.id, name: f.name[0] + "城", troops: 10000 })),
+                { x: 15, y: 15, faction: null, name: "洛陽", troops: 5000 } 
             ],
             units: units
         };
 
         document.getElementById('setupOverlay').style.display = 'none';
-        
-        const firstFac = gameState.factions[gameState.currentPlayerIndex];
-        log(`--- 征途開啟：${factions.find(f=>f.id===playerFactionId).name} 崛起 ---`, "#f1c40f");
-        
-        if (firstFac.isAI) {
-            isProcessingAI = true;
-            setTimeout(runAI, 30);
-        } else {
-            isProcessingAI = false;
-            log(`--- 第 ${gameState.turn} 旬：您的回合 ---`, "#3498db");
-        }
-        
+        log(`--- 征途開始 ---`, "#f1c40f");
         initMap();
-    }
-
-    function log(msg, color = "#2ecc71") {
-        const box = document.getElementById('logBox'); 
-        box.innerHTML += `<br><span style="color:${color}">${msg}</span>`;
-        box.scrollTop = box.scrollHeight;
     }
 
     function initMap() {
         const mapEl = document.getElementById('map'); mapEl.innerHTML = '';
-        const currentFac = gameState ? gameState.factions[gameState.currentPlayerIndex] : null;
+        const currentFac = gameState.factions[gameState.currentPlayerIndex];
 
         for (let y = 0; y < 30; y++) {
             for (let x = 0; x < 30; x++) {
                 const cell = document.createElement('div'); cell.className = 'cell';
                 cell.onclick = () => handleCellClick(x, y);
                 
-                // 標示城池
-                const city = gameState?.cities.find(c => c.x === x && c.y === y);
+                const city = gameState.cities.find(c => c.x === x && c.y === y);
                 if(city) {
-                    if (!city.faction) cell.classList.add('empty-city');
-                    else {
-                        cell.classList.add('city');
-                        const fData = gameState.factions.find(f=>f.id===city.faction);
-                        if(fData) cell.style.borderColor = fData.color;
-                    }
-                    cell.innerHTML = city.faction ? `🏰` : `🏯`;
+                    cell.classList.add(city.faction ? 'city' : 'empty-city');
+                    const f = gameState.factions.find(fac => fac.id === city.faction);
+                    if(f) cell.style.borderColor = f.color;
+                    cell.innerHTML = `<span>${city.faction ? '🏰' : '🏯'}</span><div class="city-label">${city.troops}</div>`;
                 }
 
-                // 標示移動範圍高光
-                if (selectedUnit && !selectedUnit.acted && selectedUnit.faction === currentFac?.id) {
-                    const dist = Math.abs(x - selectedUnit.x) + Math.abs(y - selectedUnit.y);
-                    if (dist > 0 && dist <= selectedUnit.movesLeft) {
-                        cell.classList.add('in-range');
-                    }
+                if (selectedUnit && !selectedUnit.acted && Math.abs(x - selectedUnit.x) + Math.abs(y - selectedUnit.y) <= selectedUnit.movesLeft) {
+                    cell.classList.add('in-range');
                 }
                 
-                // 標示部隊
-                const unitsAtPos = gameState?.units.filter(u => u.x === x && u.y === y && u.isDeployed && u.troops > 0) || [];
+                const unitsAtPos = gameState.units.filter(u => u.x === x && u.y === y && u.isDeployed && u.troops > 0);
                 if(unitsAtPos.length > 0) {
-                    const topUnit = unitsAtPos.find(u => !u.acted) || unitsAtPos[0];
+                    const u = unitsAtPos[0];
                     const uEl = document.createElement('div');
-                    uEl.className = `unit ${selectedUnit === topUnit ? 'selected' : ''}`;
-                    const fData = gameState.factions.find(f=>f.id===topUnit.faction);
-                    uEl.style.backgroundColor = fData ? fData.color : '#555';
-                    uEl.innerText = topUnit.name[0];
-                    if (topUnit.acted) uEl.style.filter = "grayscale(1) opacity(0.6)";
-                    if (unitsAtPos.length > 1) {
-                        const badge = document.createElement('div'); badge.className = 'stack-badge'; badge.innerText = unitsAtPos.length; uEl.appendChild(badge);
-                    }
+                    uEl.className = `unit ${selectedUnit === u ? 'selected' : ''}`;
+                    uEl.style.backgroundColor = gameState.factions.find(f=>f.id===u.faction).color;
+                    uEl.innerHTML = `<div>${u.name[0]}<br><span style="font-size:8px">${u.troops}</span></div>`;
+                    if (u.acted) uEl.style.filter = "grayscale(1) opacity(0.7)";
                     cell.appendChild(uEl);
                 }
                 mapEl.appendChild(cell);
@@ -296,226 +205,141 @@
     }
 
     function handleCellClick(x, y) {
-        if(isProcessingAI || !gameState) return;
+        if(isProcessingAI) return;
         const currentFac = gameState.factions[gameState.currentPlayerIndex];
-        if (currentFac.id !== gameState.playerFaction) return; 
+        if (currentFac.id !== gameState.playerFaction) return;
 
-        // 1. 優先處理部隊移動
+        const city = gameState.cities.find(c => c.x === x && c.y === y);
+        const unitAt = gameState.units.find(u => u.x === x && u.y === y && u.isDeployed && u.troops > 0);
+
+        if (unitAt && unitAt.faction === currentFac.id && !unitAt.acted) {
+            selectedUnit = unitAt; showUnitMenu(unitAt); initMap(); return;
+        }
+
         if (selectedUnit && !selectedUnit.acted) {
             const dist = Math.abs(x - selectedUnit.x) + Math.abs(y - selectedUnit.y);
-            // 檢查目標地點是否已經有自己的其他部隊，避免疊加混亂
-            const isFriendlyUnitHere = gameState.units.some(u => u.x === x && u.y === y && u.isDeployed && u.troops > 0 && u.faction === currentFac.id && u.id !== selectedUnit.id);
-            
-            if (dist > 0 && dist <= selectedUnit.movesLeft && !isFriendlyUnitHere) {
-                selectedUnit.x = x; selectedUnit.y = y; selectedUnit.movesLeft--;
-                const cityAtPos = gameState.cities.find(c => c.x === x && c.y === y);
-                // 佔領城池
-                if(cityAtPos && cityAtPos.faction !== selectedUnit.faction) {
-                    cityAtPos.faction = selectedUnit.faction;
-                    log(`🏰 奪取了 ${cityAtPos.name}！`, "#f1c40f");
+            if (dist > 0 && dist <= selectedUnit.movesLeft) {
+                selectedUnit.x = x; selectedUnit.y = y; selectedUnit.movesLeft = 0;
+                if(city && city.faction !== selectedUnit.faction) {
+                    city.faction = selectedUnit.faction;
+                    log(`🏰 佔領了 ${city.name}！`);
                 }
-                showUnitMenu(selectedUnit); 
-                initMap();
-                return; // 移動成功，直接結束處理
+                finishAction(); return;
             }
         }
 
-        // 2. 處理點擊己方部隊 (選取)
-        const unitsAtPos = gameState.units.filter(u => u.x === x && u.y === y && u.isDeployed && u.troops > 0 && u.faction === currentFac.id);
-        if (unitsAtPos.length > 0) {
-            const nextUnit = unitsAtPos.find(u => !u.acted && u !== selectedUnit) || unitsAtPos[0];
-            if (!nextUnit.acted) { 
-                selectedUnit = nextUnit; 
-                showUnitMenu(selectedUnit); 
-                initMap(); 
-                return; 
-            }
-        }
-
-        // 3. 處理點擊己方城池 (如果沒有部隊可以選取)
-        const city = gameState.cities.find(c => c.x === x && c.y === y);
-        if (city && city.faction === currentFac.id) { 
-            selectedUnit = null; // 取消部隊選取
-            showCityMenu(city); 
-            initMap(); 
-            return; 
-        }
-
-        // 4. 點擊了無效區域 (取消選取)
-        if (selectedUnit) {
-            selectedUnit = null;
-            document.getElementById('actionMenu').style.display = 'none';
-            initMap();
+        if (city && city.faction === currentFac.id) {
+            selectedUnit = null; showCityMenu(city); initMap(); return;
         }
     }
 
     function showCityMenu(city) {
-        document.getElementById('actionMenu').style.display = 'block';
-        document.getElementById('activeTitle').innerText = city.name;
+        const menu = document.getElementById('actionMenu');
+        menu.style.display = 'block';
+        document.getElementById('activeTitle').innerText = city.name + " (兵:" + city.troops + ")";
         document.getElementById('unitControls').style.display = 'none';
         document.getElementById('cityControls').style.display = 'block';
-        document.getElementById('subMenu').style.display = 'none';
         
-        const deployList = document.getElementById('deployList');
-        deployList.innerHTML = '';
-        const standby = gameState.units.filter(u => u.faction === city.faction && !u.isDeployed);
-        standby.forEach(u => {
-            deployList.innerHTML += `<div class="deploy-item" onclick="deployUnit(${u.id})">
-                <span>${u.name} [${u.type}]</span><span>兵:${u.troops}</span>
+        const list = document.getElementById('deployList');
+        list.innerHTML = '';
+        gameState.units.filter(u => u.faction === city.faction && !u.isDeployed).forEach(u => {
+            list.innerHTML += `<div class="deploy-item" onclick="deployUnit(${u.id}, ${city.x}, ${city.y})">
+                ${u.name} [${u.type}]
             </div>`;
         });
-        if(standby.length === 0) deployList.innerHTML = `<div style="font-size:12px; color:#aaa; padding:5px;">無待命武將</div>`;
     }
 
-    function deployUnit(uId) {
-        const fac = gameState.factions[gameState.currentPlayerIndex];
-        if (fac.gold < 200) { log("預算不足出征！", "#e74c3c"); return; }
-        fac.gold -= 200;
+    function deployUnit(uId, x, y) {
+        const amount = parseInt(document.getElementById('deployCount').value);
+        const city = gameState.cities.find(c => c.x === x && c.y === y);
+        if (city.troops < amount) { log("城內預備兵不足！", "#e74c3c"); return; }
+        if (amount <= 0) { log("請輸入有效兵量！", "#e74c3c"); return; }
+
+        city.troops -= amount;
         const u = gameState.units.find(unit => unit.id === uId);
-        u.isDeployed = true; u.acted = true; // 出征當回合不可動
-        log(`🚩 ${u.name} 出征！(需等下回合方可行動)`);
+        u.x = x; u.y = y; u.troops = amount; u.isDeployed = true; u.acted = true;
+        log(`🚩 ${u.name} 領兵 ${amount} 出征！`);
         document.getElementById('actionMenu').style.display = 'none';
         initMap();
     }
 
+    function handleDraft() {
+        const currentFac = gameState.factions[gameState.currentPlayerIndex];
+        const city = gameState.cities.find(c => c.faction === currentFac.id && c.name[0] === document.getElementById('activeTitle').innerText[0]);
+        if (currentFac.gold >= 300) {
+            currentFac.gold -= 300; city.troops += 2000;
+            log(`📯 ${city.name} 募兵 2000。`);
+            showCityMenu(city); initMap();
+        } else { log("金錢不足！"); }
+    }
+
     function showUnitMenu(unit) {
-        document.getElementById('actionMenu').style.display = 'block';
-        document.getElementById('activeTitle').innerText = `${unit.name} [${unit.type}]`;
-        document.getElementById('unitStats').innerText = `兵力:${unit.troops} | 氣力:${unit.stamina} | 移動:${unit.movesLeft}`;
+        const menu = document.getElementById('actionMenu');
+        menu.style.display = 'block';
+        document.getElementById('activeTitle').innerText = unit.name;
+        document.getElementById('unitStats').innerText = `兵力: ${unit.troops} | 氣力: ${unit.stamina}`;
         document.getElementById('unitControls').style.display = 'grid';
         document.getElementById('cityControls').style.display = 'none';
-        document.getElementById('subMenu').style.display = 'none';
     }
 
     function handleAttack() {
         const target = gameState.units.find(u => u.faction !== selectedUnit.faction && u.isDeployed && u.troops > 0 && Math.abs(u.x-selectedUnit.x)+Math.abs(u.y-selectedUnit.y) <= 1);
         if (target) {
-            let dmg = Math.floor(selectedUnit.atk * selectedUnit.troops / 300);
-            target.troops -= dmg; log(`⚔️ ${selectedUnit.name} 攻擊 ${target.name}，損兵 ${dmg}`);
-            finishAction();
-        } else { log("周圍一格內沒有敵軍！", "#e74c3c"); }
-    }
-
-    function toggleSubMenu(type) {
-        const sm = document.getElementById('subMenu'); sm.style.display = 'flex'; sm.innerHTML = '';
-        if (type === 'tactic') {
-            (TACTICS[selectedUnit.type] || []).forEach((t, i) => {
-                sm.innerHTML += `<button style="background:#d35400; color:white; font-size:11px; flex:1 0 45%; border-radius:4px;" onclick="executeTactic(${i})">${t.n}(${t.c})</button>`;
-            });
-        }
-    }
-
-    function executeTactic(idx) {
-        const t = TACTICS[selectedUnit.type][idx];
-        if (selectedUnit.stamina < t.c) { log("氣力不足！", "#e74c3c"); return; }
-        const target = gameState.units.find(u => u.faction !== selectedUnit.faction && u.isDeployed && u.troops > 0 && Math.abs(u.x-selectedUnit.x)+Math.abs(u.y-selectedUnit.y) <= 1);
-        if (target) {
-            selectedUnit.stamina -= t.c;
-            let dmg = Math.floor((selectedUnit.atk * selectedUnit.troops / 200) * t.m);
+            let dmg = Math.floor(selectedUnit.atk * selectedUnit.troops / 500);
             target.troops -= dmg;
-            log(`🔥 ${selectedUnit.name} 施展【${t.n}】，${target.name} 損兵 ${dmg}！`);
+            log(`⚔️ ${selectedUnit.name} 攻擊 ${target.name}，造成 ${dmg} 傷亡。`);
+            if(target.troops <= 0) { target.isDeployed = false; log(`💀 ${target.name} 潰敗！`); }
             finishAction();
-        } else { log("無敵軍可以施放！", "#e74c3c"); }
-    }
-
-    function handleDraft() {
-        const fac = gameState.factions[gameState.currentPlayerIndex];
-        if (fac.gold >= 300) {
-            fac.gold -= 300;
-            const myUnits = gameState.units.filter(u => u.faction === fac.id);
-            if(myUnits.length > 0) {
-                const targetUnit = myUnits[Math.floor(Math.random()*myUnits.length)];
-                targetUnit.troops = Math.min(10000, targetUnit.troops + 2000);
-                log(`📯 ${targetUnit.name} 兵員補充。`);
-            }
-            document.getElementById('actionMenu').style.display = 'none';
-            initMap();
-        } else { log("金錢不足！", "#e74c3c"); }
+        } else { log("範圍內無敵軍！"); 
     }
 
     function finishAction() {
-        if(selectedUnit) { selectedUnit.acted = true; selectedUnit = null; }
+        if(selectedUnit) selectedUnit.acted = true;
+        selectedUnit = null;
         document.getElementById('actionMenu').style.display = 'none';
         initMap();
     }
 
     function nextTurn(isAuto = false) {
-        if(isProcessingAI && !isAuto) return; 
-        
+        if(isProcessingAI && !isAuto) return;
         selectedUnit = null;
         document.getElementById('actionMenu').style.display = 'none';
-
+        
         gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % gameState.factions.length;
-        
-        if (gameState.currentPlayerIndex === 0) {
+        if(gameState.currentPlayerIndex === 0) {
             gameState.turn++;
-            gameState.cities.forEach(c => {
-                const f = gameState.factions.find(fac => fac.id === c.faction);
-                if(f) { 
-                    let bonus = (gameState.difficulty === 3 && f.isAI) ? 600 : 350;
-                    f.gold += bonus; f.food += 5000; 
-                }
-            });
+            gameState.cities.forEach(c => { if(c.faction) { c.troops += 500; let f = gameState.factions.find(fac=>fac.id===c.faction); f.gold += 300; } });
         }
-        
+
         const fac = gameState.factions[gameState.currentPlayerIndex];
-        gameState.units.forEach(u => {
-            if(u.faction === fac.id) {
-                u.acted = false; u.movesLeft = 2; // 恢復行動力
-                const inCity = gameState.cities.some(c => c.x === u.x && c.y === u.y && c.faction === u.faction);
-                u.stamina = Math.min(100, u.stamina + (inCity ? 30 : 5));
-            }
-        });
+        gameState.units.forEach(u => { if(u.faction === fac.id) { u.acted = false; u.movesLeft = 2; } });
 
-        initMap(); 
-
-        if (fac.isAI) { 
-            isProcessingAI = true; 
-            setTimeout(runAI, 30); 
-        } 
-        else { 
-            isProcessingAI = false; 
-            log(`--- 第 ${gameState.turn} 旬：您的回合 ---`, "#3498db"); 
-        }
+        initMap();
+        if(fac.isAI) { isProcessingAI = true; setTimeout(runAI, 50); }
+        else { isProcessingAI = false; log(`--- 第 ${gameState.turn} 旬：您的回合 ---`, "#3498db"); }
     }
 
     function runAI() {
         const fac = gameState.factions[gameState.currentPlayerIndex];
-        
+        const city = gameState.cities.find(c => c.faction === fac.id);
         const standby = gameState.units.filter(u => u.faction === fac.id && !u.isDeployed);
-        if (standby.length > 0 && fac.gold > 500) { 
-            standby[0].isDeployed = true; standby[0].acted = true; fac.gold -= 200; 
+        if(city && standby.length > 0 && city.troops > 3000) {
+            const u = standby[0]; u.x = city.x; u.y = city.y; u.troops = 3000; u.isDeployed = true; u.acted = true; city.troops -= 3000;
         }
-
-        const deployed = gameState.units.filter(u => u.faction === fac.id && u.isDeployed && u.troops > 0);
-        deployed.forEach(u => {
-            let target = gameState.units.find(tu => tu.faction !== u.faction && tu.isDeployed);
-            if (target) {
-                if (Math.abs(target.x - u.x) + Math.abs(target.y - u.y) > 1) {
-                    u.x += (u.x < target.x ? 1 : (u.x > target.x ? -1 : 0));
-                    u.y += (u.y < target.y ? 1 : (u.y > target.y ? -1 : 0));
-                }
-                
-                if (Math.abs(target.x - u.x) + Math.abs(target.y - u.y) <= 1 && gameState.difficulty >= 2) { 
-                    target.troops -= 200; 
-                }
-            }
-            u.acted = true;
-        });
-        
-        setTimeout(() => nextTurn(true), 30); 
+        gameState.units.filter(u => u.faction === fac.id && u.isDeployed).forEach(u => { u.acted = true; });
+        setTimeout(() => nextTurn(true), 50);
     }
 
     function updateUI() {
-        if(!gameState) return;
         const fac = gameState.factions[gameState.currentPlayerIndex];
         const ind = document.getElementById('playerIndicator');
-        ind.innerText = fac.name + (fac.isAI ? " (連動中)" : " (您的回合)");
-        ind.style.background = fac.isAI ? "#555" : fac.color;
+        ind.innerText = fac.name; ind.style.background = fac.color;
         document.getElementById('uiTurn').innerText = gameState.turn;
         document.getElementById('uiGold').innerText = fac.gold;
         document.getElementById('uiFood').innerText = fac.food;
     }
+
+    function log(m, c="#2ecc71") { const b = document.getElementById('logBox'); b.innerHTML += `<br><span style="color:${c}">> ${m}</span>`; b.scrollTop = b.scrollHeight; }
 </script>
 </body>
 </html>
