@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>三國志 Web v11.0：多人同屏版</title>
+    <title>三國志 Web v12.0：萬國鼎立版</title>
     <style>
         :root { --gold: #f1c40f; --bg: #1a1a1a; --panel: #2c3e50; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: #ecf0f1; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .modal { background: var(--panel); padding: 20px; border-radius: 15px; border: 3px solid var(--gold); width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .modal { background: var(--panel); padding: 20px; border-radius: 15px; border: 3px solid var(--gold); width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
         
-        /* 設定介面 */
-        .fac-config { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; align-items: center; }
-        .fac-config label { color: #fff; font-weight: bold; }
-        .player-toggle { background: #34495e; color: white; border: 1px solid var(--gold); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-        .player-toggle.human { background: #27ae60; }
+        /* 設定介面：多勢力清單 */
+        .fac-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .fac-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid transparent; }
+        .player-toggle { padding: 5px 10px; border-radius: 4px; cursor: pointer; border: none; font-weight: bold; min-width: 60px; font-size: 12px; }
+        .player-toggle.human { background: #27ae60; color: white; }
+        .player-toggle.ai { background: #7f8c8d; color: #ccc; }
 
         .header { background: var(--panel); padding: 10px; border-bottom: 4px solid var(--gold); display: flex; justify-content: space-around; font-weight: bold; font-size: 14px; }
         .game-main { display: flex; flex-grow: 1; padding: 10px; gap: 10px; overflow: hidden; }
         .map-box { flex-grow: 1; overflow: auto; border: 4px solid #3e2723; border-radius: 8px; background: #111; position: relative; }
         .grid { display: grid; grid-template-columns: repeat(30, 52px); grid-template-rows: repeat(30, 52px); background: #222; width: fit-content; }
         
-        .cell { width: 52px; height: 52px; background: #2e7d32; border: 0.1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; box-sizing: border-box; }
+        .cell { width: 52px; height: 52px; background: #2e7d32; border: 0.1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
         .cell.city { background: #546e7a; border: 1.5px inset var(--gold); }
-        .cell.empty-city { background: #7f8c8d; border: 1.5px dashed #ccc; }
         .cell.in-range { border: 2px dashed var(--gold); background: rgba(241, 196, 15, 0.25); z-index: 5; }
-        .city-tag { font-size: 10px; color: #fff; background: rgba(0,0,0,0.7); position: absolute; bottom: 1px; padding: 0 3px; border-radius: 3px; z-index: 2; pointer-events: none; }
+        .city-tag { font-size: 10px; color: #fff; background: rgba(0,0,0,0.7); position: absolute; bottom: 1px; padding: 0 3px; border-radius: 3px; pointer-events: none; }
 
         .unit { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; z-index: 10; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; text-shadow: 1px 1px 2px #000; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
         .unit.selected { border-color: var(--gold); box-shadow: 0 0 20px var(--gold); transform: scale(1.1); z-index: 20; }
-        .unit-t { font-size: 9px; font-weight: normal; margin-top: -2px; }
+        .unit-tr { font-size: 9px; font-weight: normal; margin-top: -2px; }
 
         .panel { width: 320px; display: flex; flex-direction: column; gap: 10px; }
         .menu { background: var(--panel); padding: 15px; border-radius: 10px; border: 2px solid var(--gold); display: none; }
@@ -41,7 +41,6 @@
         .list-item { background: #34495e; padding: 8px; margin-top: 6px; border-radius: 5px; font-size: 13px; display: flex; justify-content: space-between; cursor: pointer; }
         input { background: #1a1a1a; color: white; border: 1px solid #555; padding: 8px; width: 100%; box-sizing: border-box; }
         
-        /* 切換提示 */
         #turnSplash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -49,25 +48,19 @@
 
 <div id="setupOverlay" class="overlay">
     <div class="modal">
-        <h2 style="color:var(--gold); text-align:center;">📜 群雄割據：多人對戰版</h2>
-        <p style="font-size:12px; color:#bdc3c7; text-align:center;">點擊各軍旁的按鈕來切換「玩家操控」或「電腦操控」</p>
-        
-        <div id="factionConfigs">
-            <div class="fac-config"><label>劉備 (蜀)</label><button class="player-toggle human" onclick="togglePlayer(this, 'shu')">玩家</button></div>
-            <div class="fac-config"><label>曹操 (魏)</label><button class="player-toggle" onclick="togglePlayer(this, 'wei')">電腦</button></div>
-            <div class="fac-config"><label>孫權 (吳)</label><button class="player-toggle" onclick="togglePlayer(this, 'wu')">電腦</button></div>
-        </div>
+        <h2 style="color:var(--gold); text-align:center; margin-top:0;">📜 三國志 v12.0：群雄逐鹿</h2>
+        <div class="fac-list" id="facListContainer"></div>
 
-        <div style="border-top:1px solid #555; margin-top:10px; padding-top:10px;">
-            <label style="color:var(--gold);">自創勢力模式</label>
-            <select id="customEnable" onchange="document.getElementById('customBox').style.display=this.value==='1'?'block':'none'" style="width:100%; padding:8px;">
-                <option value="0">關閉</option><option value="1">開啟</option>
-            </select>
-            <div id="customBox" style="display:none; margin-top:10px;">
-                <input type="text" id="cFacName" placeholder="勢力名 (如：大明)">
-                <input type="text" id="cHeroNames" placeholder="武將姓名 (用逗號隔開)" style="margin-top:5px;">
-                <input type="color" id="cColor" value="#9b59b6" style="margin-top:5px; height:40px;">
-                <button class="player-toggle human" id="customPlayerBtn" onclick="togglePlayer(this, 'custom')" style="margin-top:5px; width:100%;">玩家操控</button>
+        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-top:10px;">
+            <label style="color:var(--gold);">★ 自創勢力設定</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                <input type="text" id="cFacName" placeholder="勢力名 (如:大明)">
+                <input type="color" id="cColor" value="#9b59b6" style="height:35px;">
+            </div>
+            <input type="text" id="cHeroNames" placeholder="武將姓名 (用逗號隔開)" style="margin-top:10px;">
+            <div style="display:flex; align-items:center; margin-top:10px; gap:10px;">
+                <span style="font-size:12px;">控制類型：</span>
+                <button class="player-toggle human" id="cToggle" onclick="toggleLocal('custom')">玩家</button>
             </div>
         </div>
         
@@ -77,8 +70,8 @@
 
 <div id="turnSplash">
     <h1 id="splashFacName" style="font-size:48px; margin:0;"></h1>
-    <p style="font-size:24px; color:var(--gold);">輪到您的回合</p>
-    <button onclick="closeSplash()" style="padding:15px 40px; font-size:20px; background:#27ae60; color:white;">開始操作</button>
+    <p id="splashType" style="font-size:24px; color:var(--gold);"></p>
+    <button id="splashBtn" onclick="closeSplash()" style="padding:15px 40px; font-size:20px; background:#27ae60; color:white;">開始操作</button>
 </div>
 
 <div class="header">
@@ -106,39 +99,61 @@
             </div>
             <div id="tBox" style="display:none; margin-top:10px; border-top:1px solid #555; padding-top:10px;"></div>
         </div>
-        <div class="log" id="logBox">> 歡迎進入群雄割據！</div>
-        <button class="btn-end" onclick="endTurn(false)">⏳ 結束旬日</button>
+        <div class="log" id="logBox">> 請主公指點江山。</div>
+        <button id="endTurnBtn" class="btn-end" onclick="endTurn(false)">⏳ 結束旬日</button>
     </div>
 </div>
 
 <script>
     const TACTICS = { '步':[{n:'槍陣',c:25,m:1.3}], '騎':[{n:'突擊',c:30,m:1.6}], '弓':[{n:'火矢',c:25,m:1.3}], '智':[{n:'妖術',c:40,m:2.2}] };
-    let GS; let selected = null; let isAI = false;
-    let factionHumanMap = { 'shu': true, 'wei': false, 'wu': false, 'custom': true };
+    const BASE_FACS = [
+        { id:'shu', n:'劉備軍', c:'#2980b9', x:5, y:25, h:["劉備","關羽","張飛","趙雲","諸葛亮"] },
+        { id:'wei', n:'曹操軍', c:'#c0392b', x:15, y:3, h:["曹操","夏侯惇","張遼","司馬懿","郭嘉"] },
+        { id:'wu', n:'孫權軍', c:'#27ae60', x:25, y:22, h:["孫權","周瑜","陸遜","甘寧","太史慈"] },
+        { id:'yuan', n:'袁紹軍', c:'#f39c12', x:25, y:5, h:["袁紹","顏良","文醜","張郃","沮授"] },
+        { id:'lu', n:'呂布軍', c:'#8e44ad', x:15, y:12, h:["呂布","張遼","高順","陳宮","貂蟬"] },
+        { id:'dong', n:'董卓軍', c:'#2c3e50', x:5, y:5, h:["董卓","李傕","郭汜","華雄","賈詡"] }
+    ];
 
-    function togglePlayer(btn, id) {
-        factionHumanMap[id] = !factionHumanMap[id];
-        btn.innerText = factionHumanMap[id] ? "玩家" : "電腦";
-        btn.className = factionHumanMap[id] ? "player-toggle human" : "player-toggle";
+    let GS; let selected = null; 
+    let factionPlayerConfig = { 'shu':true, 'wei':false, 'wu':false, 'yuan':false, 'lu':false, 'dong':false, 'custom':true };
+
+    // 初始化設定介面
+    function initSetup() {
+        const container = document.getElementById('facListContainer');
+        BASE_FACS.forEach(f => {
+            container.innerHTML += `
+                <div class="fac-item" style="border-color:${f.c}">
+                    <span>${f.n}</span>
+                    <button class="player-toggle ${factionPlayerConfig[f.id]?'human':'ai'}" onclick="toggleLocal('${f.id}', this)">
+                        ${factionPlayerConfig[f.id]?'玩家':'電腦'}
+                    </button>
+                </div>
+            `;
+        });
+    }
+
+    function toggleLocal(id, btn) {
+        factionPlayerConfig[id] = !factionPlayerConfig[id];
+        if(!btn) btn = document.getElementById('cToggle');
+        btn.innerText = factionPlayerConfig[id] ? "玩家" : "電腦";
+        btn.className = factionPlayerConfig[id] ? "player-toggle human" : "player-toggle ai";
     }
 
     function startGame() {
-        const factionsData = [
-            { id:'shu', n:'劉備軍', c:'#2980b9', x:5, y:25, h:["劉備","關羽","張飛","趙雲","諸葛亮"] },
-            { id:'wei', n:'曹操軍', c:'#c0392b', x:15, y:3, h:["曹操","夏侯惇","張遼","司馬懿","郭嘉"] },
-            { id:'wu', n:'孫權軍', c:'#27ae60', x:25, y:22, h:["孫權","周瑜","陸遜","甘寧","太史慈"] }
-        ];
+        let finalFacs = JSON.parse(JSON.stringify(BASE_FACS));
         
-        if(document.getElementById('customEnable').value === '1') {
-            const h = document.getElementById('cHeroNames').value.split(/[，,]/).map(n=>n.trim()).filter(n=>n);
-            factionsData.push({ 
-                id:'custom', n:document.getElementById('cFacName').value||"自創勢力", 
-                c:document.getElementById('cColor').value, x:15, y:28, h:h.length?h:["主公"] 
+        // 自創勢力加入
+        const cNames = document.getElementById('cHeroNames').value.split(/[，,]/).map(n=>n.trim()).filter(n=>n);
+        if(cNames.length > 0 || document.getElementById('cFacName').value) {
+            finalFacs.push({
+                id:'custom', n:document.getElementById('cFacName').value||"自創勢力",
+                c:document.getElementById('cColor').value, x:15, y:28, h:cNames.length?cNames:["主公"]
             });
         }
 
         let units = [];
-        factionsData.forEach(f => {
+        finalFacs.forEach(f => {
             f.h.forEach((name, i) => {
                 units.push({ id:units.length, n:name, f:f.id, t:['步','騎','弓','智'][i%4], x:f.x, y:f.y, tr:0, s:100, isD:false, act:false, a:85+Math.floor(Math.random()*15) });
             });
@@ -146,48 +161,65 @@
 
         GS = {
             t:1, idx:0,
-            facs: factionsData.map(f => ({ ...f, gold:2000, food:10000, ai: !factionHumanMap[f.id] })),
+            facs: finalFacs.map(f => ({ ...f, gold:2000, food:10000, isAI: !factionPlayerConfig[f.id] })),
             cities: [
-                ...factionsData.map(f => ({ x:f.x, y:f.y, f:f.id, n:f.n[0]+"城", tr:10000 })),
+                ...finalFacs.map(f => ({ x:f.x, y:f.y, f:f.id, n:f.n[0]+"城", tr:10000 })),
                 { x:15, y:15, f:null, n:"洛陽", tr:5000 }
             ],
             units: units
         };
 
         document.getElementById('setupOverlay').style.display='none';
-        checkTurnSplash();
+        processTurn();
+    }
+
+    function processTurn() {
+        const f = GS.facs[GS.idx];
+        const s = document.getElementById('turnSplash');
+        const sName = document.getElementById('splashFacName');
+        const sType = document.getElementById('splashType');
+        const sBtn = document.getElementById('splashBtn');
+
+        sName.innerText = f.n;
+        sName.style.color = f.c;
+        s.style.display = 'flex';
+
+        if(f.isAI) {
+            sType.innerText = "電腦思考中...";
+            sBtn.style.display = 'none';
+            setTimeout(() => { s.style.display = 'none'; runAI(); }, 1000);
+        } else {
+            sType.innerText = "玩家回合";
+            sBtn.style.display = 'block';
+            log(`--- 第 ${GS.t} 旬：${f.n}回合 ---`, "#3498db");
+        }
         draw();
     }
 
-    function checkTurnSplash() {
-        const f = GS.facs[GS.idx];
-        if(!f.ai) {
-            const s = document.getElementById('turnSplash');
-            document.getElementById('splashFacName').innerText = f.n;
-            document.getElementById('splashFacName').style.color = f.c;
-            s.style.display = 'flex';
-        }
-    }
     function closeSplash() { document.getElementById('turnSplash').style.display = 'none'; }
 
     function draw() {
         const map = document.getElementById('map'); map.innerHTML = '';
+        const curF = GS.facs[GS.idx];
         for(let y=0; y<30; y++) {
             for(let x=0; x<30; x++) {
                 const c = document.createElement('div'); c.className = 'cell';
                 c.onclick = () => onClick(x,y);
                 const city = GS.cities.find(ci => ci.x===x && ci.y===y);
                 if(city) {
-                    c.classList.add(city.f ? 'city' : 'empty-city');
+                    c.classList.add('city');
                     if(city.f) c.style.borderColor = GS.facs.find(fa=>fa.id===city.f).c;
+                    else c.style.borderColor = "#7f8c8d";
                     c.innerHTML = `<span>${city.f?'🏰':'🏯'}</span><div class="city-tag">${city.tr}</div>`;
                 }
-                if(selected && !selected.act && Math.abs(x-selected.x)+Math.abs(y-selected.y)<=2) c.classList.add('in-range');
+                // 高光：僅在非AI且選中時顯示
+                if(!curF.isAI && selected && !selected.act && Math.abs(x-selected.x)+Math.abs(y-selected.y)<=2) c.classList.add('in-range');
+                
                 const u = GS.units.find(u => u.x===x && u.y===y && u.isD && u.tr>0);
                 if(u) {
                     const ue = document.createElement('div'); ue.className = `unit ${selected===u?'selected':''}`;
                     ue.style.backgroundColor = GS.facs.find(fa=>fa.id===u.f).c;
-                    ue.innerHTML = `<div>${u.n[0]}</div><div class="unit-t">${u.tr}</div>`;
+                    ue.innerHTML = `<div>${u.n[0]}</div><div class="unit-tr">${u.tr}</div>`;
                     if(u.act) ue.style.filter = "grayscale(1) opacity(0.6)";
                     c.appendChild(ue);
                 }
@@ -198,8 +230,9 @@
     }
 
     function onClick(x,y) {
-        if(isAI) return;
         const f = GS.facs[GS.idx];
+        if(f.isAI) return; // 鎖定：AI回合禁止操作
+
         const u = GS.units.find(u => u.x===x && u.y===y && u.isD && u.tr>0);
         const city = GS.cities.find(ci => ci.x===x && ci.y===y);
 
@@ -208,7 +241,7 @@
             const d = Math.abs(x-selected.x)+Math.abs(y-selected.y);
             if(d>0 && d<=2) {
                 selected.x=x; selected.y=y;
-                if(city && city.f!==selected.f) { city.f=selected.f; log(`🏰 佔領 ${city.n}！`, "#f1c40f"); }
+                if(city && city.f!==selected.f) { city.f=selected.f; log(`🏰 佔領 ${city.n}！`, varGold()); }
                 showU(selected); draw(); return;
             }
         }
@@ -249,7 +282,7 @@
             let d = Math.floor(selected.a * selected.tr / 500);
             tar.tr -= d; log(`⚔️ ${selected.n} 攻擊 ${tar.n}，損兵 ${d}。`);
             if(tar.tr<=0) { tar.isD=false; log(`💀 ${tar.n} 潰敗！`); }
-            selected.act=true; selected=null; document.getElementById('menu').style.display='none'; draw();
+            doWait();
         } else log("範圍內無敵軍。");
     }
 
@@ -267,8 +300,8 @@
             selected.s -= c; let d = Math.floor((selected.a * selected.tr / 400) * m);
             tar.tr -= d; log(`🔥 ${selected.n} 發動【${n}】，${tar.n} 損兵 ${d}！`);
             if(tar.tr<=0) tar.isD=false;
-            selected.act=true; selected=null; document.getElementById('menu').style.display='none'; draw();
-        } else log("無對象。");
+            doWait();
+        } else log("無戰法對象。");
     }
 
     function doDraft() {
@@ -277,10 +310,12 @@
         if(f.gold>=300) { f.gold-=300; c.tr+=2500; log(`📯 ${c.n} 募兵 2500。`); showC(c); draw(); } else log("金錢不足！");
     }
 
-    function doWait() { selected.act=true; selected=null; document.getElementById('menu').style.display='none'; draw(); }
+    function doWait() { 
+        if(selected) selected.act = true; 
+        selected = null; document.getElementById('menu').style.display='none'; draw(); 
+    }
 
-    function endTurn(auto=false) {
-        if(isAI && !auto) return;
+    function endTurn(isAIAction=false) {
         selected=null; document.getElementById('menu').style.display='none';
         GS.idx = (GS.idx+1)%GS.facs.length;
         if(GS.idx===0) {
@@ -292,25 +327,23 @@
             const inc = GS.cities.some(ci=>ci.x===u.x && ci.y===u.y && ci.f===u.f)?25:10;
             u.s = Math.min(100, u.s+inc);
         });
-        
-        if(f.ai) { isAI=true; setTimeout(runAI, 150); }
-        else { isAI=false; checkTurnSplash(); log(`--- 第 ${GS.t} 旬：${f.n}回合 ---`, "#3498db"); }
-        draw();
+        processTurn();
     }
 
     function runAI() {
-        const f = GS.facs[GS.idx]; const c = GS.cities.find(ci=>ci.f===f.id);
+        const f = GS.facs[GS.idx]; 
+        const c = GS.cities.find(ci=>ci.f===f.id);
         const sb = GS.units.filter(u=>u.f===f.id && !u.isD);
         if(c && sb.length && c.tr>4000) {
             const u=sb[0]; u.x=c.x; u.y=c.y; u.tr=4000; u.isD=true; u.act=true; c.tr-=4000;
         }
         GS.units.filter(u=>u.f===f.id && u.isD).forEach(u=>u.act=true);
-        setTimeout(()=>endTurn(true), 150);
+        setTimeout(() => endTurn(true), 1000);
     }
 
     function updateUI() {
         const f = GS.facs[GS.idx]; const l = document.getElementById('uiFac');
-        l.innerText = f.n; l.style.background = f.c;
+        l.innerText = f.n + (f.isAI ? " (電腦)" : " (玩家)"); l.style.background = f.c;
         document.getElementById('uiTurn').innerText = GS.t;
         document.getElementById('uiGold').innerText = f.gold;
         document.getElementById('uiFood').innerText = f.food;
@@ -319,6 +352,9 @@
     function log(m, c="#2ecc71") { 
         const b = document.getElementById('logBox'); b.innerHTML += `<br><span style="color:${c}">> ${m}</span>`; b.scrollTop = b.scrollHeight; 
     }
+    function varGold() { return "#f1c40f"; }
+
+    initSetup();
 </script>
 </body>
 </html>
