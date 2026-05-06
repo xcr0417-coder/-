@@ -2,359 +2,341 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>三國志 Web v12.0：萬國鼎立版</title>
+    <title>三國志 Web v15.0：乾坤一統版</title>
     <style>
         :root { --gold: #f1c40f; --bg: #1a1a1a; --panel: #2c3e50; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: #ecf0f1; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
+        /* 初始設定 */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .modal { background: var(--panel); padding: 20px; border-radius: 15px; border: 3px solid var(--gold); width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
-        
-        /* 設定介面：多勢力清單 */
-        .fac-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
-        .fac-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid transparent; }
-        .player-toggle { padding: 5px 10px; border-radius: 4px; cursor: pointer; border: none; font-weight: bold; min-width: 60px; font-size: 12px; }
-        .player-toggle.human { background: #27ae60; color: white; }
-        .player-toggle.ai { background: #7f8c8d; color: #ccc; }
+        .modal { background: var(--panel); padding: 25px; border-radius: 15px; border: 3px solid var(--gold); width: 90%; max-width: 650px; }
+        .fac-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .fac-item { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid transparent; }
 
-        .header { background: var(--panel); padding: 10px; border-bottom: 4px solid var(--gold); display: flex; justify-content: space-around; font-weight: bold; font-size: 14px; }
+        /* 遊戲介面 */
+        .header { background: var(--panel); padding: 10px; border-bottom: 4px solid var(--gold); display: flex; justify-content: space-around; align-items: center; font-weight: bold; }
         .game-main { display: flex; flex-grow: 1; padding: 10px; gap: 10px; overflow: hidden; }
         .map-box { flex-grow: 1; overflow: auto; border: 4px solid #3e2723; border-radius: 8px; background: #111; position: relative; }
         .grid { display: grid; grid-template-columns: repeat(30, 52px); grid-template-rows: repeat(30, 52px); background: #222; width: fit-content; }
         
-        .cell { width: 52px; height: 52px; background: #2e7d32; border: 0.1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
-        .cell.city { background: #546e7a; border: 1.5px inset var(--gold); }
-        .cell.in-range { border: 2px dashed var(--gold); background: rgba(241, 196, 15, 0.25); z-index: 5; }
-        .city-tag { font-size: 10px; color: #fff; background: rgba(0,0,0,0.7); position: absolute; bottom: 1px; padding: 0 3px; border-radius: 3px; pointer-events: none; }
+        .cell { width: 52px; height: 52px; border: 0.1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+        .cell.city { background: #455a64; border: 2px inset var(--gold); }
+        .cell.in-range { background: rgba(241, 196, 15, 0.2); border: 2px dashed var(--gold); z-index: 5; }
+        .tag { font-size: 9px; color: #fff; background: rgba(0,0,0,0.7); position: absolute; bottom: 1px; width: 100%; text-align: center; }
 
-        .unit { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; z-index: 10; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; text-shadow: 1px 1px 2px #000; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
-        .unit.selected { border-color: var(--gold); box-shadow: 0 0 20px var(--gold); transform: scale(1.1); z-index: 20; }
-        .unit-tr { font-size: 9px; font-weight: normal; margin-top: -2px; }
+        .unit { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; z-index: 10; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; }
+        .unit.selected { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); transform: scale(1.1); }
+        .unit.confused { filter: hue-rotate(90deg) brightness(1.5); }
 
-        .panel { width: 320px; display: flex; flex-direction: column; gap: 10px; }
-        .menu { background: var(--panel); padding: 15px; border-radius: 10px; border: 2px solid var(--gold); display: none; }
-        .log { background: #000; padding: 12px; flex-grow: 1; overflow-y: auto; font-size: 13px; color: #2ecc71; border-radius: 10px; border: 1px solid #444; line-height: 1.6; }
-        button { cursor: pointer; padding: 10px; border-radius: 6px; border: none; font-weight: bold; }
-        .btn-end { background: #27ae60; color: white; padding: 15px; font-size: 16px; }
+        .panel { width: 330px; display: flex; flex-direction: column; gap: 10px; }
+        .menu { background: var(--panel); padding: 12px; border-radius: 10px; border: 2px solid var(--gold); display: none; }
+        .log { background: #000; padding: 12px; flex-grow: 1; overflow-y: auto; font-size: 12px; color: #2ecc71; border-radius: 10px; border: 1px solid #444; }
         
-        .list-item { background: #34495e; padding: 8px; margin-top: 6px; border-radius: 5px; font-size: 13px; display: flex; justify-content: space-between; cursor: pointer; }
-        input { background: #1a1a1a; color: white; border: 1px solid #555; padding: 8px; width: 100%; box-sizing: border-box; }
+        button { cursor: pointer; padding: 8px; border-radius: 4px; border: none; font-weight: bold; }
+        .btn-end { background: #27ae60; color: white; padding: 15px; font-size: 16px; margin-top: auto; }
+        .sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #555; }
         
-        #turnSplash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="setupOverlay" class="overlay">
     <div class="modal">
-        <h2 style="color:var(--gold); text-align:center; margin-top:0;">📜 三國志 v12.0：群雄逐鹿</h2>
-        <div class="fac-list" id="facListContainer"></div>
-
-        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-top:10px;">
-            <label style="color:var(--gold);">★ 自創勢力設定</label>
+        <h2 style="color:var(--gold); text-align:center;">📜 三國志 Web v15.0：乾坤一統</h2>
+        <div class="fac-grid" id="facList"></div>
+        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+            <label style="color:var(--gold);">★ 自創勢力</label>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                <input type="text" id="cFacName" placeholder="勢力名 (如:大明)">
-                <input type="color" id="cColor" value="#9b59b6" style="height:35px;">
+                <input type="text" id="cFacName" placeholder="勢力名" style="padding:5px; background:#111; color:white; border:1px solid #555;">
+                <input type="color" id="cColor" value="#9b59b6" style="height:32px; border:none; width:100%;">
             </div>
-            <input type="text" id="cHeroNames" placeholder="武將姓名 (用逗號隔開)" style="margin-top:10px;">
-            <div style="display:flex; align-items:center; margin-top:10px; gap:10px;">
-                <span style="font-size:12px;">控制類型：</span>
-                <button class="player-toggle human" id="cToggle" onclick="toggleLocal('custom')">玩家</button>
-            </div>
+            <input type="text" id="cHeroNames" placeholder="武將姓名 (逗號隔開)" style="width:100%; margin-top:10px; padding:5px; background:#111; color:white; border:1px solid #555; box-sizing:border-box;">
         </div>
-        
         <button onclick="startGame()" style="width:100%; background:var(--gold); color:#000; font-size:18px; margin-top:20px; height:50px;">開啟霸業</button>
     </div>
 </div>
 
-<div id="turnSplash">
-    <h1 id="splashFacName" style="font-size:48px; margin:0;"></h1>
-    <p id="splashType" style="font-size:24px; color:var(--gold);"></p>
-    <button id="splashBtn" onclick="closeSplash()" style="padding:15px 40px; font-size:20px; background:#27ae60; color:white;">開始操作</button>
+<div id="splash">
+    <h1 id="sFac" style="font-size:48px; margin:0;"></h1>
+    <p id="sMode" style="font-size:24px; color:var(--gold);"></p>
+    <button id="sBtn" onclick="closeSplash()" style="padding:15px 40px; font-size:20px; background:#27ae60; color:white;">開始指揮</button>
 </div>
 
 <div class="header">
-    <div id="uiFac" style="padding:2px 15px; border-radius:4px; color:white;">等待中</div>
+    <div id="uiFac" style="padding:4px 15px; border-radius:4px; color:white;">讀取中</div>
     <div>📅 第 <span id="uiTurn">1</span> 旬</div>
-    <div>💰 金：<span id="uiGold">0</span> | 🌾 糧：<span id="uiFood">0</span></div>
+    <div>💰 <span id="uiGold">0</span> | 🌾 <span id="uiFood">0</span></div>
 </div>
 
 <div class="game-main">
     <div class="map-box"><div id="map" class="grid"></div></div>
     <div class="panel">
         <div id="menu" class="menu">
-            <h3 id="menuTitle" style="margin:0; color:var(--gold);"></h3>
-            <div id="menuStats" style="font-size:12px; margin:10px 0; color:#bdc3c7;"></div>
-            <div id="uBtns" style="display:none; grid-template-columns: 1fr 1fr; gap:8px;">
+            <h3 id="mTitle" style="margin:0; color:var(--gold); font-size:16px;"></h3>
+            <div id="mStats" style="font-size:11px; margin:5px 0; color:#bdc3c7;"></div>
+            
+            <div id="uCmd" style="display:none; grid-template-columns: 1fr 1fr; gap:5px;">
                 <button style="background:#e74c3c; color:white;" onclick="doAtk()">⚔️ 攻擊</button>
-                <button style="background:#d35400; color:white;" onclick="showTactics()">🔥 戰法</button>
-                <button style="background:#7f8c8d; color:white; grid-column:span 2;" onclick="doWait()">⌛ 待命</button>
+                <button style="background:#d35400; color:white;" onclick="openSub('tactics')">🔥 戰法</button>
+                <button style="background:#8e44ad; color:white;" onclick="openSub('plots')">📜 計謀</button>
+                <button style="background:#2c3e50; color:white;" onclick="openSub('build')">🏗️ 建設</button>
+                <button style="background:#7f8c8d; color:white; grid-column:span 2;" onclick="unitWait()">⌛ 待命</button>
             </div>
-            <div id="cBtns" style="display:none;">
-                <label>出征兵力：</label>
-                <input type="number" id="depNum" value="3000" step="500">
-                <div id="heroList" style="max-height:120px; overflow-y:auto; margin:10px 0; border:1px solid #444;"></div>
-                <button style="background:#2980b9; color:white; width:100%;" onclick="doDraft()">📯 募兵 (300金/2500兵)</button>
+
+            <div id="cCmd" style="display:none;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                    <button style="background:#2980b9; color:white;" onclick="doDraft()">📯 徵兵</button>
+                    <button style="background:#27ae60; color:white;" onclick="openSub('dev')">📈 開發</button>
+                </div>
+                <div id="hList" style="max-height:150px; overflow-y:auto; margin-top:8px; border:1px solid #444; background:#111;"></div>
             </div>
-            <div id="tBox" style="display:none; margin-top:10px; border-top:1px solid #555; padding-top:10px;"></div>
+            <div id="subMenu" class="sub-grid" style="display:none;"></div>
         </div>
-        <div class="log" id="logBox">> 請主公指點江山。</div>
-        <button id="endTurnBtn" class="btn-end" onclick="endTurn(false)">⏳ 結束旬日</button>
+        <div class="log" id="logBox">> 歡迎回到三國戰場。</div>
+        <button class="btn-end" onclick="endTurn()">⏳ 結束本旬</button>
     </div>
 </div>
 
 <script>
     const TACTICS = { '步':[{n:'槍陣',c:25,m:1.3}], '騎':[{n:'突擊',c:30,m:1.6}], '弓':[{n:'火矢',c:25,m:1.3}], '智':[{n:'妖術',c:40,m:2.2}] };
+    const PLOTS = [{n:'火計',c:30,v:500},{n:'內訌',c:50,v:0}];
+    const BUILDS = [{n:'箭樓',g:600,i:'🏹'},{n:'障礙',g:200,i:'🚧'}];
     const BASE_FACS = [
-        { id:'shu', n:'劉備軍', c:'#2980b9', x:5, y:25, h:["劉備","關羽","張飛","趙雲","諸葛亮"] },
-        { id:'wei', n:'曹操軍', c:'#c0392b', x:15, y:3, h:["曹操","夏侯惇","張遼","司馬懿","郭嘉"] },
-        { id:'wu', n:'孫權軍', c:'#27ae60', x:25, y:22, h:["孫權","周瑜","陸遜","甘寧","太史慈"] },
-        { id:'yuan', n:'袁紹軍', c:'#f39c12', x:25, y:5, h:["袁紹","顏良","文醜","張郃","沮授"] },
-        { id:'lu', n:'呂布軍', c:'#8e44ad', x:15, y:12, h:["呂布","張遼","高順","陳宮","貂蟬"] },
-        { id:'dong', n:'董卓軍', c:'#2c3e50', x:5, y:5, h:["董卓","李傕","郭汜","華雄","賈詡"] }
+        { id:'shu', n:'劉備軍', c:'#2980b9', x:5, y:25, h:["劉備","關羽","張飛","諸葛亮"] },
+        { id:'wei', n:'曹操軍', c:'#c0392b', x:15, y:3, h:["曹操","夏侯惇","張遼","司馬懿"] },
+        { id:'wu', n:'孫權軍', c:'#27ae60', x:25, y:22, h:["孫權","周瑜","陸遜","甘寧"] },
+        { id:'yuan', n:'袁紹軍', c:'#f39c12', x:25, y:5, h:["袁紹","顏良","文醜"] },
+        { id:'lu', n:'呂布軍', c:'#8e44ad', x:15, y:12, h:["呂布","貂蟬","陳宮"] },
+        { id:'dong', n:'董卓軍', c:'#2c3e50', x:5, y:5, h:["董卓","華雄","賈詡"] }
     ];
 
-    let GS; let selected = null; 
-    let factionPlayerConfig = { 'shu':true, 'wei':false, 'wu':false, 'yuan':false, 'lu':false, 'dong':false, 'custom':true };
+    let GS; let sel = null;
+    let cfg = { 'shu':true, 'wei':false, 'wu':false, 'yuan':false, 'lu':false, 'dong':false, 'custom':true };
 
-    // 初始化設定介面
-    function initSetup() {
-        const container = document.getElementById('facListContainer');
+    function init() {
+        const list = document.getElementById('facList');
         BASE_FACS.forEach(f => {
-            container.innerHTML += `
-                <div class="fac-item" style="border-color:${f.c}">
-                    <span>${f.n}</span>
-                    <button class="player-toggle ${factionPlayerConfig[f.id]?'human':'ai'}" onclick="toggleLocal('${f.id}', this)">
-                        ${factionPlayerConfig[f.id]?'玩家':'電腦'}
-                    </button>
-                </div>
-            `;
+            list.innerHTML += `<div class="fac-item" style="border-color:${f.c}"><span>${f.n}</span><button style="background:${cfg[f.id]?'#27ae60':'#7f8c8d'}; color:white;" onclick="tgl('${f.id}',this)">${cfg[f.id]?'玩家':'電腦'}</button></div>`;
         });
     }
 
-    function toggleLocal(id, btn) {
-        factionPlayerConfig[id] = !factionPlayerConfig[id];
-        if(!btn) btn = document.getElementById('cToggle');
-        btn.innerText = factionPlayerConfig[id] ? "玩家" : "電腦";
-        btn.className = factionPlayerConfig[id] ? "player-toggle human" : "player-toggle ai";
-    }
+    function tgl(id, b) { cfg[id] = !cfg[id]; b.innerText = cfg[id] ? '玩家' : '電腦'; b.style.background = cfg[id] ? '#27ae60' : '#7f8c8d'; }
 
     function startGame() {
-        let finalFacs = JSON.parse(JSON.stringify(BASE_FACS));
-        
-        // 自創勢力加入
-        const cNames = document.getElementById('cHeroNames').value.split(/[，,]/).map(n=>n.trim()).filter(n=>n);
-        if(cNames.length > 0 || document.getElementById('cFacName').value) {
-            finalFacs.push({
-                id:'custom', n:document.getElementById('cFacName').value||"自創勢力",
-                c:document.getElementById('cColor').value, x:15, y:28, h:cNames.length?cNames:["主公"]
-            });
+        let facs = JSON.parse(JSON.stringify(BASE_FACS));
+        const cH = document.getElementById('cHeroNames').value.split(/[，,]/).map(n=>n.trim()).filter(n=>n);
+        if(cH.length || document.getElementById('cFacName').value) {
+            facs.push({ id:'custom', n:document.getElementById('cFacName').value||"新勢力", c:document.getElementById('cColor').value, x:15, y:28, h:cH.length?cH:["主公"] });
         }
 
         let units = [];
-        finalFacs.forEach(f => {
+        facs.forEach(f => {
             f.h.forEach((name, i) => {
-                units.push({ id:units.length, n:name, f:f.id, t:['步','騎','弓','智'][i%4], x:f.x, y:f.y, tr:0, s:100, isD:false, act:false, a:85+Math.floor(Math.random()*15) });
+                units.push({ id:units.length, n:name, f:f.id, t:['步','騎','弓','智'][i%4], x:f.x, y:f.y, tr:0, s:100, isD:false, act:false, a:85+Math.floor(Math.random()*15), conf:false });
             });
         });
 
         GS = {
             t:1, idx:0,
-            facs: finalFacs.map(f => ({ ...f, gold:2000, food:10000, isAI: !factionPlayerConfig[f.id] })),
-            cities: [
-                ...finalFacs.map(f => ({ x:f.x, y:f.y, f:f.id, n:f.n[0]+"城", tr:10000 })),
-                { x:15, y:15, f:null, n:"洛陽", tr:5000 }
-            ],
-            units: units
+            facs: facs.map(f => ({ ...f, gold:3000, food:15000, isAI: !cfg[f.id] })),
+            cities: facs.map(f => ({ x:f.x, y:f.y, f:f.id, n:f.n[0]+"城", tr:10000, comm:100, farm:100 })),
+            units: units, bldgs: []
         };
+        GS.cities.push({ x:15, y:15, f:null, n:"洛陽", tr:5000, comm:200, farm:200 });
 
         document.getElementById('setupOverlay').style.display='none';
-        processTurn();
+        startFacTurn();
     }
 
-    function processTurn() {
+    function startFacTurn() {
         const f = GS.facs[GS.idx];
-        const s = document.getElementById('turnSplash');
-        const sName = document.getElementById('splashFacName');
-        const sType = document.getElementById('splashType');
-        const sBtn = document.getElementById('splashBtn');
-
-        sName.innerText = f.n;
-        sName.style.color = f.c;
+        const s = document.getElementById('splash');
+        document.getElementById('sFac').innerText = f.n;
+        document.getElementById('sFac').style.color = f.c;
+        document.getElementById('sMode').innerText = f.isAI ? "電腦思考中..." : "玩家回合";
+        document.getElementById('sBtn').style.display = f.isAI ? 'none' : 'block';
         s.style.display = 'flex';
-
-        if(f.isAI) {
-            sType.innerText = "電腦思考中...";
-            sBtn.style.display = 'none';
-            setTimeout(() => { s.style.display = 'none'; runAI(); }, 1000);
-        } else {
-            sType.innerText = "玩家回合";
-            sBtn.style.display = 'block';
-            log(`--- 第 ${GS.t} 旬：${f.n}回合 ---`, "#3498db");
-        }
+        if(f.isAI) setTimeout(() => { s.style.display = 'none'; runAI(); }, 1000);
         draw();
     }
 
-    function closeSplash() { document.getElementById('turnSplash').style.display = 'none'; }
+    function closeSplash() { document.getElementById('splash').style.display = 'none'; }
 
     function draw() {
-        const map = document.getElementById('map'); map.innerHTML = '';
-        const curF = GS.facs[GS.idx];
+        const m = document.getElementById('map'); m.innerHTML = '';
+        const f = GS.facs[GS.idx];
         for(let y=0; y<30; y++) {
             for(let x=0; x<30; x++) {
                 const c = document.createElement('div'); c.className = 'cell';
-                c.onclick = () => onClick(x,y);
+                c.onclick = () => click(x,y);
                 const city = GS.cities.find(ci => ci.x===x && ci.y===y);
+                const bldg = GS.bldgs.find(b => b.x===x && b.y===y);
                 if(city) {
                     c.classList.add('city');
-                    if(city.f) c.style.borderColor = GS.facs.find(fa=>fa.id===city.f).c;
-                    else c.style.borderColor = "#7f8c8d";
-                    c.innerHTML = `<span>${city.f?'🏰':'🏯'}</span><div class="city-tag">${city.tr}</div>`;
+                    c.style.borderColor = city.f ? GS.facs.find(fa=>fa.id===city.f).c : "#7f8c8d";
+                    c.innerHTML = `<div class="tag">${city.n}:${city.tr}</div>`;
                 }
-                // 高光：僅在非AI且選中時顯示
-                if(!curF.isAI && selected && !selected.act && Math.abs(x-selected.x)+Math.abs(y-selected.y)<=2) c.classList.add('in-range');
-                
+                if(bldg) c.innerHTML += `<div style="font-size:20px;position:absolute;top:2px;">${bldg.i}</div>`;
+                if(!f.isAI && sel && !sel.act && Math.abs(x-sel.x)+Math.abs(y-sel.y)<=2) c.classList.add('in-range');
                 const u = GS.units.find(u => u.x===x && u.y===y && u.isD && u.tr>0);
                 if(u) {
-                    const ue = document.createElement('div'); ue.className = `unit ${selected===u?'selected':''}`;
+                    const ue = document.createElement('div');
+                    ue.className = `unit ${sel===u?'selected':''} ${u.conf?'confused':''}`;
                     ue.style.backgroundColor = GS.facs.find(fa=>fa.id===u.f).c;
-                    ue.innerHTML = `<div>${u.n[0]}</div><div class="unit-tr">${u.tr}</div>`;
-                    if(u.act) ue.style.filter = "grayscale(1) opacity(0.6)";
+                    ue.innerHTML = `<div>${u.n[0]}</div><div style="font-size:9px;">${u.tr}</div>`;
+                    if(u.act) ue.style.filter = "grayscale(1) opacity(0.5)";
                     c.appendChild(ue);
                 }
-                map.appendChild(c);
+                m.appendChild(c);
             }
         }
         updateUI();
     }
 
-    function onClick(x,y) {
-        const f = GS.facs[GS.idx];
-        if(f.isAI) return; // 鎖定：AI回合禁止操作
-
+    function click(x,y) {
+        const f = GS.facs[GS.idx]; if(f.isAI) return;
         const u = GS.units.find(u => u.x===x && u.y===y && u.isD && u.tr>0);
         const city = GS.cities.find(ci => ci.x===x && ci.y===y);
-
-        if(u && u.f===f.id && !u.act) { selected = (selected===u)?null:u; showU(selected); draw(); return; }
-        if(selected && !selected.act) {
-            const d = Math.abs(x-selected.x)+Math.abs(y-selected.y);
-            if(d>0 && d<=2) {
-                selected.x=x; selected.y=y;
-                if(city && city.f!==selected.f) { city.f=selected.f; log(`🏰 佔領 ${city.n}！`, varGold()); }
-                showU(selected); draw(); return;
+        if(u && u.f===f.id && !u.act) { sel = (sel===u)?null:u; showU(sel); draw(); return; }
+        if(sel && !sel.act) {
+            const d = Math.abs(x-sel.x)+Math.abs(y-sel.y);
+            if(d>0 && d<=2 && !u && !GS.bldgs.find(b=>b.x===x && b.y===y)) {
+                sel.x=x; sel.y=y;
+                if(city && city.f!==sel.f) { city.f=sel.f; log(`🏰 佔領 ${city.n}！`, "#f1c40f"); }
+                showU(sel); draw(); return;
             }
         }
-        if(city && city.f===f.id) { selected=null; showC(city); draw(); return; }
-        selected=null; document.getElementById('menu').style.display='none'; draw();
+        if(city && city.f===f.id) { sel=null; showC(city); draw(); return; }
+        sel=null; document.getElementById('menu').style.display='none'; draw();
     }
 
     function showU(u) {
-        if(!u) return; const m = document.getElementById('menu'); m.style.display='block';
-        document.getElementById('menuTitle').innerText = `${u.n} [${u.t}]`;
-        document.getElementById('menuStats').innerText = `兵力:${u.tr} | 氣力:${u.s}`;
-        document.getElementById('uBtns').style.display='grid'; document.getElementById('cBtns').style.display='none';
-        document.getElementById('tBox').style.display='none';
+        if(!u) return; document.getElementById('menu').style.display='block';
+        document.getElementById('mTitle').innerText = `${u.n} [${u.t}]`;
+        document.getElementById('mStats').innerText = `兵:${u.tr} | 氣:${u.s}${u.conf?' (混亂)':''}`;
+        document.getElementById('uCmd').style.display='grid'; document.getElementById('cCmd').style.display='none';
+        document.getElementById('subMenu').style.display='none';
     }
 
     function showC(c) {
-        const m = document.getElementById('menu'); m.style.display='block';
-        document.getElementById('menuTitle').innerText = `${c.n} (預備兵:${c.tr})`;
-        document.getElementById('uBtns').style.display='none'; document.getElementById('cBtns').style.display='block';
-        const list = document.getElementById('heroList'); list.innerHTML='';
+        document.getElementById('menu').style.display='block';
+        document.getElementById('mTitle').innerText = `${c.n} (預備兵:${c.tr})`;
+        document.getElementById('mStats').innerText = `商業:${c.comm} | 農業:${c.farm}`;
+        document.getElementById('uCmd').style.display='none'; document.getElementById('cCmd').style.display='block';
+        const list = document.getElementById('hList'); list.innerHTML='';
         GS.units.filter(u=>u.f===c.f && !u.isD).forEach(u=>{
-            list.innerHTML += `<div class="list-item" onclick="deploy(${u.id},${c.x},${c.y})">${u.n} [${u.t}] <span>武:${u.a}</span></div>`;
+            list.innerHTML += `<div style="padding:6px; border-bottom:1px solid #333; cursor:pointer; font-size:12px;" onclick="deploy(${u.id},${c.x},${c.y})">${u.n} [${u.t}] <span>武:${u.a}</span></div>`;
         });
     }
 
-    function deploy(id,x,y) {
-        const n = parseInt(document.getElementById('depNum').value);
-        const c = GS.cities.find(ci=>ci.x===x && ci.y===y);
-        if(c.tr < n || n<=0) { log("兵源不足！","#e74c3c"); return; }
-        c.tr -= n; const u = GS.units.find(u=>u.id===id);
-        u.x=x; u.y=y; u.tr=n; u.isD=true; u.act=true;
-        log(`🚩 ${u.n} 領兵 ${n} 出征！`); document.getElementById('menu').style.display='none'; draw();
-    }
-
-    function doAtk() {
-        const tar = GS.units.find(u=>u.f!==selected.f && u.isD && Math.abs(u.x-selected.x)+Math.abs(u.y-selected.y)<=1);
-        if(tar) {
-            let d = Math.floor(selected.a * selected.tr / 500);
-            tar.tr -= d; log(`⚔️ ${selected.n} 攻擊 ${tar.n}，損兵 ${d}。`);
-            if(tar.tr<=0) { tar.isD=false; log(`💀 ${tar.n} 潰敗！`); }
-            doWait();
-        } else log("範圍內無敵軍。");
-    }
-
-    function showTactics() {
-        const b = document.getElementById('tBox'); b.style.display='block'; b.innerHTML='';
-        (TACTICS[selected.t]||[]).forEach(t=>{
-            b.innerHTML += `<button style="background:#d35400; color:white; font-size:11px; margin:2px;" onclick="execT('${t.n}',${t.c},${t.m})">${t.n}(${t.c})</button>`;
-        });
+    function openSub(type) {
+        const s = document.getElementById('subMenu'); s.style.display='grid'; s.innerHTML='';
+        if(type==='tactics') {
+            (TACTICS[sel.t]||[]).forEach(t=> s.innerHTML += `<button style="background:#d35400; color:white;" onclick="execT('${t.n}',${t.c},${t.m})">${t.n}(${t.c})</button>`);
+        } else if(type==='plots') {
+            PLOTS.forEach(p=> s.innerHTML += `<button style="background:#8e44ad; color:white;" onclick="execP('${p.n}',${p.c},${p.v})">${p.n}(${p.c})</button>`);
+        } else if(type==='build') {
+            BUILDS.forEach(b=> s.innerHTML += `<button style="background:#2c3e50; color:white;" onclick="execB('${b.n}',${b.g},'${b.i}')">${b.n}(${b.g}金)</button>`);
+        } else if(type==='dev') {
+            s.innerHTML = `<button style="background:#27ae60; color:white;" onclick="execD('comm')">商開(250金)</button><button style="background:#27ae60; color:white;" onclick="execD('farm')">農開(250金)</button>`;
+        }
     }
 
     function execT(n,c,m) {
-        if(selected.s<c) { log("氣力不足！"); return; }
-        const tar = GS.units.find(u=>u.f!==selected.f && u.isD && Math.abs(u.x-selected.x)+Math.abs(u.y-selected.y)<=1);
+        if(sel.s < c) { log("氣力不足！"); return; }
+        const tar = GS.units.find(u=>u.f!==sel.f && u.isD && Math.abs(u.x-sel.x)+Math.abs(u.y-sel.y)<=1);
         if(tar) {
-            selected.s -= c; let d = Math.floor((selected.a * selected.tr / 400) * m);
-            tar.tr -= d; log(`🔥 ${selected.n} 發動【${n}】，${tar.n} 損兵 ${d}！`);
-            if(tar.tr<=0) tar.isD=false;
-            doWait();
-        } else log("無戰法對象。");
+            sel.s -= c; let d = Math.floor((sel.a * sel.tr / 450) * m);
+            tar.tr -= d; log(`🔥 ${sel.n} 【${n}】，${tar.n} 損兵 ${d}！`);
+            if(tar.tr<=0) tar.isD=false; unitWait();
+        } else log("範圍內無敵軍。");
+    }
+
+    function execP(n,c,v) {
+        if(sel.s < c) { log("氣力不足！"); return; }
+        const tar = GS.units.find(u=>u.f!==sel.f && u.isD && Math.abs(u.x-sel.x)+Math.abs(u.y-sel.y)<=3);
+        if(tar) {
+            sel.s -= c;
+            if(n==='火計') { tar.tr -= v; log(`📜 ${sel.n} 火計！${tar.n} 損兵 ${v}。`); }
+            else { tar.conf = true; log(`📜 ${sel.n} 內訌！${tar.n} 混亂。`); }
+            if(tar.tr<=0) tar.isD=false; unitWait();
+        } else log("3格內無敵軍。");
+    }
+
+    function execB(n,g,i) {
+        const f = GS.facs[GS.idx]; if(f.gold < g) { log("金錢不足！"); return; }
+        f.gold -= g; GS.bldgs.push({ x:sel.x, y:sel.y, n, f:f.id, i });
+        log(`🏗️ ${sel.n} 建造了 ${n}。`); unitWait();
+    }
+
+    function execD(type) {
+        const f = GS.facs[GS.idx]; if(f.gold < 250) { log("金錢不足！"); return; }
+        f.gold -= 250; const c = GS.cities.find(ci=>ci.n[0]===document.getElementById('mTitle').innerText[0]);
+        if(type==='comm') { c.comm += 25; log(`📈 ${c.n} 商業增加。`); }
+        else { c.farm += 25; log(`📈 ${c.n} 農業增加。`); }
+        document.getElementById('menu').style.display='none'; draw();
     }
 
     function doDraft() {
-        const f = GS.facs[GS.idx];
-        const c = GS.cities.find(ci=>ci.f===f.id && ci.n[0]===document.getElementById('menuTitle').innerText[0]);
-        if(f.gold>=300) { f.gold-=300; c.tr+=2500; log(`📯 ${c.n} 募兵 2500。`); showC(c); draw(); } else log("金錢不足！");
+        const f = GS.facs[GS.idx]; if(f.gold < 400) { log("金錢不足！"); return; }
+        f.gold -= 400; const c = GS.cities.find(ci=>ci.f===f.id && ci.n[0]===document.getElementById('mTitle').innerText[0]);
+        c.tr += 2000; log(`📯 ${c.n} 徵兵 2000。`); showC(c); draw();
     }
 
-    function doWait() { 
-        if(selected) selected.act = true; 
-        selected = null; document.getElementById('menu').style.display='none'; draw(); 
+    function deploy(id,x,y) {
+        const c = GS.cities.find(ci=>ci.x===x && ci.y===y);
+        if(c.tr < 3000) { log("兵源不足 3000！"); return; }
+        c.tr -= 3000; const u = GS.units.find(u=>u.id===id);
+        u.x=x; u.y=y; u.tr=3000; u.isD=true; u.act=true;
+        log(`🚩 ${u.n} 出征！`); document.getElementById('menu').style.display='none'; draw();
     }
 
-    function endTurn(isAIAction=false) {
-        selected=null; document.getElementById('menu').style.display='none';
-        GS.idx = (GS.idx+1)%GS.facs.length;
-        if(GS.idx===0) {
-            GS.t++; GS.cities.forEach(c=>{ if(c.f){ c.tr+=800; GS.facs.find(fa=>fa.id===c.f).gold+=400; }});
+    function doAtk() {
+        const tar = GS.units.find(u=>u.f!==sel.f && u.isD && Math.abs(u.x-sel.x)+Math.abs(u.y-sel.y)<=1);
+        if(tar) {
+            let d = Math.floor(sel.a * sel.tr / 500);
+            tar.tr -= d; log(`⚔️ ${sel.n} 攻擊 ${tar.n}，損兵 ${d}。`);
+            if(tar.tr<=0) tar.isD=false; unitWait();
         }
-        const f = GS.facs[GS.idx];
-        GS.units.filter(u=>u.f===f.id).forEach(u=>{
-            u.act=false; 
-            const inc = GS.cities.some(ci=>ci.x===u.x && ci.y===u.y && ci.f===u.f)?25:10;
-            u.s = Math.min(100, u.s+inc);
-        });
-        processTurn();
     }
 
-    function runAI() {
-        const f = GS.facs[GS.idx]; 
-        const c = GS.cities.find(ci=>ci.f===f.id);
-        const sb = GS.units.filter(u=>u.f===f.id && !u.isD);
-        if(c && sb.length && c.tr>4000) {
-            const u=sb[0]; u.x=c.x; u.y=c.y; u.tr=4000; u.isD=true; u.act=true; c.tr-=4000;
+    function unitWait() { if(sel) sel.act = true; sel = null; document.getElementById('menu').style.display='none'; draw(); }
+
+    function endTurn() {
+        sel = null; document.getElementById('menu').style.display='none';
+        GS.idx = (GS.idx+1) % GS.facs.length;
+        if(GS.idx === 0) {
+            GS.t++;
+            GS.facs.forEach(f => {
+                let iG = 0, iF = 0, uG = 0, uF = 0;
+                GS.cities.filter(c=>c.f===f.id).forEach(c => { iG += c.comm*3; iF += c.farm*8; c.tr += 500; });
+                GS.units.filter(u=>u.f===f.id && u.isD).forEach(u => { uG += Math.floor(u.tr/100); uF += Math.floor(u.tr/20); });
+                f.gold += (iG - uG); f.food += (iF - uF);
+                if(f.food < 0) { f.food = 0; log(`⚠️ ${f.n} 糧草斷絕！`, "#e74c3c"); GS.units.filter(u=>u.f===f.id && u.isD).forEach(u => u.tr = Math.floor(u.tr*0.8)); }
+            });
+            GS.bldgs.filter(b=>b.n==='箭樓').forEach(b=>{
+                const tar = GS.units.find(u=>u.f!==b.f && u.isD && Math.abs(u.x-b.x)+Math.abs(u.y-b.y)<=2);
+                if(tar) { tar.tr -= 400; log(`🏹 箭樓攻擊 ${tar.n}！`); if(tar.tr<=0) tar.isD=false; }
+            });
         }
-        GS.units.filter(u=>u.f===f.id && u.isD).forEach(u=>u.act=true);
-        setTimeout(() => endTurn(true), 1000);
+        GS.units.filter(u=>u.f===GS.facs[GS.idx].id).forEach(u=>{ u.act=false; u.conf=false; u.s=Math.min(100,u.s+15); });
+        startFacTurn();
     }
+
+    function runAI() { GS.units.filter(u=>u.f===GS.facs[GS.idx].id && u.isD).forEach(u=>u.act=true); setTimeout(() => endTurn(), 800); }
 
     function updateUI() {
-        const f = GS.facs[GS.idx]; const l = document.getElementById('uiFac');
-        l.innerText = f.n + (f.isAI ? " (電腦)" : " (玩家)"); l.style.background = f.c;
+        const f = GS.facs[GS.idx]; const ui = document.getElementById('uiFac');
+        ui.innerText = f.n + (f.isAI ? " (AI)" : " (玩家)"); ui.style.background = f.c;
         document.getElementById('uiTurn').innerText = GS.t;
         document.getElementById('uiGold').innerText = f.gold;
         document.getElementById('uiFood').innerText = f.food;
     }
 
-    function log(m, c="#2ecc71") { 
-        const b = document.getElementById('logBox'); b.innerHTML += `<br><span style="color:${c}">> ${m}</span>`; b.scrollTop = b.scrollHeight; 
-    }
-    function varGold() { return "#f1c40f"; }
+    function log(m, c="#2ecc71") { const b = document.getElementById('logBox'); b.innerHTML += `<br><span style="color:${c}">> ${m}</span>`; b.scrollTop = b.scrollHeight; }
 
-    initSetup();
+    init();
 </script>
 </body>
 </html>
