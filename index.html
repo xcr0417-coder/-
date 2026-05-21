@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>三國幻戰 × 無雙 修正版</title>
+<title>三國幻戰 × 無雙 能量卡牌版</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#100604;color:#ffe8b0;font-family:"Microsoft JhengHei",sans-serif;overflow:hidden}
@@ -21,26 +21,27 @@ button:disabled{opacity:.45}
 .title{color:gold;font-size:20px;margin-bottom:10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
 .card{background:linear-gradient(#352015,#15100c);border:1px solid #8b6a32;border-radius:10px;padding:10px;text-align:center}
-.UR{border-color:#ffcc00;box-shadow:0 0 10px #d49c21}
-.SSR{border-color:#ff4df0}
-.SR{border-color:#4aa3ff}
+.r0{border-color:#aaa}.r1{border-color:#4aa3ff}.r2{border-color:#b44dff}.r3{border-color:#ffcc00;box-shadow:0 0 8px #d49c21}.r4{border-color:#e8f3ff;box-shadow:0 0 12px #e8f3ff}
 .icon{font-size:32px}
 .tag{display:inline-block;padding:2px 6px;background:#5a2b12;border-radius:5px;font-size:12px;margin:2px}
 #gameWrap{display:none;position:fixed;inset:0;background:#050302;z-index:99}
 #game{display:block;background:radial-gradient(circle,#4b2a12,#130806)}
-#hud{position:fixed;top:10px;left:10px;background:rgba(0,0,0,.7);border:1px solid #d8a84f;border-radius:8px;padding:10px;line-height:1.6;font-size:14px;z-index:101}
+#hud{position:fixed;top:10px;left:10px;background:rgba(0,0,0,.7);border:1px solid #d8a84f;border-radius:8px;padding:10px;line-height:1.55;font-size:14px;z-index:101;min-width:250px}
 #help{position:fixed;right:10px;top:10px;background:rgba(0,0,0,.7);padding:10px;border-radius:8px;font-size:13px;line-height:1.6;z-index:101}
 #hand{position:fixed;bottom:0;left:0;right:0;height:150px;background:rgba(0,0,0,.78);border-top:2px solid gold;display:flex;align-items:center;justify-content:center;gap:10px;z-index:101}
 .handCard{width:125px;height:125px;border:1px solid #d8a84f;border-radius:10px;background:linear-gradient(#41200d,#1a0b05);text-align:center;padding:8px;font-size:13px}
 .handCard:hover{filter:brightness(1.25)}
 #msg{position:fixed;top:38%;width:100%;text-align:center;color:gold;font-size:42px;text-shadow:2px 2px 8px #000;pointer-events:none;z-index:102}
+.bar{height:8px;background:#111;border:1px solid #5c421c;border-radius:5px;margin:3px 0;overflow:hidden}
+.fill{height:100%}
+.hp{background:#39e66d}.skill{background:#4aa3ff}.ult{background:#ff7a18}.musou{background:#ffd700}
 </style>
 </head>
 
 <body>
 <div id="app">
 <header>
-<h1>三國幻戰 × 無雙</h1>
+<h1>三國幻戰 × 無雙 能量卡牌版</h1>
 <div>
 銅錢：<span id="coin">0</span>　
 元寶：<span id="jade">0</span>　
@@ -55,6 +56,7 @@ button:disabled{opacity:.45}
 <button class="navbtn" id="btnTeam">出戰設定</button>
 <button class="navbtn" id="btnSummon">抽卡</button>
 <button class="navbtn" id="btnBattle">開始戰鬥</button>
+<button class="navbtn" id="btnReset">重置存檔</button>
 </div>
 <div id="content"></div>
 </main>
@@ -66,8 +68,11 @@ button:disabled{opacity:.45}
 <div id="help">
 WASD：玩家1移動<br>
 方向鍵：玩家2移動<br>
-J：普攻　K：技能1　L：技能2<br>
-U：無雙　空白鍵：閃避<br>
+J：普攻<br>
+K：技能，消耗技能條 30<br>
+L：絕招卡，消耗絕招條 100<br>
+U：無雙，消耗無雙條 100<br>
+空白鍵：閃避<br>
 數字 1~5：使用手牌<br>
 TAB：切換主控武將<br>
 ESC：離開戰鬥
@@ -77,543 +82,932 @@ ESC：離開戰鬥
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-const pool=[
-{id:"zhaoyun",type:"武將",name:"趙雲",rare:"SSR",icon:"🐉",hp:720,atk:95,def:35,skill:"龍膽突刺"},
-{id:"guanyu",type:"武將",name:"關羽",rare:"SSR",icon:"🟢",hp:850,atk:90,def:45,skill:"青龍斬"},
-{id:"lubu",type:"武將",name:"呂布",rare:"UR",icon:"🔥",hp:980,atk:135,def:50,skill:"無雙亂舞"},
-{id:"zhugeliang",type:"武將",name:"諸葛亮",rare:"UR",icon:"🪭",hp:620,atk:125,def:30,skill:"八卦天雷"},
-{id:"sword",type:"武器",name:"青釭劍",rare:"SSR",icon:"⚔️",atk:45,effect:"攻擊+45"},
-{id:"halberd",type:"武器",name:"方天戟",rare:"UR",icon:"🔱",atk:70,effect:"攻擊+70"},
-{id:"horse",type:"獸卡",name:"赤兔馬",rare:"UR",icon:"🐎",speed:1.2,effect:"移速提升"},
-{id:"tiger",type:"獸卡",name:"白虎",rare:"SSR",icon:"🐯",atk:35,effect:"攻擊+35"},
-{id:"fire",type:"技能",name:"烈火計",rare:"SR",icon:"🔥",dmg:180,effect:"範圍火傷"},
-{id:"thunder",type:"技能",name:"天雷破",rare:"SSR",icon:"⚡",dmg:260,effect:"大範圍雷傷"},
-{id:"heal",type:"技能",name:"回春術",rare:"SR",icon:"💚",heal:220,effect:"恢復生命"},
-{id:"shield",type:"技能",name:"鐵壁陣",rare:"SR",icon:"🛡️",shield:180,effect:"護盾防禦"},
-{id:"soldier",type:"兵卡",name:"槍兵隊",rare:"SR",icon:"🪖",summon:"spear",effect:"召喚槍兵"},
-{id:"archer",type:"兵卡",name:"弓兵隊",rare:"SR",icon:"🏹",summon:"archer",effect:"召喚弓兵"}
+// ==========================================
+// 壹、定義遊戲基礎設定
+// ==========================================
+const CardType = {
+  HERO: "武將",
+  WEAPON: "武器",
+  ULTIMATE: "絕招",
+  PET: "寵物",
+  SKILL: "技能",
+  SOLDIER: "兵卡"
+};
+
+const Rarity = {
+  COMMON: 0,
+  RARE: 1,
+  EPIC: 2,
+  LEGENDARY: 3,
+  SILVER_LEGENDARY: 4
+};
+
+const RarityNames = ["普通", "稀有", "史詩", "傳說", "白銀傳說"];
+
+// ==========================================
+// 貳、卡牌養成系統
+// ==========================================
+class Card {
+  constructor(name, type, rarity, basePower = 100, extra = {}) {
+    this.name = name;
+    this.type = type;
+    this.rarity = rarity;
+    this.level = 1;
+    this.star = 0;
+    this.basePower = basePower;
+    this.requiredExp = 10;
+    this.currentExp = 0;
+    this.uid = extra.uid || name + "_" + Date.now() + "_" + Math.floor(Math.random() * 9999);
+    this.icon = extra.icon || "🎴";
+    this.hp = extra.hp || 0;
+    this.atk = extra.atk || 0;
+    this.def = extra.def || 0;
+    this.speed = extra.speed || 0;
+    this.dmg = extra.dmg || 0;
+    this.heal = extra.heal || 0;
+    this.effect = extra.effect || "";
+    this.skillName = extra.skillName || "戰技";
+  }
+
+  calculateTotalPower() {
+    let power = this.basePower;
+    power += this.basePower * (this.level - 1) * 0.1;
+    power += this.basePower * this.star * 0.3;
+    power += this.basePower * this.rarity * 0.5;
+
+    if (this.rarity === Rarity.SILVER_LEGENDARY) {
+      power *= 100;
+    }
+
+    return Math.floor(power);
+  }
+}
+
+// ==========================================
+// 參、抽卡機率系統
+// ==========================================
+class GachaSystem {
+  constructor() {
+    this.rates = {
+      common: 60,
+      rare: 30,
+      epic: 9,
+      legendary: 1
+    };
+  }
+
+  drawSingleCard() {
+    let roll = Math.random() * 100;
+    let drawnRarity;
+
+    if (roll <= this.rates.legendary) drawnRarity = Rarity.LEGENDARY;
+    else if (roll <= this.rates.legendary + this.rates.epic) drawnRarity = Rarity.EPIC;
+    else if (roll <= this.rates.legendary + this.rates.epic + this.rates.rare) drawnRarity = Rarity.RARE;
+    else drawnRarity = Rarity.COMMON;
+
+    const list = cardTemplates.filter(c => c.rarity === drawnRarity);
+    const t = list[Math.floor(Math.random() * list.length)];
+    return createCardFromTemplate(t);
+  }
+}
+
+// ==========================================
+// 肆、玩家主體與三條能量戰鬥系統
+// ==========================================
+class Player {
+  constructor(playerName) {
+    this.name = playerName;
+    this.inventory = [];
+    this.equippedWeapon = null;
+
+    this.position = { x: 0, z: 0 };
+    this.rotation = 0;
+    this.moveSpeed = 6.0;
+
+    this.skillEnergy = 0;
+    this.ultimateEnergy = 0;
+    this.musouEnergy = 0;
+
+    this.isMusouActive = false;
+  }
+
+  receiveCard(card) {
+    this.inventory.push(card);
+    if (card.type === CardType.WEAPON && !this.equippedWeapon) {
+      this.equippedWeapon = card;
+    }
+  }
+
+  move(inputX, inputZ, deltaTime) {
+    const magnitude = Math.sqrt(inputX * inputX + inputZ * inputZ);
+    if (magnitude >= 0.1) {
+      const dirX = inputX / magnitude;
+      const dirZ = inputZ / magnitude;
+      this.rotation = Math.atan2(dirX, dirZ) * (180 / Math.PI);
+      this.position.x += dirX * this.moveSpeed * deltaTime;
+      this.position.z += dirZ * this.moveSpeed * deltaTime;
+      this.chargeEnergy("skill", 5);
+    }
+  }
+
+  chargeEnergy(type, amount) {
+    if (type === "skill" && this.skillEnergy < 100) {
+      this.skillEnergy = Math.min(100, this.skillEnergy + amount);
+    } else if (type === "ultimate" && this.ultimateEnergy < 100) {
+      this.ultimateEnergy = Math.min(100, this.ultimateEnergy + amount);
+    } else if (type === "musou" && this.musouEnergy < 100) {
+      this.musouEnergy = Math.min(100, this.musouEnergy + amount);
+    }
+  }
+
+  useSkill(skillNumber) {
+    if (this.skillEnergy >= 30) {
+      this.skillEnergy -= 30;
+      return true;
+    }
+    return false;
+  }
+
+  useUltimate() {
+    if (this.ultimateEnergy >= 100) {
+      this.ultimateEnergy = 0;
+      return true;
+    }
+    return false;
+  }
+
+  activateMusou() {
+    if (this.musouEnergy >= 100 && this.equippedWeapon) {
+      this.musouEnergy = 0;
+      this.isMusouActive = true;
+      return this.equippedWeapon.calculateTotalPower() * 5;
+    }
+    return 0;
+  }
+}
+
+// ==========================================
+// 伍、卡牌資料
+// ==========================================
+const cardTemplates = [
+  { id:"zhaoyun", name:"趙雲", type:CardType.HERO, rarity:Rarity.EPIC, icon:"🐉", basePower:420, hp:760, atk:96, def:36, skillName:"龍膽突刺", effect:"高速突進武將" },
+  { id:"guanyu", name:"關羽", type:CardType.HERO, rarity:Rarity.EPIC, icon:"🟢", basePower:460, hp:880, atk:92, def:46, skillName:"青龍斬", effect:"前排戰士" },
+  { id:"lubu", name:"呂布", type:CardType.HERO, rarity:Rarity.LEGENDARY, icon:"🔥", basePower:650, hp:1080, atk:138, def:55, skillName:"鬼神亂舞", effect:"超高輸出" },
+  { id:"zhugeliang", name:"諸葛亮", type:CardType.HERO, rarity:Rarity.LEGENDARY, icon:"🪭", basePower:620, hp:650, atk:128, def:32, skillName:"八卦天雷", effect:"法術爆發" },
+
+  { id:"fangtian", name:"方天畫戟", type:CardType.WEAPON, rarity:Rarity.EPIC, icon:"🔱", basePower:500, atk:70, effect:"無雙傷害依武器戰力計算" },
+  { id:"qinggang", name:"青釭劍", type:CardType.WEAPON, rarity:Rarity.RARE, icon:"⚔️", basePower:260, atk:42, effect:"攻擊提升" },
+  { id:"silver_spear", name:"白銀龍槍", type:CardType.WEAPON, rarity:Rarity.SILVER_LEGENDARY, icon:"🪙", basePower:100, atk:100, effect:"白銀傳說：戰力百倍" },
+
+  { id:"ultimate_fire", name:"天下無雙·亂舞", type:CardType.ULTIMATE, rarity:Rarity.EPIC, icon:"🔥", basePower:420, dmg:380, effect:"消耗絕招條，造成大範圍傷害" },
+  { id:"ultimate_thunder", name:"天雷破軍", type:CardType.ULTIMATE, rarity:Rarity.LEGENDARY, icon:"⚡", basePower:580, dmg:520, effect:"消耗絕招條，造成超大雷傷" },
+
+  { id:"horse", name:"赤兔馬", type:CardType.PET, rarity:Rarity.EPIC, icon:"🐎", basePower:360, speed:1.2, effect:"提升移動速度" },
+  { id:"tiger", name:"白虎", type:CardType.PET, rarity:Rarity.RARE, icon:"🐯", basePower:280, atk:35, effect:"提升攻擊" },
+
+  { id:"fire", name:"烈火計", type:CardType.SKILL, rarity:Rarity.RARE, icon:"🔥", basePower:220, dmg:180, effect:"手牌範圍火傷" },
+  { id:"heal", name:"回春術", type:CardType.SKILL, rarity:Rarity.RARE, icon:"💚", basePower:200, heal:220, effect:"恢復生命" },
+  { id:"soldier", name:"槍兵隊", type:CardType.SOLDIER, rarity:Rarity.COMMON, icon:"🪖", basePower:150, effect:"召喚槍兵" },
+  { id:"archer", name:"弓兵隊", type:CardType.SOLDIER, rarity:Rarity.COMMON, icon:"🏹", basePower:150, effect:"召喚弓兵" }
 ];
 
-let state={coin:5000,jade:800,stage:1,cards:[],team:[]};
-
-function save(){localStorage.setItem("sg_fixed_game",JSON.stringify(state))}
-function load(){
-const data=localStorage.getItem("sg_fixed_game");
-if(data) state=JSON.parse(data);
-if(!state.cards||state.cards.length===0){
-state={coin:5000,jade:800,stage:1,cards:[],team:[]};
-addCard("zhaoyun");
-addCard("guanyu");
-addCard("sword");
-addCard("fire");
-addCard("heal");
-state.team=[state.cards[0].uid,state.cards[1].uid];
-save();
-}
+function createCardFromTemplate(t) {
+  return new Card(t.name, t.type, t.rarity, t.basePower, {
+    icon:t.icon,
+    hp:t.hp,
+    atk:t.atk,
+    def:t.def,
+    speed:t.speed,
+    dmg:t.dmg,
+    heal:t.heal,
+    effect:t.effect,
+    skillName:t.skillName
+  });
 }
 
-function addCard(id){
-const b=pool.find(x=>x.id===id);
-const c={...b,uid:id+"_"+Date.now()+"_"+Math.floor(Math.random()*9999),lv:1,star:b.rare==="UR"?3:b.rare==="SSR"?2:1};
-state.cards.push(c);
-return c;
+// ==========================================
+// 陸、遊戲狀態
+// ==========================================
+let state = {
+  coin: 5000,
+  jade: 800,
+  stage: 1,
+  cards: [],
+  team: []
+};
+
+const gacha = new GachaSystem();
+
+function save() {
+  localStorage.setItem("sg_energy_card_game_v2", JSON.stringify(state));
 }
 
-function stat(c,k){
-return Math.floor((c[k]||0)*(1+c.lv*.08+c.star*.15));
+function reviveCard(obj) {
+  const c = new Card(obj.name, obj.type, obj.rarity, obj.basePower, obj);
+  c.uid = obj.uid;
+  c.level = obj.level || 1;
+  c.star = obj.star || 0;
+  c.requiredExp = obj.requiredExp || 10;
+  c.currentExp = obj.currentExp || 0;
+  return c;
 }
 
-function updateTop(){
-$("coin").textContent=state.coin;
-$("jade").textContent=state.jade;
-$("stage").textContent=state.stage;
+function load() {
+  const data = localStorage.getItem("sg_energy_card_game_v2");
+  if (data) {
+    state = JSON.parse(data);
+    state.cards = state.cards.map(reviveCard);
+  }
+
+  if (!state.cards || state.cards.length === 0) {
+    state = { coin:5000, jade:800, stage:1, cards:[], team:[] };
+
+    const zhao = createCardFromTemplate(cardTemplates.find(c=>c.id==="zhaoyun"));
+    const guan = createCardFromTemplate(cardTemplates.find(c=>c.id==="guanyu"));
+    const weapon = createCardFromTemplate(cardTemplates.find(c=>c.id==="fangtian"));
+    const ult = createCardFromTemplate(cardTemplates.find(c=>c.id==="ultimate_fire"));
+    const fire = createCardFromTemplate(cardTemplates.find(c=>c.id==="fire"));
+
+    state.cards.push(zhao, guan, weapon, ult, fire);
+    state.team = [zhao.uid, guan.uid];
+    save();
+  }
 }
 
-function setContent(html){
-$("content").innerHTML=html;
-updateTop();
+function updateTop() {
+  $("coin").textContent = state.coin;
+  $("jade").textContent = state.jade;
+  $("stage").textContent = state.stage;
 }
 
-function showHome(){
-setContent(`
-<div class="panel">
-<div class="title">主城</div>
-<p>這版已修正按鍵不能動、資源不顯示、首頁空白、戰鬥區一開始外露等問題。</p>
-<p>遊戲系統：</p>
-<p>1. 卡片分成：武將卡、武器卡、技能卡、獸卡、兵卡。</p>
-<p>2. 可抽卡、升級、升星、設定出戰武將。</p>
-<p>3. 戰鬥時可自己操作武將。</p>
-<p>4. 戰鬥中會抽 5 張手牌，用數字 1~5 使用。</p>
-<p>5. 兩張技能卡連續使用會觸發連攜傷害。</p>
-</div>
-`);
+function setContent(html) {
+  $("content").innerHTML = html;
+  updateTop();
 }
 
-function showAccount(){
-let html=`<div class="panel"><div class="title">帳號卡庫</div><div class="grid">`;
-state.cards.forEach(c=>{
-html+=`
-<div class="card ${c.rare}">
-<div class="icon">${c.icon}</div>
-<b>${c.name}</b><br>
-<span class="tag">${c.type}</span><span class="tag">${c.rare}</span><br>
-Lv.${c.lv}　${c.star}★<br>
-${c.effect||c.skill||""}<br>
-<button onclick="levelCard('${c.uid}')">升級</button>
-<button onclick="starCard('${c.uid}')">升星</button>
-</div>`;
-});
-html+=`</div></div>`;
-setContent(html);
+function rarityClass(c) {
+  return "r" + c.rarity;
 }
 
-function levelCard(uid){
-const c=state.cards.find(x=>x.uid===uid);
-const cost=300+c.lv*80;
-if(state.coin<cost){alert("銅錢不足");return}
-state.coin-=cost;
-c.lv++;
-save();
-showAccount();
+function cardInfo(c) {
+  return `
+    <div class="icon">${c.icon}</div>
+    <b>${c.name}</b><br>
+    <span class="tag">${c.type}</span>
+    <span class="tag">${RarityNames[c.rarity]}</span><br>
+    Lv.${c.level}　${c.star}★<br>
+    戰力：${c.calculateTotalPower()}<br>
+    ${c.effect || c.skillName || ""}
+  `;
 }
 
-function starCard(uid){
-const c=state.cards.find(x=>x.uid===uid);
-const same=state.cards.find(x=>x.id===c.id&&x.uid!==uid);
-if(!same){alert("需要消耗一張同名卡升星");return}
-state.cards=state.cards.filter(x=>x.uid!==same.uid);
-c.star++;
-save();
-showAccount();
+// ==========================================
+// 柒、主城 / 卡庫 / 編隊 / 抽卡
+// ==========================================
+function showHome() {
+  setContent(`
+  <div class="panel">
+    <div class="title">主城</div>
+    <p>已加入你提供的程式系統：</p>
+    <p>1. Card 類別：等級、星級、稀有度、戰力計算。</p>
+    <p>2. GachaSystem：普通 / 稀有 / 史詩 / 傳說抽卡。</p>
+    <p>3. Player 類別：技能條、絕招條、無雙條三條獨立能量。</p>
+    <p>4. 無雙傷害會依照裝備武器卡的戰力計算。</p>
+    <p>5. 白銀傳說卡會啟動 100 倍戰力。</p>
+  </div>
+
+  <div class="panel">
+    <div class="title">戰鬥操作</div>
+    <p>K：消耗技能條 30，施放角色技能。</p>
+    <p>L：絕招條滿 100 後，施放裝備中的絕招卡。</p>
+    <p>U：無雙條滿 100 且有武器卡時，依武器戰力造成 5 倍大範圍傷害。</p>
+  </div>
+  `);
 }
 
-function showTeam(){
-let html=`<div class="panel"><div class="title">出戰設定：最多 2 名可操作武將</div>`;
-for(let i=0;i<2;i++){
-const h=state.cards.find(x=>x.uid===state.team[i]);
-html+=`
-<div class="card" style="display:inline-block;width:170px;margin:8px">
-<b>${i===0?"玩家1":"玩家2"}</b><br>
-${h?`<div class="icon">${h.icon}</div>${h.name}<br><button onclick="removeTeam(${i})">下陣</button>`:"空位"}
-</div>`;
-}
-html+=`</div><div class="panel"><div class="title">選擇武將卡</div><div class="grid">`;
-state.cards.filter(c=>c.type==="武將").forEach(c=>{
-const on=state.team.includes(c.uid);
-html+=`
-<div class="card ${c.rare}">
-<div class="icon">${c.icon}</div>
-<b>${c.name}</b><br>
-Lv.${c.lv} ${c.star}★<br>
-<button ${on?"disabled":""} onclick="addTeam('${c.uid}')">${on?"已上陣":"上陣"}</button>
-</div>`;
-});
-html+=`</div></div>`;
-setContent(html);
+function showAccount() {
+  let html = `<div class="panel"><div class="title">帳號卡庫</div><div class="grid">`;
+
+  state.cards.forEach(c => {
+    html += `
+    <div class="card ${rarityClass(c)}">
+      ${cardInfo(c)}
+      <br>
+      <button onclick="levelCard('${c.uid}')">升級</button>
+      <button onclick="starCard('${c.uid}')">升星</button>
+    </div>`;
+  });
+
+  html += `</div></div>`;
+  setContent(html);
 }
 
-function addTeam(uid){
-if(state.team.length>=2){alert("最多 2 人");return}
-state.team.push(uid);
-save();
-showTeam();
+function levelCard(uid) {
+  const c = state.cards.find(x => x.uid === uid);
+  const cost = 300 + c.level * 80;
+  if (state.coin < cost) return alert("銅錢不足");
+  state.coin -= cost;
+  c.level++;
+  save();
+  showAccount();
 }
 
-function removeTeam(i){
-state.team.splice(i,1);
-save();
-showTeam();
+function starCard(uid) {
+  const c = state.cards.find(x => x.uid === uid);
+  const same = state.cards.find(x => x.name === c.name && x.uid !== uid);
+  if (!same) return alert("需要消耗一張同名卡升星");
+  state.cards = state.cards.filter(x => x.uid !== same.uid);
+  c.star++;
+  save();
+  showAccount();
 }
 
-function showSummon(){
-setContent(`
-<div class="panel">
-<div class="title">抽卡</div>
-<p>100 元寶抽 1 張。UR 8%，SSR 27%，SR 65%。</p>
-<button onclick="summon(1)">抽 1 次</button>
-<button onclick="summon(10)">抽 10 次</button>
-</div>
-`);
+function showTeam() {
+  let html = `<div class="panel"><div class="title">出戰設定：最多 2 名可操作武將</div>`;
+
+  for (let i=0;i<2;i++) {
+    const h = state.cards.find(x => x.uid === state.team[i]);
+    html += `
+    <div class="card" style="display:inline-block;width:170px;margin:8px">
+      <b>${i===0 ? "玩家1" : "玩家2"}</b><br>
+      ${h ? `${cardInfo(h)}<br><button onclick="removeTeam(${i})">下陣</button>` : "空位"}
+    </div>`;
+  }
+
+  html += `</div><div class="panel"><div class="title">選擇武將卡</div><div class="grid">`;
+
+  state.cards.filter(c => c.type === CardType.HERO).forEach(c => {
+    const on = state.team.includes(c.uid);
+    html += `
+    <div class="card ${rarityClass(c)}">
+      ${cardInfo(c)}
+      <br>
+      <button ${on ? "disabled" : ""} onclick="addTeam('${c.uid}')">${on ? "已上陣" : "上陣"}</button>
+    </div>`;
+  });
+
+  html += `</div></div>`;
+  setContent(html);
 }
 
-function summon(n){
-if(state.jade<n*100){alert("元寶不足");return}
-state.jade-=n*100;
-let arr=[];
-for(let i=0;i<n;i++){
-const r=Math.random();
-const rare=r<.08?"UR":r<.35?"SSR":"SR";
-const list=pool.filter(x=>x.rare===rare);
-const c=list[Math.floor(Math.random()*list.length)];
-addCard(c.id);
-arr.push(c.name);
-}
-save();
-alert("取得："+arr.join("、"));
-showSummon();
+function addTeam(uid) {
+  if (state.team.length >= 2) return alert("最多 2 人");
+  state.team.push(uid);
+  save();
+  showTeam();
 }
 
-/* 戰鬥區 */
-const canvas=$("game");
-const ctx=canvas.getContext("2d");
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
-
-let keys={},players=[],enemies=[],allies=[],handCards=[],deck=[],drawCd=0,loopId=null,active=0,gameOver=false,combo=0,lastCardType="";
-
-document.addEventListener("keydown",e=>{
-keys[e.key.toLowerCase()]=true;
-if(e.key===" ")keys.space=true;
-if(e.key==="Escape")exitBattle();
-if(e.key==="Tab"){
-e.preventDefault();
-if(players.length>0) active=(active+1)%players.length;
-}
-if(["1","2","3","4","5"].includes(e.key))useHand(Number(e.key)-1);
-});
-
-document.addEventListener("keyup",e=>{
-keys[e.key.toLowerCase()]=false;
-if(e.key===" ")keys.space=false;
-});
-
-function startBattle(){
-const team=state.team.map(u=>state.cards.find(c=>c.uid===u)).filter(Boolean);
-if(team.length===0){alert("請先設定出戰武將");return}
-
-$("gameWrap").style.display="block";
-$("msg").textContent="";
-
-players=team.map((h,i)=>({
-name:h.name,icon:h.icon,x:220+i*90,y:canvas.height/2,r:22,
-hp:stat(h,"hp"),maxHp:stat(h,"hp"),atk:stat(h,"atk"),def:stat(h,"def"),
-speed:4,rage:0,faceX:1,faceY:0,atkCd:0,s1:0,s2:0,ult:0,inv:0,dodge:0,base:h
-}));
-
-enemies=[];
-allies=[];
-handCards=[];
-deck=state.cards.filter(c=>c.type!=="武將");
-drawHand();
-drawCd=0;
-active=0;
-gameOver=false;
-combo=0;
-lastCardType="";
-
-for(let i=0;i<8;i++)spawnEnemy();
-
-if(loopId)cancelAnimationFrame(loopId);
-battleLoop();
+function removeTeam(i) {
+  state.team.splice(i,1);
+  save();
+  showTeam();
 }
 
-function exitBattle(){
-$("gameWrap").style.display="none";
-if(loopId)cancelAnimationFrame(loopId);
-showHome();
+function showSummon() {
+  setContent(`
+  <div class="panel">
+    <div class="title">抽卡</div>
+    <p>100 元寶抽 1 張。</p>
+    <p>普通 60%，稀有 30%，史詩 9%，傳說 1%。</p>
+    <button onclick="summon(1)">抽 1 次</button>
+    <button onclick="summon(10)">抽 10 次</button>
+  </div>
+  `);
 }
 
-function rand(a,b){return Math.random()*(b-a)+a}
-function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-function dis(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function summon(n) {
+  if (state.jade < n * 100) return alert("元寶不足");
 
-function showMsg(t){
-$("msg").textContent=t;
-setTimeout(()=>{$("msg").textContent=""},1200);
+  state.jade -= n * 100;
+  let result = [];
+
+  for (let i=0;i<n;i++) {
+    const card = gacha.drawSingleCard();
+    state.cards.push(card);
+    result.push(`${card.name}【${RarityNames[card.rarity]}】`);
+  }
+
+  save();
+  alert("取得：\n" + result.join("\n"));
+  showSummon();
 }
 
-function spawnEnemy(){
-const y=rand(90,canvas.height-190);
-enemies.push({
-name:"黃巾軍",
-x:canvas.width+rand(20,300),
-y:y,
-r:16,
-hp:160+state.stage*40,
-maxHp:160+state.stage*40,
-atk:16+state.stage*4,
-spd:1.3
-});
-}
+// ==========================================
+// 捌、戰鬥系統
+// ==========================================
+const canvas = $("game");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-function drawHand(){
-handCards=[];
-const copy=[...deck];
-for(let i=0;i<5&&copy.length;i++){
-const c=copy.splice(Math.floor(Math.random()*copy.length),1)[0];
-handCards.push(c);
-}
-renderHand();
-}
+let keys = {};
+let players = [];
+let enemies = [];
+let allies = [];
+let handCards = [];
+let deck = [];
+let drawCd = 0;
+let loopId = null;
+let active = 0;
+let gameOver = false;
+let combo = 0;
+let lastCardType = "";
 
-function renderHand(){
-const h=$("hand");
-h.innerHTML="";
-handCards.forEach((c,i)=>{
-const div=document.createElement("div");
-div.className="handCard "+c.rare;
-div.innerHTML=`<b>${i+1}</b><br><div class="icon">${c.icon}</div>${c.name}<br>${c.type}<br><small>${c.effect||""}</small>`;
-div.onclick=()=>useHand(i);
-h.appendChild(div);
-});
-}
+document.addEventListener("keydown", e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.key === " ") keys.space = true;
+  if (e.key === "Escape") exitBattle();
 
-function useHand(i){
-const c=handCards[i];
-if(!c||gameOver||players.length===0)return;
-const p=players[active];
+  if (e.key === "Tab") {
+    e.preventDefault();
+    if (players.length > 0) active = (active + 1) % players.length;
+  }
 
-if(c.type==="武器"){
-p.atk+=stat(c,"atk");
-showMsg(`${p.name} 裝備 ${c.name}`);
-}
-
-if(c.type==="獸卡"){
-p.speed+=c.speed||0.4;
-p.atk+=c.atk||0;
-showMsg(`${p.name} 召喚 ${c.name}`);
-}
-
-if(c.type==="技能"){
-const multi=lastCardType==="技能"?1.5:1;
-enemies.forEach(e=>{
-if(dis(p,e)<260)e.hp-=((c.dmg||120)+p.atk)*multi;
-});
-if(c.heal)p.hp=clamp(p.hp+c.heal,0,p.maxHp);
-showMsg(`${p.name} 使用 ${c.name}${multi>1?"，連攜成功":""}`);
-}
-
-if(c.type==="兵卡"){
-for(let n=0;n<3;n++){
-allies.push({x:p.x+rand(-40,40),y:p.y+rand(-40,40),r:13,hp:120,atk:25,spd:1.5,name:c.name});
-}
-showMsg(`召喚 ${c.name}`);
-}
-
-lastCardType=c.type;
-combo++;
-handCards.splice(i,1);
-renderHand();
-}
-
-function attack(p){
-if(p.atkCd>0)return;
-p.atkCd=18;
-enemies.forEach(e=>{
-if(dis(p,e)<78)e.hp-=p.atk;
-});
-p.rage=clamp(p.rage+6,0,100);
-}
-
-function skill1(p){
-if(p.s1>0)return;
-p.s1=130;
-p.x+=p.faceX*110;
-p.y+=p.faceY*110;
-enemies.forEach(e=>{
-if(dis(p,e)<130)e.hp-=p.atk*2.4;
-});
-showMsg(p.base.skill);
-}
-
-function skill2(p){
-if(p.s2>0)return;
-p.s2=220;
-enemies.forEach(e=>{
-if(dis(p,e)<165)e.hp-=p.atk*2.1;
-});
-showMsg("範圍破陣");
-}
-
-function ultimate(p){
-if(p.rage<100||p.ult>0)return;
-p.rage=0;
-p.ult=500;
-enemies.forEach(e=>{
-if(dis(p,e)<300)e.hp-=p.atk*5.5;
-});
-showMsg("無雙爆發！");
-}
-
-function dodge(p){
-if(p.dodge>0)return;
-p.dodge=60;
-p.inv=30;
-p.x+=p.faceX*90;
-p.y+=p.faceY*90;
-}
-
-function updatePlayer(p,i){
-let dx=0,dy=0;
-
-if(i===0){
-if(keys.w)dy--;
-if(keys.s)dy++;
-if(keys.a)dx--;
-if(keys.d)dx++;
-if(keys.j)attack(p);
-if(keys.k)skill1(p);
-if(keys.l)skill2(p);
-if(keys.u)ultimate(p);
-if(keys.space)dodge(p);
-}else{
-if(keys.arrowup)dy--;
-if(keys.arrowdown)dy++;
-if(keys.arrowleft)dx--;
-if(keys.arrowright)dx++;
-}
-
-const l=Math.hypot(dx,dy);
-if(l){
-dx/=l;
-dy/=l;
-p.faceX=dx;
-p.faceY=dy;
-p.x+=dx*p.speed;
-p.y+=dy*p.speed;
-}
-
-p.x=clamp(p.x,20,canvas.width-20);
-p.y=clamp(p.y,20,canvas.height-170);
-
-["atkCd","s1","s2","ult","inv","dodge"].forEach(k=>p[k]=Math.max(0,p[k]-1));
-}
-
-function updateEnemies(){
-enemies.forEach(e=>{
-let target=players[0];
-players.forEach(p=>{
-if(dis(p,e)<dis(target,e))target=p;
-});
-const dx=target.x-e.x;
-const dy=target.y-e.y;
-const l=Math.hypot(dx,dy)||1;
-e.x+=dx/l*e.spd;
-e.y+=dy/l*e.spd;
-
-if(dis(e,target)<e.r+target.r+5&&target.inv<=0){
-target.hp-=e.atk*.08;
-}
-});
-enemies=enemies.filter(e=>e.hp>0);
-if(enemies.length<8)spawnEnemy();
-}
-
-function updateAllies(){
-allies.forEach(a=>{
-const e=enemies[0];
-if(!e)return;
-const dx=e.x-a.x;
-const dy=e.y-a.y;
-const l=Math.hypot(dx,dy)||1;
-a.x+=dx/l*a.spd;
-a.y+=dy/l*a.spd;
-if(dis(a,e)<a.r+e.r+5)e.hp-=a.atk*.1;
-});
-}
-
-function draw(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-
-ctx.strokeStyle="rgba(255,255,255,.05)";
-for(let x=0;x<canvas.width;x+=80){
-ctx.beginPath();
-ctx.moveTo(x,0);
-ctx.lineTo(x,canvas.height);
-ctx.stroke();
-}
-for(let y=0;y<canvas.height-150;y+=80){
-ctx.beginPath();
-ctx.moveTo(0,y);
-ctx.lineTo(canvas.width,y);
-ctx.stroke();
-}
-
-enemies.forEach(e=>{
-ctx.fillStyle="#b94627";
-ctx.beginPath();
-ctx.arc(e.x,e.y,e.r,0,Math.PI*2);
-ctx.fill();
-ctx.fillStyle="#111";
-ctx.fillRect(e.x-20,e.y-28,40,5);
-ctx.fillStyle="#f44";
-ctx.fillRect(e.x-20,e.y-28,40*(e.hp/e.maxHp),5);
+  if (["1","2","3","4","5"].includes(e.key)) {
+    useHand(Number(e.key)-1);
+  }
 });
 
-allies.forEach(a=>{
-ctx.fillStyle="#4aa3ff";
-ctx.beginPath();
-ctx.arc(a.x,a.y,a.r,0,Math.PI*2);
-ctx.fill();
+document.addEventListener("keyup", e => {
+  keys[e.key.toLowerCase()] = false;
+  if (e.key === " ") keys.space = false;
 });
 
-players.forEach((p,i)=>{
-ctx.fillStyle=i===active?"#2ee6a6":"#2d8cff";
-ctx.beginPath();
-ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-ctx.fill();
-ctx.fillStyle="#000";
-ctx.font="22px serif";
-ctx.textAlign="center";
-ctx.fillText(p.icon,p.x,p.y+7);
-ctx.fillStyle="white";
-ctx.font="13px Microsoft JhengHei";
-ctx.fillText((i===active?"★ ":"")+p.name,p.x,p.y-30);
-});
+function createBattlePlayer(heroCard, i) {
+  const p = new Player(heroCard.name);
+  p.card = heroCard;
 
-$("hud").innerHTML=players.map((p,i)=>
-`${i===active?"★":""}${p.name} HP:${Math.floor(p.hp)}/${p.maxHp} 怒氣:${Math.floor(p.rage)}`
-).join("<br>")+`<br>連攜:${combo}<br>敵人:${enemies.length}<br>手牌：1~5`;
+  const firstWeapon = state.cards.find(c => c.type === CardType.WEAPON);
+  if (firstWeapon) p.equippedWeapon = firstWeapon;
+
+  const firstUltimate = state.cards.find(c => c.type === CardType.ULTIMATE);
+  p.equippedUltimate = firstUltimate || null;
+
+  return {
+    system:p,
+    name:heroCard.name,
+    icon:heroCard.icon,
+    x:220+i*90,
+    y:canvas.height/2,
+    r:22,
+    hp:(heroCard.hp || 600) + heroCard.calculateTotalPower(),
+    maxHp:(heroCard.hp || 600) + heroCard.calculateTotalPower(),
+    atk:(heroCard.atk || 80) + Math.floor(heroCard.calculateTotalPower() * 0.08),
+    def:heroCard.def || 30,
+    speed:4,
+    rage:0,
+    faceX:1,
+    faceY:0,
+    atkCd:0,
+    s1:0,
+    s2:0,
+    ult:0,
+    inv:0,
+    dodge:0,
+    base:heroCard
+  };
 }
 
-function checkWinLose(){
-if(players.every(p=>p.hp<=0)){
-gameOver=true;
-showMsg("戰敗");
-setTimeout(exitBattle,1200);
+function startBattle() {
+  const team = state.team.map(u => state.cards.find(c => c.uid === u)).filter(Boolean);
+  if (team.length === 0) return alert("請先設定出戰武將");
+
+  $("gameWrap").style.display = "block";
+  $("msg").textContent = "";
+
+  players = team.map(createBattlePlayer);
+  enemies = [];
+  allies = [];
+  handCards = [];
+  deck = state.cards.filter(c => c.type !== CardType.HERO);
+  drawHand();
+
+  drawCd = 0;
+  active = 0;
+  gameOver = false;
+  combo = 0;
+  lastCardType = "";
+
+  for (let i=0;i<8;i++) spawnEnemy();
+
+  if (loopId) cancelAnimationFrame(loopId);
+  battleLoop();
 }
 
-if(combo>=12){
-gameOver=true;
-state.coin+=900+state.stage*150;
-state.jade+=30;
-state.stage++;
-save();
-showMsg("勝利！連攜突破");
-setTimeout(exitBattle,1200);
-}
+function exitBattle() {
+  $("gameWrap").style.display = "none";
+  if (loopId) cancelAnimationFrame(loopId);
+  showHome();
 }
 
-function battleLoop(){
-if(!gameOver){
-players.forEach(updatePlayer);
-updateEnemies();
-updateAllies();
-drawCd++;
-if(drawCd>600){
-drawCd=0;
-drawHand();
-}
-checkWinLose();
-}
-draw();
-loopId=requestAnimationFrame(battleLoop);
+function rand(a,b){ return Math.random()*(b-a)+a; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function dis(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+
+function showMsg(t) {
+  $("msg").textContent = t;
+  setTimeout(() => { $("msg").textContent = ""; }, 1200);
 }
 
-/* 重要：不要靠 id 自動變數，全部手動綁定 */
-window.onload=function(){
-load();
-updateTop();
+function spawnEnemy() {
+  const y = rand(90, canvas.height-190);
+  enemies.push({
+    name:"黃巾軍",
+    x:canvas.width + rand(20,300),
+    y,
+    r:16,
+    hp:180 + state.stage*50,
+    maxHp:180 + state.stage*50,
+    atk:16 + state.stage*4,
+    spd:1.3
+  });
+}
 
-$("btnHome").onclick=showHome;
-$("btnAccount").onclick=showAccount;
-$("btnTeam").onclick=showTeam;
-$("btnSummon").onclick=showSummon;
-$("btnBattle").onclick=startBattle;
+function drawHand() {
+  handCards = [];
+  const copy = [...deck];
 
-showHome();
+  for (let i=0;i<5 && copy.length;i++) {
+    const c = copy.splice(Math.floor(Math.random()*copy.length),1)[0];
+    handCards.push(c);
+  }
+
+  renderHand();
+}
+
+function renderHand() {
+  const h = $("hand");
+  h.innerHTML = "";
+
+  handCards.forEach((c,i) => {
+    const div = document.createElement("div");
+    div.className = "handCard r" + c.rarity;
+    div.innerHTML = `
+      <b>${i+1}</b><br>
+      <div class="icon">${c.icon}</div>
+      ${c.name}<br>
+      ${c.type}<br>
+      <small>${c.effect || ""}</small>
+    `;
+    div.onclick = () => useHand(i);
+    h.appendChild(div);
+  });
+}
+
+function useHand(i) {
+  const c = handCards[i];
+  if (!c || gameOver || players.length === 0) return;
+
+  const p = players[active];
+
+  if (c.type === CardType.WEAPON) {
+    p.system.equippedWeapon = c;
+    p.atk += c.atk || Math.floor(c.calculateTotalPower()*0.08);
+    showMsg(`${p.name} 裝備 ${c.name}`);
+  }
+
+  if (c.type === CardType.PET) {
+    p.speed += c.speed || 0.4;
+    p.atk += c.atk || 0;
+    showMsg(`${p.name} 召喚 ${c.name}`);
+  }
+
+  if (c.type === CardType.SKILL) {
+    const multi = lastCardType === CardType.SKILL ? 1.5 : 1;
+    enemies.forEach(e => {
+      if (dis(p,e) < 260) e.hp -= ((c.dmg || 120) + p.atk) * multi;
+    });
+    if (c.heal) p.hp = clamp(p.hp + c.heal, 0, p.maxHp);
+    showMsg(`${p.name} 使用 ${c.name}${multi>1 ? "，連攜成功" : ""}`);
+  }
+
+  if (c.type === CardType.ULTIMATE) {
+    p.system.equippedUltimate = c;
+    p.system.chargeEnergy("ultimate", 35);
+    showMsg(`${p.name} 裝備絕招卡 ${c.name}，絕招條 +35`);
+  }
+
+  if (c.type === CardType.SOLDIER) {
+    for (let n=0;n<3;n++) {
+      allies.push({
+        x:p.x+rand(-40,40),
+        y:p.y+rand(-40,40),
+        r:13,
+        hp:120,
+        atk:25,
+        spd:1.5,
+        name:c.name
+      });
+    }
+    showMsg(`召喚 ${c.name}`);
+  }
+
+  lastCardType = c.type;
+  combo++;
+  handCards.splice(i,1);
+  renderHand();
+}
+
+function attack(p) {
+  if (p.atkCd > 0) return;
+  p.atkCd = 18;
+
+  enemies.forEach(e => {
+    if (dis(p,e) < 78) {
+      e.hp -= p.atk;
+      p.system.chargeEnergy("skill", 8);
+      p.system.chargeEnergy("ultimate", 4);
+    }
+  });
+}
+
+function useBattleSkill(p) {
+  if (p.s1 > 0) return;
+
+  if (!p.system.useSkill(1)) {
+    showMsg("技能條不足");
+    return;
+  }
+
+  p.s1 = 130;
+  p.x += p.faceX * 110;
+  p.y += p.faceY * 110;
+
+  enemies.forEach(e => {
+    if (dis(p,e) < 135) e.hp -= p.atk * 2.4;
+  });
+
+  showMsg(`${p.name} 施放 ${p.base.skillName}`);
+}
+
+function useBattleUltimate(p) {
+  if (p.s2 > 0) return;
+
+  if (!p.system.equippedUltimate) {
+    showMsg("尚未裝備絕招卡");
+    return;
+  }
+
+  if (!p.system.useUltimate()) {
+    showMsg("絕招條不足");
+    return;
+  }
+
+  p.s2 = 260;
+  const card = p.system.equippedUltimate;
+  enemies.forEach(e => {
+    if (dis(p,e) < 300) e.hp -= (card.dmg || 300) + p.atk * 2;
+  });
+
+  showMsg(`${p.name} 施放絕招卡【${card.name}】`);
+}
+
+function useBattleMusou(p) {
+  if (p.ult > 0) return;
+
+  const dmg = p.system.activateMusou();
+
+  if (dmg <= 0) {
+    if (!p.system.equippedWeapon) showMsg("需要先裝備武器卡");
+    else showMsg("無雙條不足");
+    return;
+  }
+
+  p.ult = 500;
+
+  enemies.forEach(e => {
+    if (dis(p,e) < 360) e.hp -= dmg;
+  });
+
+  showMsg(`無雙爆發！武器戰力傷害 ${dmg}`);
+}
+
+function dodge(p) {
+  if (p.dodge > 0) return;
+  p.dodge = 60;
+  p.inv = 30;
+  p.x += p.faceX * 90;
+  p.y += p.faceY * 90;
+}
+
+function updatePlayer(p,i) {
+  let dx=0, dy=0;
+
+  if (i===0) {
+    if (keys.w) dy--;
+    if (keys.s) dy++;
+    if (keys.a) dx--;
+    if (keys.d) dx++;
+
+    if (keys.j) attack(p);
+    if (keys.k) useBattleSkill(p);
+    if (keys.l) useBattleUltimate(p);
+    if (keys.u) useBattleMusou(p);
+    if (keys.space) dodge(p);
+  } else {
+    if (keys.arrowup) dy--;
+    if (keys.arrowdown) dy++;
+    if (keys.arrowleft) dx--;
+    if (keys.arrowright) dx++;
+  }
+
+  const l = Math.hypot(dx,dy);
+  if (l) {
+    dx/=l;
+    dy/=l;
+    p.faceX=dx;
+    p.faceY=dy;
+    p.x += dx * p.speed;
+    p.y += dy * p.speed;
+
+    p.system.chargeEnergy("skill", 0.12);
+  }
+
+  p.x = clamp(p.x,20,canvas.width-20);
+  p.y = clamp(p.y,20,canvas.height-170);
+
+  ["atkCd","s1","s2","ult","inv","dodge"].forEach(k => p[k] = Math.max(0,p[k]-1));
+}
+
+function updateEnemies() {
+  enemies.forEach(e => {
+    let target = players[0];
+
+    players.forEach(p => {
+      if (dis(p,e) < dis(target,e)) target = p;
+    });
+
+    const dx = target.x - e.x;
+    const dy = target.y - e.y;
+    const l = Math.hypot(dx,dy) || 1;
+
+    e.x += dx/l * e.spd;
+    e.y += dy/l * e.spd;
+
+    if (dis(e,target) < e.r + target.r + 5 && target.inv <= 0) {
+      const dmg = e.atk * 0.08;
+      target.hp -= dmg;
+      target.system.chargeEnergy("musou", 0.8);
+    }
+  });
+
+  enemies = enemies.filter(e => {
+    if (e.hp <= 0) {
+      players.forEach(p => p.system.chargeEnergy("ultimate", 10));
+      return false;
+    }
+    return true;
+  });
+
+  if (enemies.length < 8) spawnEnemy();
+}
+
+function updateAllies() {
+  allies.forEach(a => {
+    const e = enemies[0];
+    if (!e) return;
+
+    const dx = e.x - a.x;
+    const dy = e.y - a.y;
+    const l = Math.hypot(dx,dy) || 1;
+
+    a.x += dx/l * a.spd;
+    a.y += dy/l * a.spd;
+
+    if (dis(a,e) < a.r + e.r + 5) e.hp -= a.atk * 0.1;
+  });
+}
+
+function drawBar(x,y,w,value,colorClass) {
+  ctx.fillStyle="#111";
+  ctx.fillRect(x,y,w,6);
+  ctx.fillStyle=colorClass;
+  ctx.fillRect(x,y,w*clamp(value/100,0,1),6);
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.strokeStyle="rgba(255,255,255,.05)";
+  for(let x=0;x<canvas.width;x+=80){
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+  }
+  for(let y=0;y<canvas.height-150;y+=80){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+  }
+
+  enemies.forEach(e => {
+    ctx.fillStyle="#b94627";
+    ctx.beginPath();
+    ctx.arc(e.x,e.y,e.r,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#111";
+    ctx.fillRect(e.x-20,e.y-28,40,5);
+    ctx.fillStyle="#f44";
+    ctx.fillRect(e.x-20,e.y-28,40*(e.hp/e.maxHp),5);
+  });
+
+  allies.forEach(a => {
+    ctx.fillStyle="#4aa3ff";
+    ctx.beginPath();
+    ctx.arc(a.x,a.y,a.r,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  players.forEach((p,i) => {
+    ctx.fillStyle = i===active ? "#2ee6a6" : "#2d8cff";
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#000";
+    ctx.font="22px serif";
+    ctx.textAlign="center";
+    ctx.fillText(p.icon,p.x,p.y+7);
+
+    ctx.fillStyle="white";
+    ctx.font="13px Microsoft JhengHei";
+    ctx.fillText((i===active ? "★ " : "") + p.name,p.x,p.y-30);
+  });
+
+  $("hud").innerHTML = players.map((p,i) => {
+    return `
+    ${i===active ? "★" : ""}${p.name}<br>
+    HP:${Math.floor(p.hp)}/${Math.floor(p.maxHp)}
+    <div class="bar"><div class="fill hp" style="width:${p.hp/p.maxHp*100}%"></div></div>
+    技能:${Math.floor(p.system.skillEnergy)}/100
+    <div class="bar"><div class="fill skill" style="width:${p.system.skillEnergy}%"></div></div>
+    絕招:${Math.floor(p.system.ultimateEnergy)}/100
+    <div class="bar"><div class="fill ult" style="width:${p.system.ultimateEnergy}%"></div></div>
+    無雙:${Math.floor(p.system.musouEnergy)}/100
+    <div class="bar"><div class="fill musou" style="width:${p.system.musouEnergy}%"></div></div>
+    武器：${p.system.equippedWeapon ? p.system.equippedWeapon.name : "未裝備"}<br>
+    絕招：${p.system.equippedUltimate ? p.system.equippedUltimate.name : "未裝備"}<br>
+    `;
+  }).join("<hr>") + `連攜:${combo}<br>敵人:${enemies.length}<br>手牌：1~5`;
+}
+
+function checkWinLose() {
+  if (players.every(p => p.hp <= 0)) {
+    gameOver=true;
+    showMsg("戰敗");
+    setTimeout(exitBattle,1200);
+  }
+
+  if (combo >= 12) {
+    gameOver=true;
+    state.coin += 900 + state.stage*150;
+    state.jade += 30;
+    state.stage++;
+    save();
+    showMsg("勝利！連攜突破");
+    setTimeout(exitBattle,1200);
+  }
+}
+
+function battleLoop() {
+  if (!gameOver) {
+    players.forEach(updatePlayer);
+    updateEnemies();
+    updateAllies();
+
+    drawCd++;
+    if (drawCd > 600) {
+      drawCd=0;
+      drawHand();
+    }
+
+    checkWinLose();
+  }
+
+  draw();
+  loopId = requestAnimationFrame(battleLoop);
+}
+
+// ==========================================
+// 初始化
+// ==========================================
+window.onload = function() {
+  load();
+  updateTop();
+
+  $("btnHome").onclick = showHome;
+  $("btnAccount").onclick = showAccount;
+  $("btnTeam").onclick = showTeam;
+  $("btnSummon").onclick = showSummon;
+  $("btnBattle").onclick = startBattle;
+
+  $("btnReset").onclick = function() {
+    if (confirm("確定要重置存檔？")) {
+      localStorage.removeItem("sg_energy_card_game_v2");
+      location.reload();
+    }
+  };
+
+  showHome();
 };
 </script>
 </body>
