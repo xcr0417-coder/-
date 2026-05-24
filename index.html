@@ -1,4 +1,1385 @@
-<!DOCTYPE html><!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>三國幻戰×無雙 原創卡牌割草版</title>
+<style>
+*{box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07090d;color:#e8eef7;font-family:'Microsoft JhengHei',Arial}
+button{cursor:pointer;border:1px solid #d8aa42;background:linear-gradient(#30230b,#100b03);color:#ffd36a;border-radius:8px;padding:10px;font-weight:800}
+button:active,button:hover{filter:brightness(1.35)}
+button:disabled{opacity:.4}
+.app{height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 20%,#1d263c,#050609)}
+header{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:linear-gradient(#191919,#070707);border-bottom:2px solid #d8aa42}
+h1{font-size:20px;color:#ffd36a;margin:0;text-shadow:0 0 12px #9f6500}
+.money span{color:#fff;font-weight:900;margin-right:10px}
+main{display:flex;flex:1;min-height:0}
+.side{width:185px;padding:14px 10px;background:rgba(8,10,16,.9);border-right:1px solid #333}
+.nav{width:100%;margin:5px 0}
+.content{flex:1;overflow:auto;padding:18px}
+.panel{background:rgba(19,25,38,.78);border:1px solid #3b4658;border-radius:12px;padding:16px;margin-bottom:14px}
+.title{font-size:20px;color:#ffd36a;border-left:4px solid #ffd36a;padding-left:10px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+.card{background:linear-gradient(145deg,#20283a,#0e1119);border:1px solid #596579;border-radius:12px;padding:12px;text-align:center}
+.icon{font-size:42px}
+.tag,.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;margin:3px}
+.tag{background:#293447}
+.badge{border:1px solid #d8aa42;color:#ffd36a}
+.r0{border-color:#87909d}
+.r1{border-color:#4fa3ff}
+.r2{border-color:#b07cff}
+.r3{border-color:#ffd36a;box-shadow:0 0 15px #6b4b12}
+.r4{border-color:#fff;box-shadow:0 0 22px #fff8}
+.small{font-size:13px;color:#b9c3d1;line-height:1.6}
+
+#wrap{display:none;position:fixed;inset:0;background:#000;z-index:50}
+#game{width:100vw;height:100vh;display:block;background:radial-gradient(circle,#3b2314,#080504)}
+#hud{position:fixed;left:12px;top:12px;z-index:60;min-width:270px;background:rgba(6,10,18,.84);border:1px solid #4fa3ff;border-radius:12px;padding:10px;font-size:13px}
+#ko{position:fixed;right:14px;top:12px;z-index:60;color:#ffd36a;font-size:30px;font-weight:900;text-shadow:0 0 10px #ffb400,2px 2px #000}
+#mission{position:fixed;right:14px;top:54px;z-index:60;border:1px solid #d8aa42;border-radius:10px;background:#0009;padding:7px 10px;font-size:13px}
+#msg{position:fixed;left:0;right:0;top:28%;text-align:center;z-index:70;font-size:48px;font-weight:900;color:#ffd36a;text-shadow:0 0 20px red,3px 3px #000;pointer-events:none}
+#hand{position:fixed;left:0;right:0;bottom:0;height:150px;z-index:60;display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(transparent,rgba(5,8,14,.96) 35%);border-top:1px solid #d8aa4255}
+.hcard{width:108px;height:125px;border:1px solid #d8aa42;border-radius:10px;background:linear-gradient(145deg,#2b210b,#100b03);text-align:center;padding:8px;position:relative}
+.hcard b{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#ffd36a;color:#111;border-radius:999px;padding:2px 8px}
+#help{position:fixed;right:12px;bottom:155px;z-index:60;background:#000a;border:1px solid #555;border-radius:10px;padding:10px;font-size:12px;color:#ccc;line-height:1.6}
+#scan{display:none;position:fixed;inset:0;z-index:80;border:5px solid #00ff6688;background:#00ff6614;pointer-events:none}
+#scan:after{content:'';position:absolute;left:0;width:100%;height:4px;background:#00ff66;box-shadow:0 0 18px #00ff66;animation:scan .45s linear infinite}
+@keyframes scan{from{top:0}to{top:100%}}
+
+.barrow{display:flex;align-items:center;gap:6px;margin:4px 0}
+.barrow span{width:38px;font-size:12px}
+.bar{height:10px;background:#111;border:1px solid #333;border-radius:10px;overflow:hidden;flex:1}
+.fill{height:100%}
+.hp{background:linear-gradient(90deg,#18733a,#42ff7b)}
+.sk{background:linear-gradient(90deg,#1456a2,#56b7ff)}
+.ul{background:linear-gradient(90deg,#9a4000,#ff8a23)}
+.ms{background:linear-gradient(90deg,#9b8200,#ffe15a)}
+
+#mobile{display:none;position:fixed;inset:0;z-index:75;pointer-events:none}
+#joy{position:absolute;left:14px;bottom:160px;width:135px;height:135px;border-radius:50%;background:#fff2;border:1px solid #ffd36a88;pointer-events:auto;touch-action:none}
+#stick{position:absolute;left:42px;top:42px;width:50px;height:50px;border-radius:50%;background:#ffd36acc;border:2px solid #fff2ba}
+.cluster{position:absolute;right:10px;bottom:160px;width:225px;height:180px;pointer-events:auto}
+.tb{position:absolute;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #ffd36a;background:linear-gradient(#9c5627,#381608);color:#ffe8a0;font-weight:900;font-size:13px}
+#ta{right:80px;bottom:50px}
+#tc{right:142px;bottom:62px}
+#ts{right:18px;bottom:62px}
+#tu{right:142px;bottom:0}
+#tm{right:18px;bottom:0}
+#td{right:80px;bottom:116px}
+#exit{position:absolute;right:10px;top:88px;width:76px;height:38px;pointer-events:auto;background:#742020}
+#sw{position:absolute;right:94px;top:88px;width:76px;height:38px;pointer-events:auto;background:#17466e}
+
+@media(max-width:760px){
+header{height:54px;padding:0 8px}
+h1{font-size:15px}
+.money{font-size:12px}
+main{flex-direction:column}
+.side{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px;border-right:0;border-bottom:1px solid #333}
+.nav{font-size:13px;margin:0;padding:8px 2px}
+.content{padding:10px}
+.grid{grid-template-columns:repeat(2,minmax(130px,1fr));gap:8px}
+.card{font-size:13px}
+#help{display:none}
+#mobile{display:block}
+#hud{font-size:11px;min-width:190px;max-width:56vw;padding:8px}
+#ko{font-size:22px}
+#mission{top:40px;font-size:11px}
+#hand{height:135px;justify-content:flex-start;overflow-x:auto;padding-left:6px}
+.hcard{min-width:94px;width:94px;height:112px;font-size:11px}
+#msg{font-size:32px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <header>
+    <h1>三國幻戰×無雙｜原創街機卡牌割草版</h1>
+    <div class="money">
+      銅錢:<span id="coin">0</span>
+      元寶:<span id="jade">0</span>
+      關卡:<span id="stage">1</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="side">
+      <button class="nav" id="home">主城</button>
+      <button class="nav" id="bag">卡庫</button>
+      <button class="nav" id="team">編制</button>
+      <button class="nav" id="summon">招募</button>
+      <button class="nav" id="battle" style="color:#fff;border-color:#f44;background:linear-gradient(#a22,#400)">開始出戰</button>
+      <button class="nav" id="reset" style="margin-top:38px;color:#aaa;border-color:#555;background:none">重置</button>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="scan"></div>
+  <div id="ko">擊破 0</div>
+  <div id="mission">任務</div>
+  <div id="hud"></div>
+  <div id="msg"></div>
+  <div id="help">WASD移動｜J普攻｜I蓄力C技｜K戰技｜L絕招｜U無雙｜1~5刷卡｜Tab切換｜Esc撤退</div>
+  <div id="hand"></div>
+
+  <div id="mobile">
+    <div id="joy"><div id="stick"></div></div>
+    <button id="sw">切換</button>
+    <button id="exit">撤退</button>
+    <div class="cluster">
+      <div class="tb" id="ta">普攻</div>
+      <div class="tb" id="tc">C技</div>
+      <div class="tb" id="ts">戰技</div>
+      <div class="tb" id="tu">絕招</div>
+      <div class="tb" id="tm">無雙</div>
+      <div class="tb" id="td">閃避</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const T = {
+  HERO:'武將',
+  WEAPON:'武器',
+  ULT:'絕招',
+  PET:'寵物',
+  SKILL:'兵法',
+  SOLD:'兵卡'
+};
+
+const RN = ['普通','稀有','史詩','傳說','白銀傳說'];
+
+class Card {
+  constructor(o) {
+    Object.assign(this,{
+      level:1,
+      star:0,
+      uid:o.name + '_' + Date.now() + Math.random()
+    },o);
+  }
+
+  power() {
+    let p = this.base;
+    p += (this.level - 1) * this.base * 0.1;
+    p += this.star * this.base * 0.3;
+    p += this.rarity * this.base * 0.5;
+    return Math.floor(this.rarity === 4 ? p * 100 : p);
+  }
+}
+
+class Sys {
+  constructor() {
+    this.weapon = null;
+    this.ult = null;
+    this.skillEnergy = 0;
+    this.ultimateEnergy = 0;
+    this.musouEnergy = 0;
+  }
+
+  charge(t,a) {
+    this[t + 'Energy'] = Math.min(100,this[t + 'Energy'] + a);
+  }
+
+  use(t,c) {
+    let k = t + 'Energy';
+    if (this[k] >= c) {
+      this[k] -= c;
+      return true;
+    }
+    return false;
+  }
+}
+
+const base = [
+  {id:'zhao',name:'趙雲',type:T.HERO,rarity:2,icon:'🐉',faction:'蜀',base:430,hp:850,atk:108,def:42,skill:'龍膽突刺',effect:'高速突進，C技突刺強'},
+  {id:'guan',name:'關羽',type:T.HERO,rarity:2,icon:'🟢',faction:'蜀',base:470,hp:980,atk:115,def:54,skill:'青龍偃月',effect:'大範圍掃蕩'},
+  {id:'lubu',name:'呂布',type:T.HERO,rarity:3,icon:'🔥',faction:'群',base:660,hp:1280,atk:158,def:64,skill:'鬼神亂舞',effect:'無雙傷害最高'},
+  {id:'cao',name:'曹操',type:T.HERO,rarity:2,icon:'👑',faction:'魏',base:450,hp:900,atk:104,def:48,skill:'魏武號令',effect:'戰技大範圍'},
+  {id:'sun',name:'孫尚香',type:T.HERO,rarity:1,icon:'🏹',faction:'吳',base:330,hp:700,atk:94,def:32,skill:'連弩亂射',effect:'移動快'},
+  {id:'fang',name:'方天畫戟',type:T.WEAPON,rarity:2,icon:'🔱',base:500,atk:85,effect:'無雙傷害提升'},
+  {id:'qing',name:'青釭劍',type:T.WEAPON,rarity:1,icon:'⚔️',base:260,atk:45,effect:'攻擊提升'},
+  {id:'silver',name:'白銀龍槍',type:T.WEAPON,rarity:4,icon:'🪙',base:100,atk:100,effect:'白銀傳說戰力百倍'},
+  {id:'fireult',name:'炎刃亂舞',type:T.ULT,rarity:2,icon:'🔥',base:420,dmg:430,effect:'火焰絕招'},
+  {id:'thunder',name:'天雷破軍',type:T.ULT,rarity:3,icon:'⚡',base:580,dmg:620,effect:'雷電絕招'},
+  {id:'horse',name:'赤兔馬',type:T.PET,rarity:2,icon:'🐎',base:360,speed:1.5,effect:'移速增加'},
+  {id:'tiger',name:'白虎',type:T.PET,rarity:1,icon:'🐯',base:280,atk:35,effect:'攻擊增加'},
+  {id:'heal',name:'肉包',type:T.SKILL,rarity:1,icon:'🥟',base:200,heal:340,effect:'恢復生命'},
+  {id:'wine',name:'老酒',type:T.SKILL,rarity:2,icon:'🍶',base:250,effect:'無雙補滿'},
+  {id:'axe',name:'戰神之斧',type:T.SKILL,rarity:2,icon:'🪓',base:260,effect:'短時間攻擊提升'},
+  {id:'fire',name:'火牛陣',type:T.SKILL,rarity:1,icon:'🦬',base:220,dmg:240,effect:'範圍衝擊'},
+  {id:'soldier',name:'槍兵隊',type:T.SOLD,rarity:0,icon:'🪖',base:150,effect:'召喚友軍'},
+  {id:'archer',name:'弓兵隊',type:T.SOLD,rarity:0,icon:'🏹',base:150,effect:'召喚友軍'}
+];
+
+let state = {
+  coin:5000,
+  jade:800,
+  stage:1,
+  cards:[],
+  team:[]
+};
+
+function make(id) {
+  return new Card({...base.find(x => x.id === id)});
+}
+
+function save() {
+  localStorage.setItem('sango_final_v1',JSON.stringify(state));
+}
+
+function load() {
+  let d = localStorage.getItem('sango_final_v1');
+
+  if (d) {
+    state = JSON.parse(d);
+    state.cards = state.cards.map(x => new Card(x));
+  }
+
+  if (!state.cards || !state.cards.length) {
+    ['zhao','guan','fang','fireult','heal','soldier'].forEach(id => state.cards.push(make(id)));
+    state.team = [state.cards[0].uid];
+    save();
+  }
+}
+
+function topbar() {
+  $('coin').textContent = state.coin;
+  $('jade').textContent = state.jade;
+  $('stage').textContent = state.stage;
+}
+
+function setContent(html) {
+  $('content').innerHTML = html;
+  topbar();
+}
+
+function info(c) {
+  return `
+  <div class="icon">${c.icon}</div>
+  <b>${c.name}</b><br>
+  <span class="tag">${c.type}</span>
+  <span class="tag">${RN[c.rarity]}</span>
+  ${c.faction ? `<span class="tag">${c.faction}</span>` : ''}
+  <br>
+  Lv.${c.level}　${c.star}★<br>
+  戰力:<span style="color:#ffd36a">${c.power()}</span><br>
+  <small>${c.effect || c.skill || ''}</small>
+  `;
+}
+
+function home() {
+  setContent(`
+  <div class="panel">
+    <div class="title">系統改良版</div>
+    <p>這是原創街機卡牌割草版：不是複製原作，而是把「卡片收集養成、刷卡出招、關卡推進」與「無雙式普攻連段、C技、無雙、擊破數、掉落道具」整合。</p>
+    <span class="badge">卡片招募</span>
+    <span class="badge">武將編制</span>
+    <span class="badge">刷卡技能</span>
+    <span class="badge">百人斬</span>
+    <span class="badge">Boss戰</span>
+    <span class="badge">手機搖桿</span>
+    <p class="small">操作：電腦 WASD / J / I / K / L / U；手機左下搖桿、右下按鈕。</p>
+  </div>
+  `);
+}
+
+function bag() {
+  let h = `<div class="panel"><div class="title">帳號卡庫</div><div class="grid">`;
+
+  state.cards.forEach(c => {
+    h += `
+    <div class="card r${c.rarity}">
+      ${info(c)}
+      <br>
+      <button onclick="levelCard('${c.uid}')">升級</button>
+      <button onclick="starCard('${c.uid}')">升星</button>
+    </div>`;
+  });
+
+  setContent(h + `</div></div>`);
+}
+
+function levelCard(uid) {
+  let c = state.cards.find(x => x.uid === uid);
+  let cost = 300 + c.level * 80;
+
+  if (state.coin < cost) {
+    alert('銅錢不足');
+    return;
+  }
+
+  state.coin -= cost;
+  c.level++;
+  save();
+  bag();
+}
+
+function starCard(uid) {
+  let c = state.cards.find(x => x.uid === uid);
+  let same = state.cards.find(x => x.name === c.name && x.uid !== uid);
+
+  if (!same) {
+    alert('需同名卡');
+    return;
+  }
+
+  state.cards = state.cards.filter(x => x.uid !== same.uid);
+  c.star++;
+  save();
+  bag();
+}
+
+function team() {
+  let h = `<div class="panel"><div class="title">出戰編制</div><div class="grid">`;
+
+  for (let i = 0; i < 2; i++) {
+    let c = state.cards.find(x => x.uid === state.team[i]);
+
+    h += `
+    <div class="card">
+      ${c ? info(c) + `<br><button onclick="removeTeam(${i})">下陣</button>` : '空位'}
+    </div>`;
+  }
+
+  h += `</div></div><div class="panel"><div class="title">選擇武將</div><div class="grid">`;
+
+  state.cards.filter(c => c.type === T.HERO).forEach(c => {
+    let on = state.team.includes(c.uid);
+
+    h += `
+    <div class="card r${c.rarity}">
+      ${info(c)}
+      <br>
+      <button ${on ? 'disabled' : ''} onclick="addTeam('${c.uid}')">${on ? '已上陣' : '上陣'}</button>
+    </div>`;
+  });
+
+  setContent(h + `</div></div>`);
+}
+
+function addTeam(uid) {
+  if (state.team.length >= 2) {
+    alert('最多2人');
+    return;
+  }
+
+  state.team.push(uid);
+  save();
+  team();
+}
+
+function removeTeam(i) {
+  state.team.splice(i,1);
+  save();
+  team();
+}
+
+function summon() {
+  setContent(`
+  <div class="panel">
+    <div class="title">卡片招募</div>
+    <p>傳說1%、史詩9%、稀有30%、普通60%。</p>
+    <button onclick="summonN(1)">單抽100元寶</button>
+    <button onclick="summonN(10)">十連1000元寶</button>
+  </div>
+  `);
+}
+
+function summonN(n) {
+  if (state.jade < n * 100) {
+    alert('元寶不足');
+    return;
+  }
+
+  state.jade -= n * 100;
+  let result = [];
+
+  for (let i = 0; i < n; i++) {
+    let r = Math.random() * 100;
+    let rarity = r <= 1 ? 3 : r <= 10 ? 2 : r <= 40 ? 1 : 0;
+    let list = base.filter(c => c.rarity === rarity);
+    let c = new Card({...list[Math.floor(Math.random() * list.length)]});
+    state.cards.push(c);
+    result.push(c.name + '【' + RN[c.rarity] + '】');
+  }
+
+  save();
+  alert('獲得：\n' + result.join('\n'));
+  summon();
+}
+
+/* 戰鬥系統 */
+const canvas = $('game');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+
+resize();
+addEventListener('resize',resize);
+
+let keys = {};
+let touch = {x:0,y:0};
+let act = {atk:0,ch:0,sk:0,ul:0,ms:0,dg:0};
+
+let ps = [];
+let es = [];
+let as = [];
+let hand = [];
+let deck = [];
+let items = [];
+let slashes = [];
+let texts = [];
+
+let loop = null;
+let active = 0;
+let over = 0;
+let KOs = 0;
+let drawCd = 0;
+let shake = 0;
+let combo = 0;
+let comboT = 0;
+
+addEventListener('keydown',e => {
+  keys[e.key.toLowerCase()] = 1;
+
+  if (e.key === ' ') keys.space = 1;
+
+  if (e.key === 'Escape') exitB();
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    if (ps.length) active = (active + 1) % ps.length;
+  }
+
+  if ('12345'.includes(e.key)) {
+    useHand(Number(e.key) - 1);
+  }
+});
+
+addEventListener('keyup',e => {
+  keys[e.key.toLowerCase()] = 0;
+  if (e.key === ' ') keys.space = 0;
+});
+
+function bindTouch() {
+  let z = $('joy');
+  let s = $('stick');
+  let id = null;
+  let rect = null;
+
+  function reset() {
+    touch.x = 0;
+    touch.y = 0;
+    s.style.left = '42px';
+    s.style.top = '42px';
+  }
+
+  function move(t) {
+    let cx = rect.left + rect.width / 2;
+    let cy = rect.top + rect.height / 2;
+    let dx = t.clientX - cx;
+    let dy = t.clientY - cy;
+    let len = Math.hypot(dx,dy);
+    let max = 42;
+
+    if (len > max) {
+      dx = dx / len * max;
+      dy = dy / len * max;
+    }
+
+    touch.x = dx / max;
+    touch.y = dy / max;
+    s.style.left = 42 + dx + 'px';
+    s.style.top = 42 + dy + 'px';
+  }
+
+  z.addEventListener('touchstart',e => {
+    e.preventDefault();
+    let t = e.changedTouches[0];
+    id = t.identifier;
+    rect = z.getBoundingClientRect();
+    move(t);
+  },{passive:false});
+
+  z.addEventListener('touchmove',e => {
+    e.preventDefault();
+    for (let t of e.changedTouches) {
+      if (t.identifier === id) move(t);
+    }
+  },{passive:false});
+
+  z.addEventListener('touchend',e => {
+    for (let t of e.changedTouches) {
+      if (t.identifier === id) {
+        id = null;
+        reset();
+      }
+    }
+  });
+
+  function b(id,key) {
+    let el = $(id);
+
+    el.addEventListener('touchstart',e => {
+      e.preventDefault();
+      act[key] = 1;
+    },{passive:false});
+
+    el.addEventListener('touchend',e => {
+      e.preventDefault();
+      act[key] = 0;
+    },{passive:false});
+
+    el.addEventListener('mousedown',() => act[key] = 1);
+    el.addEventListener('mouseup',() => act[key] = 0);
+    el.addEventListener('mouseleave',() => act[key] = 0);
+  }
+
+  b('ta','atk');
+  b('tc','ch');
+  b('ts','sk');
+  b('tu','ul');
+  b('tm','ms');
+  b('td','dg');
+
+  $('exit').onclick = exitB;
+  $('sw').onclick = () => {
+    if (ps.length) active = (active + 1) % ps.length;
+  };
+}
+
+bindTouch();
+
+function R(a,b) {
+  return Math.random() * (b - a) + a;
+}
+
+function D(a,b) {
+  return Math.hypot(a.x - b.x,a.y - b.y);
+}
+
+function C(v,a,b) {
+  return Math.max(a,Math.min(b,v));
+}
+
+function msg(t,c = '#ffd36a',s = '48px') {
+  let m = $('msg');
+  m.textContent = t;
+  m.style.color = c;
+  m.style.fontSize = s;
+  setTimeout(() => m.textContent = '',1200);
+}
+
+function factionBonus(f) {
+  let n = state.team
+    .map(u => state.cards.find(c => c.uid === u))
+    .filter(c => c && c.faction === f)
+    .length;
+
+  return n >= 2 ? {atk:20,hp:100,speed:.3} : {atk:0,hp:0,speed:0};
+}
+
+function mkP(c,i) {
+  let sys = new Sys();
+  sys.weapon = state.cards.find(x => x.type === T.WEAPON) || null;
+  sys.ult = state.cards.find(x => x.type === T.ULT) || null;
+
+  let pwr = c.power();
+  let b = factionBonus(c.faction);
+
+  return {
+    sys,
+    base:c,
+    name:c.name,
+    icon:c.icon,
+    x:canvas.width / 2 + i * 55 - 25,
+    y:canvas.height / 2,
+    r:24,
+    hp:c.hp + pwr + b.hp,
+    maxHp:c.hp + pwr + b.hp,
+    atk:c.atk + Math.floor(pwr * .1) + b.atk,
+    def:c.def || 0,
+    speed:5 + b.speed,
+    fx:1,
+    fy:0,
+    cd:0,
+    cseq:0,
+    ct:0,
+    inv:0,
+    dodge:0,
+    musou:0,
+    bAtk:0,
+    bSpd:0,
+    bT:0
+  };
+}
+
+function startB() {
+  let t = state.team.map(u => state.cards.find(c => c.uid === u)).filter(Boolean);
+
+  if (!t.length) {
+    alert('請先編制武將');
+    return;
+  }
+
+  resize();
+  $('wrap').style.display = 'block';
+
+  ps = t.map(mkP);
+  es = [];
+  as = [];
+  hand = [];
+  deck = state.cards.filter(c => c.type !== T.HERO);
+  items = [];
+  slashes = [];
+  texts = [];
+
+  KOs = 0;
+  combo = 0;
+  comboT = 0;
+  shake = 0;
+  over = 0;
+  active = 0;
+  drawCd = 0;
+
+  $('ko').textContent = '擊破 0';
+  $('mission').textContent = `任務：擊破 ${state.stage * 150} 人`;
+
+  drawHand();
+
+  for (let i = 0; i < 28; i++) {
+    spawn(1);
+  }
+
+  cancelAnimationFrame(loop);
+  loopFn();
+}
+
+function exitB() {
+  $('wrap').style.display = 'none';
+  cancelAnimationFrame(loop);
+  home();
+}
+
+function spawn(init = 0,type = 'soldier') {
+  if (es.length >= 55) return;
+
+  let basePos = ps[0] || {x:canvas.width/2,y:canvas.height/2};
+  let a = R(0,Math.PI * 2);
+  let d = init ? R(140,650) : canvas.width / 2 + 180;
+  let boss = type === 'boss';
+  let elite = Math.random() < .14 + state.stage * .01;
+  let hp = (boss ? 1900 : elite ? 340 : 95) + state.stage * (boss ? 300 : elite ? 55 : 22);
+
+  es.push({
+    type:boss ? 'boss' : elite ? 'officer' : 'soldier',
+    x:basePos.x + Math.cos(a) * d,
+    y:basePos.y + Math.sin(a) * d,
+    r:boss ? 35 : elite ? 22 : 16,
+    hp,
+    maxHp:hp,
+    atk:(boss ? 40 : elite ? 18 : 10) + state.stage * 2,
+    spd:boss ? 1.35 : elite ? 2 : R(1.5,2.7),
+    vx:0,
+    vy:0,
+    stun:0
+  });
+}
+
+function drop(x,y) {
+  if (Math.random() > .18) return;
+
+  let arr = ['baozi','wine','axe','boots','chest'];
+
+  items.push({
+    type:arr[Math.floor(Math.random() * arr.length)],
+    x,
+    y,
+    r:13,
+    life:900
+  });
+}
+
+function pick(p,it) {
+  if (it.type === 'baozi') {
+    p.hp = C(p.hp + 240,0,p.maxHp);
+    msg('肉包補血','#42ff7b','34px');
+  }
+
+  if (it.type === 'wine') {
+    p.sys.musouEnergy = 100;
+    msg('老酒：無雙滿','#ffe15a','34px');
+  }
+
+  if (it.type === 'axe') {
+    p.bAtk = 60;
+    p.bT = 1800;
+    msg('戰神之斧','#f44','34px');
+  }
+
+  if (it.type === 'boots') {
+    p.bSpd = 2;
+    p.bT = 1800;
+    msg('韋馱天靴','#56b7ff','34px');
+  }
+
+  if (it.type === 'chest') {
+    state.coin += 300;
+    save();
+    topbar();
+    msg('寶箱 +300','#ffd36a','34px');
+  }
+}
+
+function drawHand() {
+  hand = [];
+  let cp = [...deck];
+
+  for (let i = 0; i < 5 && cp.length; i++) {
+    hand.push(cp.splice(Math.floor(Math.random() * cp.length),1)[0]);
+  }
+
+  let h = $('hand');
+  h.innerHTML = '';
+
+  hand.forEach((c,i) => {
+    let d = document.createElement('div');
+    d.className = 'hcard r' + c.rarity;
+    d.innerHTML = `
+      <b>${i + 1}</b>
+      <div class="icon" style="font-size:24px">${c.icon}</div>
+      <div style="color:#ffd36a;font-weight:900">${c.name}</div>
+      <small>${c.type}</small>
+    `;
+    d.onclick = () => useHand(i);
+    h.appendChild(d);
+  });
+}
+
+function useHand(i) {
+  let c = hand[i];
+  let p = ps[active];
+
+  if (!c || !p) return;
+
+  $('scan').style.display = 'block';
+  setTimeout(() => $('scan').style.display = 'none',450);
+
+  if (c.type === T.WEAPON) {
+    p.sys.weapon = c;
+    p.atk += c.atk || 0;
+    msg('裝備：' + c.name);
+  }
+
+  if (c.type === T.PET) {
+    p.speed += c.speed || 0;
+    p.atk += c.atk || 0;
+    msg('召喚：' + c.name);
+  }
+
+  if (c.type === T.ULT) {
+    p.sys.ult = c;
+    p.sys.charge('ultimate',50);
+    msg('絕招卡：' + c.name);
+  }
+
+  if (c.type === T.SKILL) {
+    if (c.id === 'wine') {
+      p.sys.musouEnergy = 100;
+    } else if (c.id === 'axe') {
+      p.bAtk = 60;
+      p.bT = 1800;
+    } else if (c.id === 'heal') {
+      p.hp = C(p.hp + (c.heal || 300),0,p.maxHp);
+    } else {
+      boom(p.x,p.y,260,(c.dmg || 160) + p.atk,'#ff5500');
+    }
+
+    msg('刷卡兵法：' + c.name);
+  }
+
+  if (c.type === T.SOLD) {
+    for (let n = 0; n < 4; n++) {
+      as.push({
+        x:p.x + R(-40,40),
+        y:p.y + R(-40,40),
+        r:13,
+        hp:140,
+        atk:30,
+        spd:1.7
+      });
+    }
+
+    msg('援軍：' + c.name);
+  }
+
+  hand.splice(i,1);
+  drawHand();
+}
+
+function text(x,y,t,c) {
+  texts.push({
+    x:x + R(-12,12),
+    y:y - 20,
+    t,
+    c,
+    life:36
+  });
+}
+
+function slash(p,a,rad,sp,col,dmg,kb) {
+  slashes.push({
+    x:p.x,
+    y:p.y,
+    a,
+    rad,
+    sp,
+    col,
+    life:10,
+    max:10
+  });
+
+  let hits = 0;
+
+  es.forEach(e => {
+    if (e.hp <= 0) return;
+
+    let dist = D(p,e);
+    let ang = Math.atan2(e.y - p.y,e.x - p.x);
+    let ad = Math.abs(ang - a);
+
+    if (ad > Math.PI) ad = Math.PI * 2 - ad;
+
+    if (dist <= rad && ad <= sp / 2) {
+      let fd = dmg + (p.bAtk || 0);
+
+      e.hp -= fd;
+      e.stun = 15;
+      e.vx = Math.cos(ang) * kb;
+      e.vy = Math.sin(ang) * kb;
+
+      p.sys.charge('skill',2.3);
+      p.sys.charge('musou',1.2);
+
+      hits++;
+      combo++;
+      comboT = 150;
+      text(e.x,e.y,Math.floor(fd),'#fff');
+    }
+  });
+
+  if (hits) shake = Math.min(18,shake + hits * 1.4);
+}
+
+function boom(x,y,rad,dmg,col = '#ffd36a') {
+  slashes.push({
+    x,
+    y,
+    rad,
+    type:'circle',
+    col,
+    life:20,
+    max:20
+  });
+
+  let hits = 0;
+
+  es.forEach(e => {
+    if (D({x,y},e) <= rad) {
+      e.hp -= dmg;
+      e.vx = (e.x - x) * .1;
+      e.vy = (e.y - y) * .1;
+      e.stun = 30;
+
+      hits++;
+      combo++;
+      comboT = 150;
+      text(e.x,e.y,Math.floor(dmg),'#ff8a23');
+    }
+  });
+
+  if (hits) shake = 20;
+}
+
+function press(k) {
+  return keys[k] || act[k];
+}
+
+function attack(p) {
+  if (p.cd > 0 || p.musou > 0) return;
+
+  let a = Math.atan2(p.fy,p.fx);
+
+  if (press('atk') || keys.j) {
+    p.cd = 13;
+    p.ct = 60;
+    p.cseq = p.cseq % 5 + 1;
+
+    slash(p,a,102 + p.cseq * 13,Math.PI,'#e7edf6',p.atk,3);
+
+    p.x += p.fx * 9;
+    p.y += p.fy * 9;
+  } else if (press('ch') || keys.i) {
+    if (!p.cseq) return;
+
+    p.cd = 30;
+
+    if (p.cseq === 1) {
+      slash(p,a,130,Math.PI / 2,'#56b7ff',p.atk * 2.2,8);
+    } else if (p.cseq === 2) {
+      slash(p,a,170,Math.PI / 1.45,'#b07cff',p.atk * 2.8,12);
+      p.x += p.fx * 50;
+      p.y += p.fy * 50;
+    } else {
+      slash(p,a,230,Math.PI * 2,'#ffd36a',p.atk * 3.8,18);
+    }
+
+    p.cseq = 0;
+  }
+}
+
+function skills(p) {
+  if (p.cd > 0 || p.musou > 0) return;
+
+  if ((press('sk') || keys.k) && p.sys.use('skill',30)) {
+    p.cd = 20;
+    p.inv = 20;
+    boom(p.x,p.y,195,p.atk * 4,'#56b7ff');
+    msg('【' + p.base.skill + '】','#56b7ff','40px');
+  } else if ((press('ul') || keys.l) && p.sys.ult && p.sys.use('ultimate',100)) {
+    p.cd = 40;
+    p.inv = 40;
+    boom(p.x,p.y,370,(p.sys.ult.dmg || 500) + p.atk * 5,'#ff3300');
+    msg('必殺！' + p.sys.ult.name,'#ff3300','48px');
+  } else if ((press('ms') || keys.u) && p.sys.use('musou',100)) {
+    p.musou = 180;
+    p.inv = 180;
+    msg('真・無雙亂舞！','#ffe15a','58px');
+  } else if ((press('dg') || keys.space) && p.dodge <= 0) {
+    p.dodge = 40;
+    p.inv = 20;
+    p.x += p.fx * 120;
+    p.y += p.fy * 120;
+  }
+}
+
+function updP(p,i) {
+  if (p.hp <= 0) return;
+
+  let dx = 0;
+  let dy = 0;
+
+  if (i === active) {
+    if (keys.w) dy--;
+    if (keys.s) dy++;
+    if (keys.a) dx--;
+    if (keys.d) dx++;
+
+    dx += touch.x;
+    dy += touch.y;
+
+    attack(p);
+    skills(p);
+  }
+
+  let l = Math.hypot(dx,dy);
+
+  if (l) {
+    dx /= l;
+    dy /= l;
+
+    p.fx = dx;
+    p.fy = dy;
+
+    let sp = p.musou ? p.speed * 1.5 : p.speed;
+    if (p.bSpd) sp += p.bSpd;
+
+    p.x += dx * sp;
+    p.y += dy * sp;
+  }
+
+  p.x = C(p.x,30,canvas.width - 30);
+  p.y = C(p.y,30,canvas.height - 160);
+
+  if (p.musou > 0) {
+    p.musou--;
+
+    if (p.musou % 9 === 0) {
+      slash(
+        p,
+        Math.atan2(p.fy,p.fx),
+        240,
+        Math.PI * 2,
+        '#ffe15a',
+        p.atk * 1.7 + (p.sys.weapon ? p.sys.weapon.atk * 2 : 0),
+        10
+      );
+    }
+
+    if (p.musou === 1) {
+      boom(p.x,p.y,430,p.atk * 10,'#fff');
+    }
+  }
+
+  if (p.ct > 0) {
+    p.ct--;
+    if (!p.ct) p.cseq = 0;
+  }
+
+  if (p.bT > 0) {
+    p.bT--;
+    if (!p.bT) {
+      p.bAtk = 0;
+      p.bSpd = 0;
+    }
+  }
+
+  ['cd','inv','dodge'].forEach(k => p[k] = Math.max(0,p[k] - 1));
+
+  items.forEach(it => {
+    if (D(p,it) < p.r + it.r) {
+      pick(p,it);
+      it.life = 0;
+    }
+  });
+}
+
+function updE() {
+  let live = ps.filter(p => p.hp > 0);
+  if (!live.length) return;
+
+  es.forEach(e => {
+    if (e.stun > 0) {
+      e.stun--;
+      e.x += e.vx;
+      e.y += e.vy;
+      e.vx *= .8;
+      e.vy *= .8;
+      return;
+    }
+
+    let t = live[0];
+
+    live.forEach(p => {
+      if (D(p,e) < D(t,e)) t = p;
+    });
+
+    let a = Math.atan2(t.y - e.y,t.x - e.x);
+
+    e.x += Math.cos(a) * e.spd;
+    e.y += Math.sin(a) * e.spd;
+
+    if (D(e,t) < e.r + t.r && t.inv <= 0) {
+      t.hp -= Math.max(1,e.atk - (t.def || 0) * .1);
+      t.sys.charge('musou',2);
+      t.inv = 10;
+    }
+  });
+
+  let old = es.length;
+
+  es = es.filter(e => {
+    if (e.hp <= 0) {
+      drop(e.x,e.y);
+      return false;
+    }
+    return true;
+  });
+
+  let k = old - es.length;
+
+  if (k) {
+    KOs += k;
+    $('ko').textContent = '擊破 ' + KOs;
+
+    if (KOs % 100 === 0) {
+      msg(KOs + ' 人斬!!','#f33','64px');
+    }
+
+    live.forEach(p => p.sys.charge('ultimate',k * 2));
+  }
+
+  while (es.length < Math.min(55,12 + state.stage * 7)) {
+    spawn(0);
+  }
+
+  if (KOs > 0 && KOs % (state.stage * 75) === 0 && !es.some(e => e.type === 'boss')) {
+    spawn(0,'boss');
+  }
+}
+
+function updA() {
+  as.forEach(a => {
+    let e = es[0];
+    if (!e) return;
+
+    let ang = Math.atan2(e.y - a.y,e.x - a.x);
+
+    a.x += Math.cos(ang) * a.spd;
+    a.y += Math.sin(ang) * a.spd;
+
+    if (D(a,e) < a.r + e.r + 5) {
+      e.hp -= a.atk * .13;
+    }
+  });
+
+  as = as.filter(a => a.hp > 0);
+}
+
+function hud() {
+  $('hud').innerHTML = ps.map((p,i) => {
+    if (p.hp <= 0) {
+      return `<div style="color:#f55">${p.name} 敗退</div>`;
+    }
+
+    return `
+    <b style="color:${i === active ? '#ffd36a' : '#fff'}">${i === active ? '▶ ' : ''}${p.name} C${p.cseq}</b>
+    <div class="barrow"><span>HP</span><div class="bar"><div class="fill hp" style="width:${p.hp / p.maxHp * 100}%"></div></div></div>
+    <div class="barrow"><span>戰技</span><div class="bar"><div class="fill sk" style="width:${p.sys.skillEnergy}%"></div></div></div>
+    <div class="barrow"><span>絕招</span><div class="bar"><div class="fill ul" style="width:${p.sys.ultimateEnergy}%"></div></div></div>
+    <div class="barrow"><span>無雙</span><div class="bar"><div class="fill ms" style="width:${p.sys.musouEnergy}%"></div></div></div>
+    <small>武:${p.sys.weapon ? p.sys.weapon.name : '無'}｜絕:${p.sys.ult ? p.sys.ult.name : '無'}</small>
+    `;
+  }).join('<hr style="border-color:#333">');
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.save();
+
+  if (shake) {
+    ctx.translate(R(-shake,shake),R(-shake,shake));
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,.035)';
+
+  for (let x = 0; x < canvas.width; x += 100) {
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,canvas.height);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y < canvas.height; y += 100) {
+    ctx.beginPath();
+    ctx.moveTo(0,y);
+    ctx.lineTo(canvas.width,y);
+    ctx.stroke();
+  }
+
+  slashes.forEach((s,i) => {
+    ctx.globalAlpha = s.life / s.max;
+    ctx.fillStyle = s.col;
+    ctx.beginPath();
+
+    if (s.type === 'circle') {
+      ctx.arc(s.x,s.y,s.rad * (1 - s.life / s.max),0,Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.moveTo(s.x,s.y);
+      ctx.arc(s.x,s.y,s.rad,s.a - s.sp / 2,s.a + s.sp / 2);
+      ctx.fill();
+    }
+
+    s.life--;
+
+    if (s.life <= 0) {
+      slashes.splice(i,1);
+    }
+  });
+
+  ctx.globalAlpha = 1;
+
+  items.forEach(it => {
+    ctx.fillStyle =
+      it.type === 'baozi' ? '#42ff7b' :
+      it.type === 'wine' ? '#ffe15a' :
+      it.type === 'axe' ? '#f44' :
+      it.type === 'boots' ? '#56b7ff' :
+      '#ffd36a';
+
+    ctx.beginPath();
+    ctx.arc(it.x,it.y,it.r,0,Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#000';
+    ctx.font = '13px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.fillText(
+      it.type === 'baozi' ? '🥟' :
+      it.type === 'wine' ? '🍶' :
+      it.type === 'axe' ? '🪓' :
+      it.type === 'boots' ? '🥾' :
+      '🎁',
+      it.x,
+      it.y
+    );
+  });
+
+  es.forEach(e => {
+    ctx.fillStyle =
+      e.type === 'boss' ? '#7f00ff' :
+      e.type === 'officer' ? '#c44' :
+      '#8b2020';
+
+    if (e.stun) ctx.fillStyle = '#ffaaaa';
+
+    ctx.beginPath();
+    ctx.arc(e.x,e.y,e.r,0,Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#111';
+    ctx.fillRect(e.x - e.r,e.y - e.r - 10,e.r * 2,4);
+
+    ctx.fillStyle = '#f00';
+    ctx.fillRect(e.x - e.r,e.y - e.r - 10,e.r * 2 * (e.hp / e.maxHp),4);
+  });
+
+  as.forEach(a => {
+    ctx.fillStyle = '#56b7ff';
+    ctx.beginPath();
+    ctx.arc(a.x,a.y,a.r,0,Math.PI * 2);
+    ctx.fill();
+  });
+
+  ps.forEach((p,i) => {
+    if (p.hp <= 0) return;
+
+    if (p.musou) {
+      ctx.fillStyle = '#ffe15a55';
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r + 18 + Math.sin(Date.now() / 50) * 5,0,Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = i === active ? '#ffd36a' : '#4fa3ff';
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(p.x + p.fx * p.r,p.y + p.fy * p.r,5,0,Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#000';
+    ctx.font = '24px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.icon,p.x,p.y);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 14px Microsoft JhengHei';
+    ctx.fillText(p.name,p.x,p.y - 35);
+  });
+
+  texts.forEach(t => {
+    t.y -= 1.5;
+    t.life--;
+
+    ctx.globalAlpha = Math.max(0,t.life / 36);
+    ctx.fillStyle = t.c;
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText(t.t,t.x,t.y);
+  });
+
+  ctx.globalAlpha = 1;
+  texts = texts.filter(t => t.life > 0);
+
+  if (combo > 2) {
+    ctx.fillStyle = '#ffd36a';
+    ctx.font = 'italic bold 48px Arial';
+    ctx.textAlign = 'right';
+    ctx.shadowColor = 'red';
+    ctx.shadowBlur = 10;
+    ctx.fillText(combo + ' 連擊',canvas.width - 28,canvas.height / 2);
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.restore();
+  hud();
+}
+
+function loopFn() {
+  if (!over) {
+    if (ps.every(p => p.hp <= 0)) {
+      over = 1;
+      msg('部隊敗退...');
+      setTimeout(exitB,1400);
+    }
+
+    if (KOs >= state.stage * 150) {
+      over = 1;
+      state.coin += 1000 + state.stage * 200;
+      state.jade += 50;
+      state.stage++;
+      save();
+      topbar();
+      msg('戰功彪炳！關卡突破','#42ff7b','46px');
+      setTimeout(exitB,1800);
+    }
+
+    ps.forEach(updP);
+    updE();
+    updA();
+
+    items.forEach(i => i.life--);
+    items = items.filter(i => i.life > 0);
+
+    if (comboT > 0) {
+      comboT--;
+      if (!comboT) combo = 0;
+    }
+
+    if (shake > 0) shake *= .8;
+    if (shake < .5) shake = 0;
+
+    drawCd++;
+
+    if (drawCd > 600) {
+      drawCd = 0;
+      drawHand();
+    }
+  }
+
+  draw();
+  loop = requestAnimationFrame(loopFn);
+}
+
+window.onload = () => {
+  load();
+  topbar();
+
+  $('home').onclick = home;
+  $('bag').onclick = bag;
+  $('team').onclick = team;
+  $('summon').onclick = summon;
+  $('battle').onclick = startB;
+
+  $('reset').onclick = () => {
+    if (confirm('確定重置？')) {
+      localStorage.removeItem('sango_final_v1');
+      location.reload();
+    }
+  };
+
+  home();
+};
+</script>
+</body>
+</html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
