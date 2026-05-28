@@ -1,4 +1,1203 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1">
+<title>三國幻戰 × 無雙｜魔王級更新版</title>
+<style>
+*{box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080a0f;color:#eee;font-family:"Microsoft JhengHei",Arial;touch-action:none}
+button,input,select{font-family:inherit}
+button{border:1px solid #d8ae45;background:linear-gradient(#3b2808,#120902);color:#ffe08a;border-radius:9px;padding:10px;font-weight:900;cursor:pointer}
+button:active{filter:brightness(1.35)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.app{height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle,#17233a,#05070b)}
+header{height:56px;background:linear-gradient(#1b1b1b,#050505);border-bottom:2px solid #d8ae45;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+h1{margin:0;color:#ffe08a;font-size:17px;text-shadow:0 0 10px #a65b00}
+.money{font-size:13px}.money span{color:#fff;margin-right:8px;font-weight:900}
+main{flex:1;display:flex;min-height:0}
+.side{width:205px;background:#07090eea;border-right:1px solid #333;padding:10px;overflow-y:auto}
+.nav{width:100%;margin:5px 0}
+.content{flex:1;overflow:auto;padding:14px}
+.panel{background:#151c2dcc;border:1px solid #39475e;border-radius:12px;padding:14px;margin-bottom:12px}
+.title{font-size:20px;color:#ffe08a;border-left:4px solid #ffe08a;padding-left:10px;margin-bottom:10px;font-weight:900}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px}
+.card{background:linear-gradient(145deg,#20283a,#0b0f18);border:2px solid #606b7c;border-radius:16px;padding:9px;text-align:center;overflow:hidden}
+.r0{border-color:#929292}.r1{border-color:#4ba3ff}.r2{border-color:#bf68ff}.r3{border-color:#ffe08a;box-shadow:0 0 15px #ffe08a55}.r4{border-color:#fff;box-shadow:0 0 20px #fff}
+.portrait{height:170px;border-radius:10px;background:#111;border:2px solid #fff8;overflow:hidden;position:relative}
+.name{font-size:20px;font-weight:900;color:#111;background:linear-gradient(90deg,#fff1bd,#ffe08a,#fff1bd);border-radius:8px;margin:6px 0;padding:4px}
+.row{display:flex;margin:3px 0;font-size:12px}
+.lab{width:42%;background:#ffe4a1;color:#111;border:2px solid #111;border-right:0;transform:skewX(-12deg);font-weight:900}
+.val{flex:1;background:#050505;color:#fff;border:2px solid #111;transform:skewX(-12deg);font-weight:900}
+.lab span,.val span{display:block;transform:skewX(12deg);padding:2px}
+.skill{background:#f2eadb;color:#111;border:2px solid #111;border-radius:8px;margin-top:6px;padding:6px;font-size:12px;min-height:55px;text-align:left}
+.card button{width:48%;font-size:12px;padding:6px;margin-top:6px}
+.note{color:#cfd7e8;line-height:1.65;font-size:14px}
+.stageBtn{width:100%;text-align:left;margin:5px 0;font-size:14px}
+.danger{border-color:#ff3366!important;background:linear-gradient(#660020,#170008)!important;color:#fff!important}
+.silver{border-color:#fff!important;background:linear-gradient(#ffffff,#7a7a7a)!important;color:#000!important}
+
+#wrap{display:none;position:fixed;inset:0;background:#000;z-index:50}
+#game{width:100vw;height:100vh;display:block;background:radial-gradient(circle,#3b2414,#080402)}
+#hud{position:fixed;top:10px;left:10px;z-index:60;min-width:270px;background:#08101ddd;border:1px solid #4ba3ff;border-radius:12px;padding:9px;font-size:13px;pointer-events:none}
+#ko{position:fixed;top:10px;right:12px;z-index:60;color:#ffe08a;font-size:28px;font-weight:900;text-shadow:0 0 10px #ffb400,2px 2px #000;pointer-events:none}
+#mission{position:fixed;top:48px;right:12px;z-index:60;border:1px solid #d8ae45;background:#0009;border-radius:10px;padding:7px 10px;font-size:13px;text-align:right;pointer-events:none}
+#timerUI{position:fixed;top:85px;right:12px;z-index:60;color:#f44;font-size:24px;font-weight:bold;text-shadow:1px 1px 0 #000;display:none;pointer-events:none}
+#msg{position:fixed;top:28%;left:0;right:0;text-align:center;z-index:70;color:#ffe08a;font-size:46px;font-weight:900;text-shadow:0 0 20px red,3px 3px #000;pointer-events:none}
+#dialogBox{display:none;position:fixed;left:50%;bottom:20px;transform:translateX(-50%);width:min(760px,92vw);z-index:80;background:linear-gradient(#f8ecd0,#dec08a);color:#111;border:4px solid #111;border-radius:16px;padding:14px;box-shadow:0 0 30px #000}
+#dialogName{font-weight:900;font-size:20px;color:#5a2100}
+#dialogText{font-size:16px;line-height:1.6}
+.barrow{display:flex;gap:6px;align-items:center;margin:4px 0}
+.barrow span{width:38px}
+.bar{height:10px;background:#111;border:1px solid #333;border-radius:999px;overflow:hidden;flex:1}
+.fill{height:100%}
+.hp{background:linear-gradient(90deg,#15833c,#4dff85)}.sk{background:linear-gradient(90deg,#125cab,#58b7ff)}.ul{background:linear-gradient(90deg,#963600,#ff8a22)}.ms{background:linear-gradient(90deg,#9a8200,#ffe35b)}
+
+#mobile{display:block;position:fixed;inset:0;z-index:75;pointer-events:none}
+#joy{position:absolute;left:25px;bottom:150px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,#ffe08a33,#0009);border:3px solid #ffe08aee;box-shadow:0 0 26px #ffe08aaa,inset 0 0 38px #000;pointer-events:auto;z-index:100;touch-action:none}
+#stick{position:absolute;left:50%;top:50%;margin-left:-28px;margin-top:-28px;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c8,#ffe08a 32%,#9a5a11);border:3px solid #fff2ba;box-shadow:0 0 18px #ffe08a;pointer-events:none}
+#joyLabel{position:absolute;left:38px;bottom:123px;color:#ffe08a;font-weight:900;text-shadow:1px 1px 0 #000;font-size:13px}
+.cluster{position:absolute;right:20px;bottom:140px;width:230px;height:185px;pointer-events:auto}
+.tb{position:absolute;width:65px;height:65px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #ffe08a;background:linear-gradient(#9c5627,#381608);color:#ffe8a0;font-weight:900;font-size:14px;box-shadow:0 0 10px #ffe08a55}
+.tb:active{transform:scale(.92);filter:brightness(1.5)}
+#ta{right:85px;bottom:52px;width:75px;height:75px;font-size:16px}
+#tc{right:155px;bottom:64px}#ts{right:15px;bottom:64px}
+#tu{right:155px;bottom:0}#tm{right:15px;bottom:0}#td{right:85px;bottom:135px}
+#exit{position:absolute;right:20px;top:100px;width:76px;height:38px;background:#742020;pointer-events:auto;color:#fff}
+
+@media(max-width:760px){
+  header{height:52px;padding:0 7px}h1{font-size:14px}.money{font-size:11px}
+  main{flex-direction:column}
+  .side{width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;border-right:0;border-bottom:1px solid #333;overflow:visible;flex-shrink:0}
+  .nav{font-size:12px;margin:0;padding:6px 0}
+  .content{padding:8px}.grid{grid-template-columns:repeat(2,minmax(140px,1fr));gap:8px}
+  .portrait{height:140px}.name{font-size:16px}.row{font-size:11px}
+  #hud{font-size:11px;min-width:180px;padding:6px}
+  #ko{font-size:22px}#mission{top:42px;font-size:11px}
+  .tb{width:54px;height:54px;font-size:12px}
+  #ta{width:64px;height:64px;right:70px;bottom:46px}
+  #tc{right:135px;bottom:56px}#ts{right:12px;bottom:56px}
+  #tu{right:135px;bottom:0}#tm{right:12px;bottom:0}#td{right:70px;bottom:115px}
+  #exit{top:80px}
+  #joy{width:125px;height:125px;left:16px;bottom:145px}
+  #stick{width:48px;height:48px;margin-left:-24px;margin-top:-24px}
+  #joyLabel{left:30px;bottom:118px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <header>
+    <h1>三國幻戰 × 無雙｜魔王級更新版</h1>
+    <div class="money">金錢:<span id="coin">0</span>珍珠:<span id="jade">0</span></div>
+  </header>
+  <main>
+    <div class="side">
+      <button class="nav" id="m_bag">卡庫</button>
+      <button class="nav" id="m_team">隊伍編制</button>
+      <button class="nav" id="m_draw">卡片招募</button>
+      <button class="nav" id="m_map" style="color:#fff;border-color:#f44;background:linear-gradient(#a22,#400)">關卡戰鬥</button>
+      <button class="nav" id="m_update">更新公告</button>
+      <button class="nav" id="m_talk">角色對話</button>
+      <button class="nav" id="m_creator">創作者</button>
+      <button class="nav" id="m_gift">禮物碼</button>
+      <button class="nav" id="m_daily">每日獎勵</button>
+      <button class="nav" id="m_topup">平台儲值</button>
+      <button class="nav" id="m_reset" style="color:#aaa;border-color:#555;background:none">重置存檔</button>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="ko">擊破 0</div>
+  <div id="mission">任務</div>
+  <div id="timerUI">5:00</div>
+  <div id="hud"></div>
+  <div id="msg"></div>
+  <div id="dialogBox">
+    <div id="dialogName"></div>
+    <div id="dialogText"></div>
+  </div>
+
+  <div id="mobile">
+    <div id="joy"><div id="stick"></div></div>
+    <div id="joyLabel">移動搖桿</div>
+    <button id="exit">撤退</button>
+    <div class="cluster">
+      <div class="tb" id="ta">普攻</div>
+      <div class="tb" id="tc">C技</div>
+      <div class="tb" id="ts">特技</div>
+      <div class="tb" id="tu">絕招</div>
+      <div class="tb" id="tm">無雙</div>
+      <div class="tb" id="td">閃避</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const TYPE = {
+  HERO:'武將',
+  PET:'寵物',
+  ULT:'絕招',
+  SOLDIER:'部隊'
+};
+
+const RN = ['普通','稀有','史詩','傳說','白銀傳說'];
+
+const DB = [
+  {id:'liaoyuanhuo',name:'燎原火',type:TYPE.HERO,rarity:0,attr:'火',camp:'群',base:400,hp:1000,atk:120,def:50,color:'#ff4400',style:'blade',skill:'火鳳燎原',effect:'火焰刀氣，攻擊範圍中等。'},
+  {id:'zhaoyun',name:'趙雲',type:TYPE.HERO,rarity:1,attr:'雷',camp:'蜀',base:430,hp:950,atk:118,def:50,color:'#73cfff',style:'spear',skill:'龍膽突刺',effect:'高速直線突刺，適合突破包圍。'},
+  {id:'guanyu',name:'關羽',type:TYPE.HERO,rarity:2,attr:'木',camp:'蜀',base:520,hp:1180,atk:138,def:68,color:'#28b463',style:'blade',skill:'青龍偃月',effect:'大範圍橫掃，清兵能力高。'},
+  {id:'zhangfei',name:'張飛',type:TYPE.HERO,rarity:2,attr:'土',camp:'蜀',base:510,hp:1300,atk:132,def:72,color:'#c17817',style:'fist',skill:'燕人怒吼',effect:'震退周圍敵人。'},
+  {id:'caocao',name:'曹操',type:TYPE.HERO,rarity:2,attr:'暗',camp:'魏',base:520,hp:1000,atk:135,def:58,color:'#4466ff',style:'sword',skill:'魏武號令',effect:'短時間提高攻擊力。'},
+  {id:'xiahoudun',name:'夏侯惇',type:TYPE.HERO,rarity:1,attr:'金',camp:'魏',base:420,hp:1100,atk:115,def:60,color:'#777777',style:'blade',skill:'剛烈斬',effect:'防禦高，穩定推進。'},
+  {id:'zhouyu',name:'周瑜',type:TYPE.HERO,rarity:2,attr:'火',camp:'吳',base:500,hp:900,atk:145,def:42,color:'#ff5577',style:'mage',skill:'赤壁烈焰',effect:'火焰範圍爆發。'},
+  {id:'xiaoqiao',name:'小喬',type:TYPE.HERO,rarity:2,attr:'光',camp:'吳',base:480,hp:850,atk:110,def:45,color:'#ff88cc',style:'fan',skill:'櫻花落',effect:'扇形旋風攻擊。'},
+  {id:'guojia',name:'郭嘉',type:TYPE.HERO,rarity:2,attr:'暗',camp:'魏',base:500,hp:900,atk:130,def:40,color:'#8800ff',style:'mage',skill:'十勝十敗',effect:'術法爆破，攻擊距離遠。'},
+  {id:'lubu',name:'呂布',type:TYPE.HERO,rarity:3,attr:'魔',camp:'群',base:700,hp:1350,atk:168,def:68,color:'#b100ff',style:'halberd',skill:'鬼神無雙',effect:'方天畫戟全屏亂舞。'},
+  {id:'silver_lubu',name:'白銀呂布',type:TYPE.HERO,rarity:4,attr:'魔',camp:'群',base:900,hp:1800,atk:220,def:90,color:'#ffffff',style:'halberd',skill:'白銀鬼神',effect:'白銀傳說武將，能力極高。'},
+
+  {id:'tuntain',name:'吞天貔貅',type:TYPE.PET,rarity:3,base:600,buffA:100,buffD:50,color:'#ffd700',effect:'傳說神獸，大幅提高攻防。'},
+  {id:'canglu',name:'蒼鹿',type:TYPE.PET,rarity:1,base:200,buffA:20,buffD:10,color:'#66ccff',effect:'靈獸護體。'},
+  {id:'chitu',name:'赤兔馬',type:TYPE.PET,rarity:2,base:350,buffA:40,buffD:20,color:'#ff2200',effect:'速度與攻擊提升。'},
+
+  {id:'fireult',name:'炎刃亂舞',type:TYPE.ULT,rarity:2,base:430,dmg:450,color:'#ff4a16',effect:'大範圍火焰絕招。'},
+  {id:'thunderult',name:'天雷破軍',type:TYPE.ULT,rarity:3,base:580,dmg:650,color:'#ffe35a',effect:'超大範圍雷電絕招。'},
+  {id:'darkult',name:'魔影吞天',type:TYPE.ULT,rarity:4,base:900,dmg:1200,color:'#ffffff',effect:'白銀傳說絕招。'},
+
+  {id:'soldier1',name:'陷陣營',type:TYPE.SOLDIER,rarity:2,base:300,color:'#555',effect:'高攻擊部隊。'},
+  {id:'soldier2',name:'白馬義從',type:TYPE.SOLDIER,rarity:2,base:300,color:'#fff',effect:'高機動部隊。'},
+  {id:'soldier3',name:'虎豹騎',type:TYPE.SOLDIER,rarity:3,base:450,color:'#222',effect:'魏國精銳部隊。'}
+];
+
+class Card {
+  constructor(o){
+    Object.assign(this,{
+      lv:1,
+      star:1,
+      uid:o.id+'_'+Date.now()+'_'+Math.floor(Math.random()*100000)
+    },o);
+  }
+  power(){
+    let p=this.base+(this.base*(this.lv-1)*0.1)+(this.base*(this.star-1)*0.3)+(this.base*this.rarity*0.5);
+    return Math.floor(this.rarity===4?p*100:p);
+  }
+}
+
+class Sys {
+  constructor(){
+    this.skillEnergy=0;
+    this.ultimateEnergy=0;
+    this.musouEnergy=0;
+  }
+  charge(t,a){
+    const key=t+'Energy';
+    this[key]=Math.min(100,this[key]+a);
+  }
+  use(t,c){
+    const key=t+'Energy';
+    if(this[key]>=c){
+      this[key]-=c;
+      return true;
+    }
+    return false;
+  }
+}
+
+let state={
+  version:'v5_magic_boss',
+  coin:300,
+  jade:300,
+  cards:[],
+  team:{hero:null,pet:null,ult:null,troop:null},
+  gift:{},
+  daily:'',
+  admin:false
+};
+
+function make(id,rarityOverride=null){
+  let t=DB.find(x=>x.id===id);
+  let c=new Card({...t});
+  if(rarityOverride!==null)c.rarity=rarityOverride;
+  return c;
+}
+
+function save(){
+  localStorage.setItem('sango_final_v5_keep_progress',JSON.stringify(state));
+  topbar();
+}
+
+function load(){
+  let d=localStorage.getItem('sango_final_v5_keep_progress');
+  if(d){
+    state=JSON.parse(d);
+    state.cards=state.cards.map(x=>new Card(x));
+    if(!state.team)state.team={hero:null,pet:null,ult:null,troop:null};
+    if(!state.gift)state.gift={};
+  }
+  if(!state.cards.length){
+    state.cards.push(make('liaoyuanhuo',0));
+    state.cards.push(make('fireult',2));
+    state.team.hero=state.cards[0].uid;
+    state.team.ult=state.cards[1].uid;
+    save();
+  }
+}
+
+function topbar(){
+  $('coin').textContent=state.coin;
+  $('jade').textContent=state.jade;
+}
+
+function set(h){
+  $('content').innerHTML=h;
+  topbar();
+  setTimeout(drawAllCards,40);
+}
+
+function portrait(c){
+  return `<div class="portrait"><canvas data-uid="${c.uid}"></canvas></div>`;
+}
+
+function drawAllCards(){
+  document.querySelectorAll('canvas[data-uid]').forEach(cv=>{
+    let c=state.cards.find(x=>x.uid===cv.dataset.uid);
+    if(!c)return;
+    let ctx=cv.getContext('2d');
+    cv.width=220;cv.height=220;
+    drawCardArt(ctx,c,110,170,80,true);
+  });
+}
+
+function drawCardArt(ctx,c,x,y,r,cardMode=false){
+  let g=ctx.createLinearGradient(0,0,220,220);
+  g.addColorStop(0,'#111');
+  g.addColorStop(0.45,c.color||'#ffe08a');
+  g.addColorStop(1,'#050505');
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,220,220);
+
+  ctx.globalAlpha=.18;
+  ctx.fillStyle='#fff';
+  for(let i=0;i<7;i++){
+    ctx.beginPath();
+    ctx.arc(30+i*35,40+Math.sin(i)*20,45,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  drawHuman(ctx,x,y,r,c.color||'#fff',c.style||'blade',true,c.rarity===4);
+  ctx.fillStyle='#fff';
+  ctx.font='bold 22px Microsoft JhengHei';
+  ctx.textAlign='center';
+  ctx.fillText(c.name,x,26);
+}
+
+function card(c,inBag=true){
+  let expCost=10*Math.pow(2,c.lv-1);
+  return `<div class="card r${c.rarity}">
+    ${portrait(c)}
+    <div class="name">${c.name}</div>
+    <div class="row"><div class="lab"><span>戰力</span></div><div class="val"><span>${c.power()}</span></div></div>
+    <div class="row"><div class="lab"><span>等級</span></div><div class="val"><span>Lv.${c.lv} / 100</span></div></div>
+    <div class="row"><div class="lab"><span>星級</span></div><div class="val"><span>${c.star} / 10 星</span></div></div>
+    <div class="row"><div class="lab"><span>品質</span></div><div class="val"><span>${RN[c.rarity]}</span></div></div>
+    <div class="row"><div class="lab"><span>類型</span></div><div class="val"><span>${c.type}</span></div></div>
+    <div class="skill"><b>${c.skill||c.name}</b><br>${c.effect||''}</div>
+    ${inBag?`<button onclick="upLv('${c.uid}',${expCost})">升級</button>
+    <button onclick="upStar('${c.uid}')">升星</button>
+    <button onclick="upRank('${c.uid}')">升階</button>
+    <button onclick="awaken('${c.uid}')" style="width:96%;background:#fff;color:#000">覺醒白銀</button>`:''}
+  </div>`;
+}
+
+$('m_bag').onclick=()=>{
+  set(`<div class="panel"><div class="title">帳號卡庫</div><div class="grid">${state.cards.map(c=>card(c)).join('')}</div></div>`);
+};
+
+$('m_team').onclick=teamPage;
+
+function teamPage(){
+  let h=`<div class="panel"><div class="title">隊伍編制</div><div class="grid">`;
+  const slots=[
+    {k:'hero',n:'武將'},
+    {k:'pet',n:'寵物'},
+    {k:'ult',n:'絕招'},
+    {k:'troop',n:'部隊'}
+  ];
+  slots.forEach(s=>{
+    let c=state.cards.find(x=>x.uid===state.team[s.k]);
+    h+=`<div class="card" style="border-color:#d4af37"><b>[ ${s.n} ]</b><br>${c?card(c,false)+`<button onclick="rmTeam('${s.k}')" style="width:96%">卸下</button>`:'<br><br>空位'}</div>`;
+  });
+  h+=`</div></div><div class="panel"><div class="title">選擇卡片</div><div class="grid">`;
+  state.cards.forEach(c=>{
+    let k=c.type===TYPE.HERO?'hero':c.type===TYPE.PET?'pet':c.type===TYPE.ULT?'ult':c.type===TYPE.SOLDIER?'troop':null;
+    if(!k)return;
+    let on=state.team[k]===c.uid;
+    h+=card(c,false)+`<button style="width:96%;margin-top:6px" ${on?'disabled':''} onclick="addTeam('${c.uid}','${k}')">${on?'已裝備':'裝備'}</button>`;
+  });
+  set(h+`</div></div>`);
+}
+
+function addTeam(uid,k){state.team[k]=uid;save();teamPage();}
+function rmTeam(k){state.team[k]=null;save();teamPage();}
+
+function upLv(uid,cost){
+  let c=state.cards.find(x=>x.uid===uid);
+  if(c.lv>=100)return alert('已滿級');
+  if(state.coin<cost)return alert('金錢不足');
+  state.coin-=cost;
+  c.lv++;
+  save();
+  $('m_bag').onclick();
+}
+
+function upStar(uid){
+  let c=state.cards.find(x=>x.uid===uid);
+  if(c.star>=10)return alert('已滿星');
+  let idx=state.cards.findIndex(x=>x.name===c.name&&x.uid!==uid);
+  if(idx===-1)return alert('需要 1 張同名卡');
+  state.cards.splice(idx,1);
+  c.star++;
+  save();
+  $('m_bag').onclick();
+}
+
+function upRank(uid){
+  let c=state.cards.find(x=>x.uid===uid);
+  if(c.rarity>=3)return alert('已達傳說階，請改用覺醒');
+  let dupes=state.cards.filter(x=>x.name===c.name&&x.uid!==uid);
+  if(dupes.length<4)return alert('需要 4 張同名卡');
+  for(let i=0;i<4;i++){
+    state.cards.splice(state.cards.findIndex(x=>x.name===c.name&&x.uid!==uid),1);
+  }
+  c.rarity++;
+  save();
+  $('m_bag').onclick();
+}
+
+function awaken(uid){
+  let c=state.cards.find(x=>x.uid===uid);
+  if(c.lv<100||c.star<10||c.rarity<3)return alert('需要 Lv100、10星、傳說品質');
+  c.rarity=4;
+  save();
+  alert('覺醒成功：白銀傳說！');
+  $('m_bag').onclick();
+}
+
+$('m_draw').onclick=()=>{
+  set(`<div class="panel"><div class="title">卡片招募</div>
+  <p class="note">單抽 30 珍珠。十連 300 珍珠，最後一張保底史詩以上。魔王級有機率掉落白銀傳說材料。</p>
+  <button onclick="summon(1)">單抽</button>
+  <button onclick="summon(10)">十連抽</button>
+  </div>`);
+};
+
+function summon(n){
+  let cost=n*30;
+  if(state.jade<cost)return alert('珍珠不足');
+  state.jade-=cost;
+  let got=[];
+  for(let i=0;i<n;i++){
+    let r=Math.random()*100;
+    let rar=(n===10&&i===9)?2:(r<=1?3:r<=10?2:r<=40?1:0);
+    let list=DB.filter(x=>x.rarity===rar&&x.rarity!==4);
+    if(!list.length)list=DB.filter(x=>x.rarity===0);
+    let c=make(list[Math.floor(Math.random()*list.length)].id,rar);
+    state.cards.push(c);
+    got.push(`${c.name}【${RN[c.rarity]}】`);
+  }
+  save();
+  alert('獲得：\n'+got.join('\n'));
+  $('m_draw').onclick();
+}
+
+$('m_update').onclick=()=>{
+  set(`<div class="panel"><div class="title">更新公告 / 下次更新預告</div>
+  <div class="note">
+  <b>目前版本：</b> v5 魔王級更新版<br><br>
+  <b>本次新增：</b><br>
+  1. 魔王級難度。<br>
+  2. 小兵 Boss 化。<br>
+  3. 白銀傳說 Boss。<br>
+  4. 電腦控制武將 Boss 會追擊與放技能。<br>
+  5. 固定顯示手機搖桿。<br>
+  6. 更新公告、角色對話、創作者頁。<br><br>
+  <b>下次預告：</b><br>
+  - 加入更多武將立繪。<br>
+  - 加入更多劇情分歧。<br>
+  - 加入多人隊伍切換。<br>
+  - 加入更完整的技能樹。<br>
+  - 加入更多關卡地圖。<br>
+  </div></div>`);
+};
+
+$('m_talk').onclick=()=>{
+  let heroes=state.cards.filter(c=>c.type===TYPE.HERO);
+  set(`<div class="panel"><div class="title">角色對話</div>
+  <p class="note">選擇一位你擁有的武將進行對話。</p>
+  <div class="grid">${heroes.map(c=>`<div class="card r${c.rarity}">${portrait(c)}<div class="name">${c.name}</div><button style="width:96%" onclick="talkHero('${c.uid}')">對話</button></div>`).join('')}</div>
+  </div>`);
+};
+
+function talkHero(uid){
+  let c=state.cards.find(x=>x.uid===uid);
+  let line=`吾乃 ${c.name}。今日若上戰場，必為主公開路！`;
+  if(c.name.includes('呂布'))line='天下之中，能擋我者，不過白骨而已。';
+  if(c.name.includes('趙雲'))line='長坂一戰，吾亦不懼千軍萬馬。';
+  if(c.name.includes('郭嘉'))line='勝負未定之前，先看天時，再看人心。';
+  alert(`${c.name}：\n${line}`);
+}
+
+$('m_creator').onclick=()=>{
+  set(`<div class="panel"><div class="title">創作者 / 管理員頁</div>
+  <p class="note">
+  這裡是測試區。正式遊戲可以把管理員功能關掉。<br>
+  管理員代碼：<b>creator999</b>
+  </p>
+  <input id="adminCode" placeholder="輸入管理員代碼" style="padding:10px;border-radius:8px">
+  <button onclick="unlockAdmin()">解鎖</button>
+  <div id="adminPanel" style="margin-top:12px"></div>
+  </div>`);
+};
+
+function unlockAdmin(){
+  if($('adminCode').value.trim()==='creator999'){
+    state.admin=true;
+    save();
+    $('adminPanel').innerHTML=`
+    <div class="panel">
+      <div class="title">管理員功能</div>
+      <button onclick="state.coin+=999999;save();alert('金錢增加')">增加金錢</button>
+      <button onclick="state.jade+=999999;save();alert('珍珠增加')">增加珍珠</button>
+      <button onclick="state.cards.push(make('silver_lubu'));save();alert('獲得白銀呂布')">給白銀呂布</button>
+      <button onclick="state.cards.push(make('darkult'));save();alert('獲得魔影吞天')">給白銀絕招</button>
+    </div>`;
+  }else{
+    alert('代碼錯誤');
+  }
+}
+
+$('m_gift').onclick=()=>{
+  set(`<div class="panel"><div class="title">禮物兌換</div>
+  <input id="gInp" placeholder="輸入禮物碼" style="padding:10px;border-radius:8px">
+  <button onclick="doGift()">領取</button>
+  <p class="note">可用：天時地利人和、郭嘉、周瑜、小喬、魔王級</p>
+  </div>`);
+};
+
+function doGift(){
+  let code=$('gInp').value.trim();
+  if(state.gift[code])return alert('已領取');
+  if(code==='天時地利人和'){state.cards.push(make('guojia'));alert('獲得郭嘉');}
+  else if(code==='郭嘉'){state.cards.push(make('tuntain'));alert('獲得吞天貔貅');}
+  else if(code==='周瑜'){state.cards.push(make('xiaoqiao'));alert('獲得小喬');}
+  else if(code==='小喬'){state.cards.push(make('canglu'));alert('獲得蒼鹿');}
+  else if(code==='魔王級'){state.cards.push(make('lubu'));state.jade+=1000;alert('獲得呂布與1000珍珠');}
+  else return alert('無效禮物碼');
+  state.gift[code]=1;
+  save();
+  $('m_gift').onclick();
+}
+
+$('m_daily').onclick=()=>{
+  let can=state.daily!==new Date().toDateString();
+  set(`<div class="panel"><div class="title">每日獎勵</div>
+  <button ${can?'':'disabled'} onclick="doDaily()">${can?'領取今日獎勵':'今日已領'}</button>
+  </div>`);
+};
+
+function doDaily(){
+  state.daily=new Date().toDateString();
+  if(Math.random()<0.5){state.coin+=3000;alert('獲得3000金錢');}
+  else{state.jade+=3000;alert('獲得3000珍珠');}
+  save();
+  $('m_daily').onclick();
+}
+
+$('m_topup').onclick=()=>{
+  set(`<div class="panel"><div class="title">平台儲值（模擬）</div>
+  <button onclick="state.coin+=3000;save();alert('購買成功')">買金錢 100NT</button>
+  <button onclick="state.jade+=3000;save();alert('購買成功')">買珍珠 100NT</button>
+  </div>`);
+};
+
+$('m_reset').onclick=()=>{
+  if(confirm('確定重置存檔？')){
+    localStorage.removeItem('sango_final_v5_keep_progress');
+    location.reload();
+  }
+};
+
+$('m_map').onclick=()=>{
+  set(`<div class="panel"><div class="title">選擇戰鬥模式</div>
+  <p class="note">每次進關消耗 30 金錢。魔王級難度極高，小兵都是 Boss 等級，最後會出現白銀傳說 Boss。</p>
+
+  <h3 style="color:#4ba3ff;border-bottom:1px solid #333">普通闖關</h3>
+  <button class="stageBtn" onclick="initBattle('stage','火系')">火系關卡</button>
+  <button class="stageBtn" onclick="initBattle('stage','水系')">水系關卡</button>
+
+  <h3 style="color:#ff66aa;border-bottom:1px solid #333;margin-top:15px">劇本制</h3>
+  <button class="stageBtn" onclick="initBattle('story','黃巾之亂')">黃巾之亂</button>
+  <button class="stageBtn" onclick="initBattle('story','群雄集結')">群雄集結</button>
+
+  <h3 style="color:#f44;border-bottom:1px solid #333;margin-top:15px">線上限時</h3>
+  <button class="stageBtn" onclick="initBattle('online','限時討伐')">限時討伐戰</button>
+
+  <h3 style="color:#fff;border-bottom:1px solid #333;margin-top:15px">魔王級</h3>
+  <button class="stageBtn danger" onclick="initBattle('demon','魔王級')">魔王級：Boss 小兵 + 白銀傳說 Boss</button>
+  </div>`);
+};
+
+const canvas=$('game');
+const ctx=canvas.getContext('2d');
+
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+}
+resize();
+addEventListener('resize',resize);
+
+let keys={},touch={x:0,y:0},act={};
+let pData=null,es=[],slashes=[],texts=[],loop,KOs=0,bossOut=0,over=0,mode={},worldW=2000,camX=0,timeLeft=0;
+
+addEventListener('keydown',e=>{
+  keys[e.key.toLowerCase()]=1;
+  if(e.key===' ')keys.space=1;
+  if(e.key==='Escape')exitBattle();
+});
+addEventListener('keyup',e=>{
+  keys[e.key.toLowerCase()]=0;
+  if(e.key===' ')keys.space=0;
+});
+
+const joy=$('joy'),stick=$('stick');
+let joyActive=false,joyBaseX=0,joyBaseY=0,joyTid=null;
+
+joy.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  let t=e.changedTouches[0];
+  joyTid=t.identifier;
+  joyBaseX=joy.getBoundingClientRect().left+joy.offsetWidth/2;
+  joyBaseY=joy.getBoundingClientRect().top+joy.offsetHeight/2;
+  moveJoy(t);
+},{passive:false});
+
+joy.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  for(let t of e.changedTouches){
+    if(t.identifier===joyTid)moveJoy(t);
+  }
+},{passive:false});
+
+joy.addEventListener('touchend',e=>{
+  for(let t of e.changedTouches){
+    if(t.identifier===joyTid){
+      touch.x=0;touch.y=0;
+      stick.style.transform='translate(0px,0px)';
+      joyTid=null;
+    }
+  }
+});
+
+function moveJoy(t){
+  let dx=t.clientX-joyBaseX;
+  let dy=t.clientY-joyBaseY;
+  let len=Math.hypot(dx,dy),max=45;
+  if(len>max){dx=dx/len*max;dy=dy/len*max;}
+  touch.x=dx/max;
+  touch.y=dy/max;
+  stick.style.transform=`translate(${dx}px,${dy}px)`;
+}
+
+['ta','tc','ts','tu','tm','td'].forEach(id=>{
+  let k=id.replace('t','');
+  if(k==='a')k='atk';
+  if(k==='c')k='ch';
+  if(k==='s')k='sk';
+  if(k==='u')k='ul';
+  if(k==='m')k='ms';
+  if(k==='d')k='dg';
+  $(id).addEventListener('touchstart',e=>{e.preventDefault();act[k]=1;},{passive:false});
+  $(id).addEventListener('touchend',e=>{e.preventDefault();act[k]=0;},{passive:false});
+  $(id).addEventListener('mousedown',()=>act[k]=1);
+  $(id).addEventListener('mouseup',()=>act[k]=0);
+  $(id).addEventListener('mouseleave',()=>act[k]=0);
+});
+
+$('exit').onclick=exitBattle;
+
+function msg(t,c='#ffe08a',s='46px'){
+  $('msg').textContent=t;
+  $('msg').style.color=c;
+  $('msg').style.fontSize=s;
+  setTimeout(()=>$('msg').textContent='',1500);
+}
+
+function showDialog(name,text,duration=2200){
+  $('dialogName').textContent=name;
+  $('dialogText').textContent=text;
+  $('dialogBox').style.display='block';
+  setTimeout(()=>$('dialogBox').style.display='none',duration);
+}
+
+function addText(x,y,t,c){
+  texts.push({x:x+Math.random()*24-12,y:y-20,t,c,life:30});
+}
+
+function initBattle(mType,param){
+  if(!state.team.hero)return alert('請先裝備武將');
+  if(state.coin<30)return alert('金錢不足 30');
+  state.coin-=30;
+  save();
+  topbar();
+
+  mode={type:mType,param:param};
+  let hc=state.cards.find(x=>x.uid===state.team.hero);
+  let pet=state.cards.find(x=>x.uid===state.team.pet);
+  let ult=state.cards.find(x=>x.uid===state.team.ult);
+  let pwr=hc.power();
+  let atkBuff=pet?(pet.buffA||0):0;
+  let defBuff=pet?(pet.buffD||0):0;
+
+  pData={
+    sys:new Sys(),
+    base:hc,
+    name:hc.name,
+    x:300,
+    y:canvas.height/2,
+    r:30,
+    hp:hc.hp+pwr,
+    maxHp:hc.hp+pwr,
+    atk:hc.atk+Math.floor(pwr*0.1)+atkBuff,
+    def:hc.def+defBuff,
+    spd:5,
+    fx:1,
+    fy:0,
+    cd:0,
+    cseq:0,
+    ct:0,
+    inv:0,
+    dodge:0,
+    musou:0,
+    atkAnim:0
+  };
+  pData.sys.ult=ult;
+
+  es=[];slashes=[];texts=[];KOs=0;bossOut=0;over=0;
+  timeLeft=mType==='online'?300:0;
+  $('timerUI').style.display=mType==='online'?'block':'none';
+
+  if(mType==='story'){
+    worldW=6000;
+    $('mission').textContent='【劇本】擊破150兵引出大將';
+  }else if(mType==='online'){
+    worldW=2200;
+    $('mission').textContent='【限時】打倒大將';
+  }else if(mType==='demon'){
+    worldW=3600;
+    $('mission').textContent='【魔王級】擊破20名Boss小兵，引出白銀傳說Boss';
+  }else{
+    worldW=2000;
+    $('mission').textContent='【闖關】擊破30兵引出大將';
+  }
+
+  $('ko').textContent='擊破 0';
+  $('wrap').style.display='block';
+  resize();
+
+  let initSpawn=mType==='story'?50:mType==='demon'?12:20;
+  for(let i=0;i<initSpawn;i++)spawnE(true,false);
+
+  if(mType==='demon'){
+    showDialog('白銀魔王','凡人也敢踏入魔王級？我的小兵，皆有大將之力。',3000);
+  }else{
+    showDialog(hc.name,`我乃 ${hc.name}，此戰必破敵陣！`,2200);
+  }
+
+  cancelAnimationFrame(loop);
+  battleLoop();
+}
+
+function exitBattle(){
+  $('wrap').style.display='none';
+  $('timerUI').style.display='none';
+  cancelAnimationFrame(loop);
+  $('m_map').onclick();
+}
+
+function spawnE(init=false,isBoss=false,isSilver=false){
+  let maxE=mode.type==='story'?80:mode.type==='demon'?18:30;
+  if(es.length>=maxE)return;
+
+  let dist=init?Math.random()*800+200:canvas.width/2+100;
+  let a=Math.random()*Math.PI*2;
+  let lv=pData.base.lv;
+  let demon=mode.type==='demon';
+
+  let hp,atk,def,r,spd,color,name,style;
+  if(isSilver){
+    hp=9000*Math.pow(1.06,lv);
+    atk=220*Math.pow(1.04,lv);
+    def=120;
+    r=58;
+    spd=2.6;
+    color='#ffffff';
+    name='白銀傳說Boss';
+    style='halberd';
+  }else if(isBoss||demon){
+    hp=(demon?2200:3000)*Math.pow(1.05,lv);
+    atk=(demon?85:80)*Math.pow(1.03,lv);
+    def=demon?45:30;
+    r=demon?38:45;
+    spd=demon?2.2:1.8;
+    color=demon?'#cc33ff':'#b100ff';
+    name=demon?'魔王級小將':'敵方大將';
+    style=demon?'blade':'halberd';
+  }else{
+    hp=150*Math.pow(1.02,lv);
+    atk=15*Math.pow(1.01,lv);
+    def=0;
+    r=22;
+    spd=Math.random()*1.5+1.5;
+    color=mode.type==='stage'?(mode.param==='火系'?'#f44':mode.param==='水系'?'#44f':'#4f4'):'#999';
+    name='敵兵';
+    style='spear';
+  }
+
+  es.push({
+    isBoss,
+    isSilver,
+    name,
+    style,
+    color,
+    x:Math.max(80,Math.min(worldW-80,pData.x+Math.cos(a)*dist)),
+    y:Math.max(140,Math.min(canvas.height-140,pData.y+Math.sin(a)*dist)),
+    r,hp,maxHp:hp,atk,def,spd,vx:0,vy:0,stun:0,cd:Math.random()*80,atkAnim:0
+  });
+}
+
+function slash(p,a,rad,sp,col,dmg,kb){
+  slashes.push({x:p.x,y:p.y,a,rad,sp,col,life:10,max:10});
+  es.forEach(e=>{
+    if(e.hp<=0)return;
+    let ang=Math.atan2(e.y-p.y,e.x-p.x);
+    let ad=Math.abs(ang-a);
+    if(ad>Math.PI)ad=Math.PI*2-ad;
+    if(Math.hypot(e.x-p.x,e.y-p.y)<=rad&&ad<=sp/2){
+      let finalDmg=Math.max(1,dmg-e.def);
+      e.hp-=finalDmg;
+      e.stun=15;
+      e.vx=Math.cos(ang)*kb;
+      e.vy=Math.sin(ang)*kb;
+      p.sys.charge('skill',3);
+      p.sys.charge('musou',2);
+      addText(e.x,e.y,Math.floor(finalDmg),'#fff');
+    }
+  });
+}
+
+function boom(x,y,rad,dmg,col){
+  slashes.push({x,y,rad,type:'circle',col,life:15,max:15});
+  es.forEach(e=>{
+    if(Math.hypot(e.x-x,e.y-y)<=rad){
+      let finalDmg=Math.max(1,dmg-e.def);
+      e.hp-=finalDmg;
+      e.stun=20;
+      e.vx=(e.x-x)*0.1;
+      e.vy=(e.y-y)*0.1;
+      addText(e.x,e.y,Math.floor(finalDmg),'#ff4');
+    }
+  });
+}
+
+function updateP(p){
+  let dx=0,dy=0;
+  if(keys.w)dy--;
+  if(keys.s)dy++;
+  if(keys.a)dx--;
+  if(keys.d)dx++;
+  dx+=touch.x;
+  dy+=touch.y;
+
+  if(p.cd<=0&&!p.musou){
+    let ang=Math.atan2(p.fy,p.fx);
+    if(keys.j||act.atk){
+      p.cd=12;
+      p.ct=50;
+      p.cseq=p.cseq%4+1;
+      p.atkAnim=12;
+      slash(p,ang,150,Math.PI,p.base.color,p.atk,6);
+      p.x+=p.fx*12;
+      p.y+=p.fy*12;
+    }else if((keys.i||act.ch)&&p.cseq){
+      p.cd=25;
+      p.cseq=0;
+      p.atkAnim=18;
+      slash(p,ang,240,Math.PI*1.5,p.base.color,p.atk*2.5,14);
+    }else if((keys.k||act.sk)&&p.sys.use('skill',30)){
+      p.cd=20;
+      p.inv=20;
+      p.atkAnim=20;
+      boom(p.x,p.y,200,p.atk*3.5,p.base.color);
+      msg('特技！',p.base.color,'36px');
+    }else if((keys.l||act.ul)&&p.sys.ult&&p.sys.use('ultimate',100)){
+      p.cd=40;
+      p.inv=40;
+      p.atkAnim=30;
+      boom(p.x,p.y,420,(p.sys.ult.dmg||500)+p.atk*5,p.sys.ult.color);
+      msg('絕招！'+p.sys.ult.name,'#f33');
+    }else if((keys.u||act.ms)&&p.sys.use('musou',100)){
+      p.musou=150;
+      p.inv=150;
+      msg('無雙亂舞！','#ff4');
+    }else if((keys.space||act.dg)&&p.dodge<=0){
+      p.dodge=30;
+      p.inv=15;
+      p.x+=p.fx*120;
+      p.y+=p.fy*120;
+    }
+  }
+
+  let len=Math.hypot(dx,dy);
+  if(len){
+    p.fx=dx/len;
+    p.fy=dy/len;
+    let spd=p.musou?p.spd*1.5:p.spd;
+    p.x+=p.fx*spd;
+    p.y+=p.fy*spd;
+  }
+
+  p.x=Math.max(40,Math.min(worldW-40,p.x));
+  p.y=Math.max(90,Math.min(canvas.height-90,p.y));
+
+  if(p.musou){
+    p.musou--;
+    if(p.musou%10===0)slash(p,Math.atan2(p.fy,p.fx),260,Math.PI*2,p.base.color,p.atk*2.5,12);
+    if(p.musou===1)boom(p.x,p.y,500,p.atk*10,'#fff');
+  }
+
+  if(p.ct>0){
+    p.ct--;
+    if(!p.ct)p.cseq=0;
+  }
+
+  p.cd=Math.max(0,p.cd-1);
+  p.inv=Math.max(0,p.inv-1);
+  p.dodge=Math.max(0,p.dodge-1);
+  p.atkAnim=Math.max(0,p.atkAnim-1);
+}
+
+function enemySkill(e){
+  if(e.cd>0){e.cd--;return;}
+  if(e.isSilver){
+    e.cd=90;
+    boom(e.x,e.y,260,e.atk*2.2,'#ffffff');
+    msg('白銀Boss釋放絕技！','#fff','38px');
+  }else if(e.isBoss||mode.type==='demon'){
+    e.cd=120;
+    boom(e.x,e.y,160,e.atk*1.4,e.color);
+  }
+}
+
+function updateE(){
+  es.forEach(e=>{
+    if(e.stun>0){
+      e.stun--;
+      e.x+=e.vx;
+      e.y+=e.vy;
+      e.vx*=0.8;
+      e.vy*=0.8;
+      return;
+    }
+
+    let a=Math.atan2(pData.y-e.y,pData.x-e.x);
+    let d=Math.hypot(e.x-pData.x,e.y-pData.y);
+    if(d>e.r+pData.r+10){
+      e.x+=Math.cos(a)*e.spd;
+      e.y+=Math.sin(a)*e.spd;
+    }else if(pData.inv<=0){
+      pData.hp-=Math.max(1,e.atk-pData.def);
+      pData.sys.charge('musou',4);
+      pData.inv=12;
+      e.atkAnim=15;
+    }
+
+    enemySkill(e);
+    e.atkAnim=Math.max(0,e.atkAnim-1);
+  });
+
+  let old=es.length;
+  es=es.filter(e=>e.hp>0);
+  let killed=old-es.length;
+
+  if(killed){
+    KOs+=killed;
+    $('ko').textContent='擊破 '+KOs;
+    pData.sys.charge('ultimate',killed*4);
+
+    if(bossOut&&!es.some(e=>e.isBoss||e.isSilver)){
+      over=1;
+      let rewardCoin=mode.type==='demon'?2000:200;
+      let rewardJade=mode.type==='demon'?500:50;
+      state.coin+=rewardCoin;
+      state.jade+=rewardJade;
+      if(mode.type==='demon'&&Math.random()<0.35){
+        state.cards.push(make('silver_lubu'));
+        alert('魔王級掉落：白銀呂布！');
+      }
+      save();
+      topbar();
+      msg('戰役勝利！','#4f4');
+      setTimeout(exitBattle,2000);
+    }
+
+    let req=mode.type==='story'?150:mode.type==='demon'?20:30;
+    if(KOs>=req&&!bossOut){
+      bossOut=1;
+      if(mode.type==='demon'){
+        spawnE(false,true,true);
+        showDialog('白銀傳說Boss','你能打敗魔王級小兵，才有資格見到我。',2800);
+        msg('白銀傳說Boss出現！','#fff','42px');
+      }else{
+        spawnE(false,true,false);
+        msg('敵方大將出現！','#f33');
+      }
+    }
+  }
+
+  if(!bossOut){
+    let targetCount=mode.type==='story'?60:mode.type==='demon'?14:25;
+    while(es.length<targetCount)spawnE(false,false);
+  }
+}
+
+function handleOnline(){
+  if(mode.type==='online'){
+    timeLeft-=1/60;
+    let m=Math.floor(timeLeft/60);
+    let s=Math.floor(timeLeft%60).toString().padStart(2,'0');
+    $('timerUI').textContent=`${m}:${s}`;
+    if(timeLeft<=0&&!over){
+      over=1;
+      if(confirm('時間到！花費 50 金錢接關加時？')){
+        if(state.coin>=50){
+          state.coin-=50;
+          timeLeft=60;
+          over=0;
+          save();
+        }else{
+          alert('金錢不足');
+          exitBattle();
+        }
+      }else{
+        exitBattle();
+      }
+    }
+  }
+}
+
+function drawHuman(ctx,x,y,r,color,style,isHero=false,isSilver=false,faceX=1,atkAnim=0){
+  ctx.save();
+  if(isSilver){
+    ctx.shadowColor='#ffffff';
+    ctx.shadowBlur=18;
+  }
+
+  ctx.fillStyle='rgba(0,0,0,.35)';
+  ctx.beginPath();
+  ctx.ellipse(x,y+r*0.9,r*0.9,r*0.25,0,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.ellipse(x,y-r*0.2,r*0.65,r*0.95,0,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle='#f1c89b';
+  ctx.beginPath();
+  ctx.arc(x,y-r*1.15,r*0.48,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle='#111';
+  ctx.beginPath();
+  ctx.arc(x-r*0.16,y-r*1.2,r*0.06,0,Math.PI*2);
+  ctx.arc(x+r*0.16,y-r*1.2,r*0.06,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.strokeStyle='#111';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-r*0.18,y-r*1.03);
+  ctx.quadraticCurveTo(x,y-r*0.93,x+r*0.18,y-r*1.03);
+  ctx.stroke();
+
+  ctx.fillStyle=isHero?'#ffe08a':'#444';
+  ctx.beginPath();
+  ctx.moveTo(x-r*0.45,y-r*1.45);
+  ctx.lineTo(x,y-r*2.05);
+  ctx.lineTo(x+r*0.45,y-r*1.45);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle=color;
+  ctx.lineWidth=5;
+  ctx.beginPath();
+  ctx.moveTo(x-r*0.42,y+r*0.2);
+  ctx.lineTo(x-r*0.9,y+r*0.9);
+  ctx.moveTo(x+r*0.42,y+r*0.2);
+  ctx.lineTo(x+r*0.9,y+r*0.9);
+  ctx.stroke();
+
+  let swing=atkAnim>0?Math.sin(atkAnim)*r*0.5:0;
+  ctx.strokeStyle=isSilver?'#fff':'#f5f5f5';
+  ctx.lineWidth=isHero?5:3;
+  ctx.beginPath();
+
+  if(style==='spear'){
+    ctx.moveTo(x+r*0.5*faceX,y-r*0.4);
+    ctx.lineTo(x+r*1.8*faceX,y-r*1.2-swing);
+  }else if(style==='halberd'){
+    ctx.moveTo(x+r*0.5*faceX,y-r*0.3);
+    ctx.lineTo(x+r*2.0*faceX,y-r*1.5-swing);
+    ctx.moveTo(x+r*1.6*faceX,y-r*1.3-swing);
+    ctx.lineTo(x+r*1.25*faceX,y-r*1.7-swing);
+  }else if(style==='mage'){
+    ctx.moveTo(x+r*0.5*faceX,y-r*0.3);
+    ctx.lineTo(x+r*1.3*faceX,y-r*1.5-swing);
+    ctx.arc(x+r*1.35*faceX,y-r*1.55-swing,r*0.16,0,Math.PI*2);
+  }else if(style==='fan'){
+    ctx.moveTo(x+r*0.4*faceX,y-r*0.3);
+    ctx.arc(x+r*0.9*faceX,y-r*0.6-swing,r*0.45,-0.6,0.6);
+  }else{
+    ctx.moveTo(x+r*0.45*faceX,y-r*0.3);
+    ctx.lineTo(x+r*1.5*faceX,y-r*1.1-swing);
+  }
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!pData)return;
+
+  camX=Math.max(0,Math.min(worldW-canvas.width,pData.x-canvas.width/2));
+  ctx.fillStyle='#1e1308';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  ctx.strokeStyle='rgba(255,255,255,0.05)';
+  for(let i=-camX%100;i<canvas.width;i+=100){
+    ctx.beginPath();
+    ctx.moveTo(i,0);
+    ctx.lineTo(i,canvas.height);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle='rgba(255,220,120,.08)';
+  for(let i=0;i<12;i++){
+    let x=(i*420-camX*0.4)%canvas.width;
+    ctx.fillRect(x,90,160,canvas.height-180);
+  }
+
+  slashes.forEach(s=>{
+    ctx.globalAlpha=s.life/s.max;
+    ctx.fillStyle=s.col;
+    ctx.beginPath();
+    if(s.type==='circle'){
+      ctx.arc(s.x-camX,s.y,s.rad*(1-s.life/s.max),0,Math.PI*2);
+      ctx.fill();
+    }else{
+      ctx.moveTo(s.x-camX,s.y);
+      ctx.arc(s.x-camX,s.y,s.rad,s.a-s.sp/2,s.a+s.sp/2);
+      ctx.fill();
+    }
+  });
+  ctx.globalAlpha=1;
+  slashes=slashes.filter(s=>s.life-- >0);
+
+  es.sort((a,b)=>a.y-b.y).forEach(e=>{
+    drawHuman(ctx,e.x-camX,e.y,e.r,e.color,e.style,false,e.isSilver,Math.sign(pData.x-e.x)||1,e.atkAnim);
+    ctx.fillStyle='#111';
+    ctx.fillRect(e.x-camX-35,e.y-e.r-34,70,7);
+    ctx.fillStyle=e.isSilver?'#fff':'#f33';
+    ctx.fillRect(e.x-camX-35,e.y-e.r-34,70*Math.max(0,e.hp/e.maxHp),7);
+    ctx.fillStyle='#fff';
+    ctx.font='bold 12px Arial';
+    ctx.textAlign='center';
+    if(e.isSilver)ctx.fillText('白銀傳說',e.x-camX,e.y-e.r-42);
+    else if(e.isBoss||mode.type==='demon')ctx.fillText('BOSS',e.x-camX,e.y-e.r-42);
+  });
+
+  if(pData.hp>0){
+    if(pData.musou){
+      ctx.fillStyle='rgba(255,215,0,0.3)';
+      ctx.beginPath();
+      ctx.arc(pData.x-camX,pData.y,pData.r*2,0,Math.PI*2);
+      ctx.fill();
+    }
+    drawHuman(ctx,pData.x-camX,pData.y,pData.r,pData.base.color,pData.base.style,true,pData.base.rarity===4,pData.fx>=0?1:-1,pData.atkAnim);
+  }
+
+  texts.forEach(t=>{
+    t.y-=1.5;
+    ctx.globalAlpha=t.life/30;
+    ctx.fillStyle=t.c;
+    ctx.font='bold 20px Arial';
+    ctx.fillText(t.t,t.x-camX,t.y);
+  });
+  ctx.globalAlpha=1;
+  texts=texts.filter(t=>t.life-- >0);
+
+  $('hud').innerHTML=`<b style="color:#ffe08a">${pData.name} C${pData.cseq}</b>
+  <div class="barrow"><span>HP</span><div class="bar"><div class="fill hp" style="width:${Math.max(0,pData.hp/pData.maxHp*100)}%"></div></div></div>
+  <div class="barrow"><span>特技</span><div class="bar"><div class="fill sk" style="width:${pData.sys.skillEnergy}%"></div></div></div>
+  <div class="barrow"><span>絕招</span><div class="bar"><div class="fill ul" style="width:${pData.sys.ultimateEnergy}%"></div></div></div>
+  <div class="barrow"><span>無雙</span><div class="bar"><div class="fill ms" style="width:${pData.sys.musouEnergy}%"></div></div></div>
+  <div style="font-size:12px;color:#ccc">模式：${mode.type==='demon'?'魔王級':mode.param}</div>`;
+}
+
+function battleLoop(){
+  if(!over&&pData){
+    if(pData.hp<=0){
+      over=1;
+      if(mode.type==='online'&&confirm('戰死！花費 50 金錢接關？')){
+        if(state.coin>=50){
+          state.coin-=50;
+          pData.hp=pData.maxHp;
+          over=0;
+          save();
+        }else{
+          alert('金錢不足');
+          exitBattle();
+        }
+      }else{
+        msg('敗退...');
+        setTimeout(exitBattle,1500);
+      }
+    }
+    updateP(pData);
+    updateE();
+    handleOnline();
+  }
+  draw();
+  loop=requestAnimationFrame(battleLoop);
+}
+
+window.onload=()=>{
+  load();
+  topbar();
+  $('m_map').onclick();
+};
+</script>
+</body>
+</html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
