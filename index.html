@@ -1,1889 +1,1546 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>三國志11 Web 戰棋完整版｜單檔整合版</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>三國幻戰：魔王級割草試煉</title>
 <style>
 :root{
-  --bg:#101010;
-  --panel:#222;
-  --panel2:#2f2f2f;
-  --panel3:#3b2f20;
+  --bg:#080b10;
+  --panel:#151b28;
+  --panel2:#20283a;
+  --text:#f5f7ff;
+  --muted:#9aa5bb;
   --gold:#ffd36a;
-  --red:#d9534f;
-  --green:#61c46e;
-  --blue:#5dade2;
-  --purple:#b084f5;
-  --text:#f2f2f2;
-  --muted:#aaa;
-  --border:#555;
-  --dark:#000;
+  --red:#ff6b6b;
+  --green:#69e28d;
+  --blue:#6ab7ff;
+  --purple:#b980ff;
+  --border:#2f3a52;
 }
-*{box-sizing:border-box;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{
   margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:"Microsoft JhengHei","PingFang TC",Arial,sans-serif;
+  width:100vw;
   height:100vh;
   overflow:hidden;
+  background:radial-gradient(circle at top,#202b45,#07090f 70%);
+  color:var(--text);
+  font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
 }
-button,select,input{
+button,input,select{
   font-family:inherit;
 }
 button{
+  border:1px solid var(--border);
+  background:linear-gradient(#2c3753,#172032);
+  color:var(--text);
+  border-radius:10px;
+  padding:9px 12px;
+  font-weight:700;
   cursor:pointer;
-  border:none;
-  border-radius:8px;
-  padding:8px 12px;
-  background:#444;
-  color:#fff;
-  font-weight:bold;
 }
-button:hover{filter:brightness(1.15);}
-button.primary{background:#b8860b;color:#fff;}
-button.danger{background:#8b1e1e;}
-button.green{background:#248a3d;}
-button.blue{background:#1d5f91;}
-button.purple{background:#6b3fa0;}
-button.small{padding:4px 8px;font-size:12px;}
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
+button:active{transform:scale(.96);}
+button.primary{background:linear-gradient(#ffd36a,#b97922);color:#201300;}
+button.danger{background:linear-gradient(#ff7878,#9c2020);}
+button.green{background:linear-gradient(#7bea9d,#218046);}
+button.purple{background:linear-gradient(#c690ff,#6730af);}
+button.small{font-size:12px;padding:6px 8px;}
+input,select{
+  width:100%;
+  padding:9px;
+  border-radius:8px;
+  background:#0c1220;
+  color:var(--text);
+  border:1px solid var(--border);
 }
 #app{
-  width:100vw;
   height:100vh;
   display:flex;
   flex-direction:column;
 }
 #topbar{
   height:54px;
-  background:#050505;
-  border-bottom:2px solid var(--border);
+  background:rgba(5,8,14,.95);
+  border-bottom:1px solid var(--border);
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 14px;
-  flex-shrink:0;
+  padding:0 12px;
+  z-index:50;
 }
-#title{
-  font-size:18px;
-  font-weight:bold;
+.logo{
   color:var(--gold);
-  white-space:nowrap;
+  font-size:19px;
+  font-weight:900;
+  letter-spacing:1px;
 }
-#resourceBar{
+.resources{
   display:flex;
-  gap:14px;
-  align-items:center;
-  font-size:14px;
-  flex-wrap:wrap;
+  gap:10px;
+  color:var(--muted);
+  font-size:13px;
 }
-.res{
-  color:#eee;
-}
-.res b{
-  color:var(--gold);
-}
+.resources b{color:var(--gold);}
 #main{
   flex:1;
   min-height:0;
-  display:flex;
+  display:grid;
+  grid-template-columns:280px 1fr 310px;
 }
-#sidebar{
-  width:290px;
-  background:var(--panel);
-  border-right:2px solid var(--border);
-  display:flex;
-  flex-direction:column;
+.panel{
+  background:rgba(18,24,38,.92);
+  border-right:1px solid var(--border);
   overflow:auto;
-  flex-shrink:0;
+  padding:12px;
 }
-#content{
-  flex:1;
-  min-width:0;
-  position:relative;
-  overflow:hidden;
-  background:#161616;
+.panel.right{
+  border-right:none;
+  border-left:1px solid var(--border);
 }
 .tabs{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:6px;
+  margin-bottom:10px;
+}
+.tab.active{
+  background:linear-gradient(#ffd36a,#b87920);
+  color:#1a1100;
+}
+.section{
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--border);
+  border-radius:12px;
   padding:10px;
-  border-bottom:1px solid var(--border);
+  margin-bottom:10px;
 }
-.tabBtn{
-  background:#333;
-  font-size:13px;
-}
-.tabBtn.active{
-  background:#b8860b;
-}
-.panel{
-  padding:12px;
-  border-bottom:1px solid #444;
-}
-.panel h3{
-  margin:0 0 8px 0;
+.section h3{
+  margin:0 0 8px;
   color:var(--gold);
-  font-size:16px;
+  font-size:15px;
 }
-.panel p{
-  margin:4px 0;
-  line-height:1.5;
-}
-.muted{color:var(--muted);}
-.good{color:var(--green);}
-.bad{color:#ff7777;}
-.gold{color:var(--gold);}
-.blueText{color:#8ed1ff;}
-.cardList{
+.item{
   display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-.card{
-  background:var(--panel2);
-  border:1px solid #555;
-  border-radius:10px;
-  padding:8px;
-}
-.card.selected{
-  outline:2px solid var(--gold);
-}
-.card .name{
-  font-weight:bold;
-  color:var(--gold);
-  display:flex;
+  align-items:center;
   justify-content:space-between;
   gap:8px;
+  padding:8px;
+  margin:6px 0;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.04);
 }
-.card .meta{
-  font-size:12px;
-  color:#ccc;
-  margin-top:4px;
-  line-height:1.5;
+.muted{color:var(--muted);font-size:13px;line-height:1.5;}
+.gold{color:var(--gold);}
+.red{color:var(--red);}
+.green{color:var(--green);}
+.blue{color:var(--blue);}
+.purple{color:var(--purple);}
+#gameWrap{
+  position:relative;
+  overflow:hidden;
+  background:#0a1020;
 }
 #gameCanvas{
   width:100%;
   height:100%;
   display:block;
-  background:#222;
-  touch-action:none;
 }
-#battleHUD{
+#hud{
   position:absolute;
-  left:10px;
   top:10px;
-  background:rgba(0,0,0,.62);
-  border:1px solid #777;
-  border-radius:12px;
-  padding:10px;
-  min-width:230px;
+  left:10px;
+  right:10px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
   pointer-events:none;
 }
-#battleHUD h3{
-  margin:0 0 6px 0;
+.hudBox{
+  background:rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;
+  padding:8px 10px;
+  min-width:160px;
+  font-size:13px;
+}
+.bar{
+  height:10px;
+  border-radius:999px;
+  background:#29334a;
+  overflow:hidden;
+  margin-top:5px;
+}
+.bar div{height:100%;width:50%;}
+.hp div{background:linear-gradient(90deg,#ff4040,#ffa15f);}
+.mp div{background:linear-gradient(90deg,#3b9cff,#8bdcff);}
+.boss div{background:linear-gradient(90deg,#a855f7,#ff4ca8);}
+.exp div{background:linear-gradient(90deg,#ffd36a,#79ff9e);}
+#dialogBox{
+  position:absolute;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  width:min(720px,92%);
+  background:rgba(5,8,16,.94);
+  border:1px solid var(--gold);
+  border-radius:14px;
+  padding:14px;
+  display:none;
+  z-index:30;
+}
+#dialogName{
   color:var(--gold);
+  font-weight:900;
+  margin-bottom:6px;
 }
-#battleHUD p{
-  margin:3px 0;
-  font-size:13px;
-}
-#battleActions{
+#dialogText{line-height:1.6;}
+#mobileControls{
   position:absolute;
-  right:12px;
-  bottom:12px;
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
+  left:0;
+  right:0;
+  bottom:0;
+  height:190px;
+  display:none;
+  pointer-events:none;
 }
-#logBox{
+#joystickBase{
   position:absolute;
-  left:10px;
-  bottom:10px;
-  width:420px;
-  max-width:calc(100% - 20px);
-  max-height:145px;
-  overflow:auto;
-  background:rgba(0,0,0,.68);
-  border:1px solid #777;
-  border-radius:10px;
-  padding:8px;
-  font-size:13px;
-  line-height:1.45;
+  left:35px;
+  bottom:35px;
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+  border:2px solid rgba(255,255,255,.22);
+  pointer-events:auto;
 }
-.logLine{margin-bottom:3px;}
-#modalMask{
+#joystickKnob{
+  position:absolute;
+  left:35px;
+  top:35px;
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  background:rgba(255,211,106,.88);
+  box-shadow:0 0 20px rgba(255,211,106,.45);
+}
+.actionBtns{
+  position:absolute;
+  right:24px;
+  bottom:28px;
+  display:grid;
+  grid-template-columns:68px 68px;
+  gap:10px;
+  pointer-events:auto;
+}
+.skillBtn{
+  width:68px;
+  height:68px;
+  border-radius:50%;
+  font-size:12px;
+  padding:0;
+}
+#modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.75);
+  background:rgba(0,0,0,.72);
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:99;
+  z-index:100;
 }
-#modal{
-  width:min(720px,92vw);
-  max-height:88vh;
+.modalCard{
+  width:min(820px,94vw);
+  max-height:86vh;
   overflow:auto;
-  background:#252525;
-  border:2px solid var(--gold);
-  border-radius:16px;
+  background:linear-gradient(#1d2639,#0e1421);
+  border:1px solid var(--border);
+  border-radius:18px;
   padding:18px;
-  box-shadow:0 0 30px #000;
+  box-shadow:0 24px 70px rgba(0,0,0,.5);
 }
-#modal h2{
+.modalCard h2{
+  margin-top:0;
   color:var(--gold);
-  margin:0 0 12px 0;
 }
-#modalBody{
-  line-height:1.65;
+.cardGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(125px,1fr));
+  gap:10px;
 }
-.modalBtns{
+.heroCard{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:9px;
+  text-align:center;
+}
+.portrait{
+  width:82px;
+  height:82px;
+  margin:0 auto 7px;
+  border-radius:50%;
+  background:radial-gradient(circle at top,#52617f,#121827);
   display:flex;
-  justify-content:flex-end;
-  gap:8px;
-  margin-top:14px;
-}
-.grid2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-}
-.grid3{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:8px;
+  align-items:center;
+  justify-content:center;
+  font-size:38px;
+  border:2px solid rgba(255,255,255,.16);
 }
 .notice{
-  background:#332b1a;
-  border:1px solid #856404;
-  padding:10px;
-  border-radius:10px;
-  color:#ffe5a3;
-}
-input,select{
-  background:#111;
-  color:#fff;
-  border:1px solid #666;
-  border-radius:8px;
+  border-left:3px solid var(--gold);
   padding:8px;
-  width:100%;
+  background:rgba(255,211,106,.08);
+  margin:8px 0;
+  line-height:1.5;
 }
-#touchPad{
-  position:absolute;
-  left:18px;
-  bottom:170px;
-  width:128px;
-  height:128px;
-  border-radius:50%;
-  background:rgba(255,255,255,.08);
-  border:2px solid rgba(255,255,255,.25);
-  display:none;
-  touch-action:none;
+.rarity-SSR{color:#ffdf70;}
+.rarity-SR{color:#c293ff;}
+.rarity-R{color:#7fc8ff;}
+@media(max-width:1120px){
+  #main{grid-template-columns:230px 1fr;}
+  .panel.right{display:none;}
 }
-#touchStick{
-  position:absolute;
-  left:39px;
-  top:39px;
-  width:46px;
-  height:46px;
-  border-radius:50%;
-  background:rgba(255,211,106,.65);
-  border:2px solid rgba(255,255,255,.5);
-}
-@media(max-width:900px){
-  #main{flex-direction:column;}
-  #sidebar{
-    width:100%;
-    height:280px;
-    border-right:none;
-    border-bottom:2px solid var(--border);
-  }
-  #content{height:calc(100vh - 334px);}
-  #resourceBar{font-size:12px;gap:8px;}
-  #title{font-size:15px;}
-  #battleHUD{font-size:12px;min-width:190px;}
-  #logBox{display:none;}
-  #touchPad{display:block;}
+@media(max-width:760px){
+  #main{grid-template-columns:1fr;}
+  .panel{display:none;}
+  #mobileControls{display:block;}
+  .resources{font-size:11px;gap:5px;}
+  #topbar{height:48px;}
 }
 </style>
 </head>
-
 <body>
 <div id="app">
   <div id="topbar">
-    <div id="title">三國志11 Web 戰棋完整版｜單檔整合版</div>
-    <div id="resourceBar">
-      <span class="res">金：<b id="goldVal">0</b></span>
-      <span class="res">糧：<b id="foodVal">0</b></span>
-      <span class="res">兵裝：<b id="gearVal">0</b></span>
-      <span class="res">玉璽：<b id="gemVal">0</b></span>
-      <span class="res">君主：<b id="lordVal">劉備</b></span>
+    <div class="logo">三國幻戰</div>
+    <div class="resources">
+      <span>金幣 <b id="goldText">0</b></span>
+      <span>玉璧 <b id="gemText">0</b></span>
+      <span>體力 <b id="energyText">0</b></span>
+      <span>戰力 <b id="powerText">0</b></span>
     </div>
+    <button class="small primary" onclick="openModal('menu')">選單</button>
   </div>
 
   <div id="main">
-    <aside id="sidebar">
+    <aside class="panel">
       <div class="tabs">
-        <button class="tabBtn active" data-tab="home">主城</button>
-        <button class="tabBtn" data-tab="battle">出征</button>
-        <button class="tabBtn" data-tab="team">隊伍</button>
-        <button class="tabBtn" data-tab="cards">武將</button>
-        <button class="tabBtn" data-tab="tech">技巧</button>
-        <button class="tabBtn" data-tab="admin">管理</button>
+        <button class="tab active" onclick="switchLeft('battle')">戰鬥</button>
+        <button class="tab" onclick="switchLeft('team')">隊伍</button>
+        <button class="tab" onclick="switchLeft('gacha')">抽卡</button>
+        <button class="tab" onclick="switchLeft('daily')">每日</button>
       </div>
-
-      <div id="sideContent"></div>
+      <div id="leftContent"></div>
     </aside>
 
-    <main id="content">
+    <main id="gameWrap">
       <canvas id="gameCanvas"></canvas>
 
-      <div id="battleHUD">
-        <h3 id="hudTitle">主城待命</h3>
-        <p id="hudInfo">請從左側選擇功能。</p>
-        <p id="hudTurn"></p>
-        <p id="hudSelected"></p>
+      <div id="hud">
+        <div class="hudBox">
+          <div>武將 HP <span id="hpText"></span></div>
+          <div class="bar hp"><div id="hpBar"></div></div>
+          <div>氣力 <span id="mpText"></span></div>
+          <div class="bar mp"><div id="mpBar"></div></div>
+          <div>等級 <span id="lvText"></span></div>
+          <div class="bar exp"><div id="expBar"></div></div>
+        </div>
+        <div class="hudBox">
+          <div>關卡：<span id="stageText"></span></div>
+          <div>難度：<span id="difficultyText" class="red"></span></div>
+          <div>擊破：<span id="killText"></span></div>
+          <div>除草：<span id="weedText"></span></div>
+        </div>
+        <div class="hudBox">
+          <div>Boss HP <span id="bossHpText"></span></div>
+          <div class="bar boss"><div id="bossBar"></div></div>
+        </div>
       </div>
 
-      <div id="battleActions">
-        <button class="primary" id="btnEndTurn">結束回合</button>
-        <button class="blue" id="btnSkill">戰法</button>
-        <button class="green" id="btnWait">待機</button>
-        <button class="danger" id="btnRetreat">撤退</button>
+      <div id="dialogBox">
+        <div id="dialogName"></div>
+        <div id="dialogText"></div>
+        <div style="text-align:right;margin-top:10px;">
+          <button class="small primary" onclick="nextDialog()">下一句</button>
+        </div>
       </div>
 
-      <div id="logBox"></div>
-
-      <div id="touchPad">
-        <div id="touchStick"></div>
+      <div id="mobileControls">
+        <div id="joystickBase"><div id="joystickKnob"></div></div>
+        <div class="actionBtns">
+          <button class="skillBtn primary" ontouchstart="playerAttack()" onclick="playerAttack()">普攻</button>
+          <button class="skillBtn purple" ontouchstart="castSkill()" onclick="castSkill()">戰法</button>
+          <button class="skillBtn green" ontouchstart="cutWeed()" onclick="cutWeed()">除草</button>
+          <button class="skillBtn danger" ontouchstart="dodge()" onclick="dodge()">閃避</button>
+        </div>
       </div>
     </main>
+
+    <aside class="panel right">
+      <div class="section">
+        <h3>更新公告</h3>
+        <div class="notice">
+          三國幻戰整合版：補回魔王級難度、Boss、遠程兵、法師、盾兵、掉落道具、平板觸控搖桿、卡庫、隊伍、抽卡、禮物碼、每日、儲值、角色繪圖、角色對話、管理員頁、固定搖桿、更多武將資料、劇情對話框。
+        </div>
+        <div class="notice">
+          新增除草機制：地圖會生成雜草，靠近後按 E 或右下「除草」，可能獲得金幣、藥草、糧草、寶箱，也可能觸發伏兵。
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>操作說明</h3>
+        <div class="muted">
+          鍵盤：WASD 移動、J 普攻、K 戰法、E 除草、L 補血、空白閃避。<br>
+          平板：左下搖桿，右下按鈕。
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>劇情</h3>
+        <button onclick="startStory()">播放劇情對話</button>
+      </div>
+
+      <div class="section">
+        <h3>創作者工具</h3>
+        <button class="primary" onclick="openModal('admin')">管理員頁</button>
+      </div>
+    </aside>
   </div>
 </div>
 
-<div id="modalMask">
-  <div id="modal">
-    <h2 id="modalTitle">訊息</h2>
-    <div id="modalBody"></div>
-    <div class="modalBtns" id="modalBtns">
-      <button class="primary" onclick="closeModal()">確定</button>
+<div id="modal">
+  <div class="modalCard">
+    <div id="modalContent"></div>
+    <div style="text-align:right;margin-top:14px;">
+      <button onclick="closeModal()">關閉</button>
     </div>
   </div>
 </div>
 
 <script>
-"use strict";
+const canvas=document.getElementById("gameCanvas");
+const ctx=canvas.getContext("2d");
+let W=0,H=0,last=0;
+let keys={};
+let currentLeft="battle";
+let fixedJoystick=true;
 
-const $ = id => document.getElementById(id);
-const rand = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-const choice = arr => arr[Math.floor(Math.random()*arr.length)];
-
-const STORAGE_KEY = "sangokushi_web_single_file_v1";
-
-const DB = {
-  lords:[
-    {id:"liu",name:"劉備",city:"新野",trait:"仁德",desc:"登用與忠誠較穩。"},
-    {id:"cao",name:"曹操",city:"許昌",trait:"霸道",desc:"金錢與技巧研究較快。"},
-    {id:"sun",name:"孫權",city:"建業",trait:"水軍",desc:"水戰與弓兵較強。"},
-    {id:"dong",name:"董卓",city:"洛陽",trait:"暴政",desc:"起始兵力高，但忠誠較不穩。"}
-  ],
-  difficulties:{
-    easy:{name:"新手",enemyHp:0.85,enemyAtk:0.85,reward:1.0},
-    normal:{name:"普通",enemyHp:1.0,enemyAtk:1.0,reward:1.15},
-    hard:{name:"困難",enemyHp:1.25,enemyAtk:1.18,reward:1.35},
-    demon:{name:"魔王級",enemyHp:1.55,enemyAtk:1.35,reward:1.7}
-  },
-  arms:{
-    spear:{name:"槍兵",range:1,move:3,adv:"克騎兵"},
-    pike:{name:"戟兵",range:1,move:2,adv:"防禦高"},
-    cavalry:{name:"騎兵",range:1,move:4,adv:"機動高"},
-    bow:{name:"弓兵",range:3,move:2,adv:"遠程"},
-    navy:{name:"水軍",range:2,move:3,adv:"水上強"},
-    mage:{name:"軍師",range:3,move:2,adv:"計略"},
-    shield:{name:"盾兵",range:1,move:2,adv:"坦克"}
-  },
-  skills:[
-    {id:"rush",name:"突擊",type:"damage",power:1.35,cost:8,desc:"單體高傷害。"},
-    {id:"fire",name:"火計",type:"aoe",power:0.9,cost:10,desc:"小範圍傷害。"},
-    {id:"heal",name:"鼓舞",type:"heal",power:0.35,cost:8,desc:"恢復友軍。"},
-    {id:"guard",name:"鐵壁",type:"buff",power:0.5,cost:6,desc:"本回合減傷。"},
-    {id:"arrow",name:"齊射",type:"damage",power:1.2,cost:7,desc:"遠程戰法。"},
-    {id:"duel",name:"單挑",type:"damage",power:1.55,cost:12,desc:"高風險高傷。"}
-  ],
-  techs:[
-    {id:"farm",name:"屯田制",cost:300,desc:"每日糧食 +300。"},
-    {id:"market",name:"市集整備",cost:300,desc:"每日金錢 +300。"},
-    {id:"drill",name:"兵科操練",cost:450,desc:"全軍攻擊 +5。"},
-    {id:"armor",name:"甲冑改良",cost:450,desc:"全軍防禦 +5。"},
-    {id:"march",name:"行軍術",cost:600,desc:"戰場移動力 +1。"},
-    {id:"medical",name:"醫術",cost:600,desc:"戰後恢復提高。"}
-  ],
-  items:[
-    {id:"rice",name:"軍糧包",type:"res",desc:"糧食 +500"},
-    {id:"coin",name:"金塊",type:"res",desc:"金錢 +500"},
-    {id:"gear",name:"兵裝箱",type:"res",desc:"兵裝 +300"},
-    {id:"book",name:"兵法書",type:"exp",desc:"指定武將經驗 +80"},
-    {id:"horse",name:"的盧",type:"equip",desc:"移動 +1"},
-    {id:"blade",name:"青釭劍",type:"equip",desc:"攻擊 +8"},
-    {id:"armor",name:"明光鎧",type:"equip",desc:"防禦 +8"}
-  ],
-  gifts:{
-    "LIUBEI888":{gold:888,food:888,gear:300,gems:3},
-    "SAN11WEB":{gold:500,food:500,gear:500,gems:5},
-    "MOWANG":{gold:1200,food:800,gear:600,gems:8},
-    "TEST":{gold:9999,food:9999,gear:9999,gems:30}
-  }
+const state={
+  gold:6000,
+  gem:1600,
+  energy:80,
+  difficulty:"魔王級",
+  stage:"虎牢幻境",
+  owned:[1,2,3],
+  team:[1,2,3],
+  dailyClaimed:false,
+  giftUsed:{},
+  rechargeTotal:0,
+  inventory:{potion:6,herb:0,grain:0,iron:0,bossSoul:0,treasure:0},
+  kills:0,
+  weedsCut:0,
+  announcements:[
+    "虎牢幻境開放，呂布幻影成為第一位魔王級 Boss。",
+    "新增固定搖桿模式，平板操作更穩定。",
+    "新增除草機制，草叢可能掉落資源，也可能藏有伏兵。"
+  ]
 };
 
-const HEROES = [
-  {id:"guanyu",name:"關羽",camp:"蜀",rarity:"UR",arm:"spear",atk:96,def:88,int:76,lead:97,loyal:98,skill:"duel",hate:["caocao"],friend:["liubei","zhangfei"],desc:"武聖，單挑與槍兵壓制極強。"},
-  {id:"zhangfei",name:"張飛",camp:"蜀",rarity:"SSR",arm:"spear",atk:98,def:82,int:35,lead:88,loyal:96,skill:"rush",hate:["lubu"],friend:["liubei","guanyu"],desc:"爆發力極高，適合先鋒突擊。"},
-  {id:"zhaoyun",name:"趙雲",camp:"蜀",rarity:"UR",arm:"cavalry",atk:95,def:90,int:75,lead:92,loyal:95,skill:"rush",hate:[],friend:["liubei"],desc:"攻守平衡，機動力強。"},
-  {id:"zhugeliang",name:"諸葛亮",camp:"蜀",rarity:"UR",arm:"mage",atk:45,def:70,int:100,lead:95,loyal:99,skill:"fire",hate:["simayi"],friend:["liubei"],desc:"頂級軍師，火計與控場核心。"},
-  {id:"machao",name:"馬超",camp:"蜀",rarity:"SSR",arm:"cavalry",atk:96,def:78,int:55,lead:89,loyal:84,skill:"rush",hate:["caocao"],friend:[],desc:"騎兵突擊強。"},
-  {id:"huangzhong",name:"黃忠",camp:"蜀",rarity:"SR",arm:"bow",atk:88,def:70,int:62,lead:80,loyal:86,skill:"arrow",hate:[],friend:[],desc:"弓兵老將，遠程穩定。"},
-  {id:"caocao",name:"曹操",camp:"魏",rarity:"UR",arm:"cavalry",atk:82,def:86,int:94,lead:99,loyal:99,skill:"guard",hate:["liubei"],friend:["xiahoudun"],desc:"統率極高，適合主帥。"},
-  {id:"xiahoudun",name:"夏侯惇",camp:"魏",rarity:"SSR",arm:"shield",atk:89,def:92,int:60,lead:86,loyal:96,skill:"guard",hate:[],friend:["caocao"],desc:"盾兵坦克。"},
-  {id:"dianwei",name:"典韋",camp:"魏",rarity:"SSR",arm:"shield",atk:95,def:90,int:38,lead:75,loyal:99,skill:"duel",hate:[],friend:["caocao"],desc:"近戰護衛。"},
-  {id:"xuchu",name:"許褚",camp:"魏",rarity:"SR",arm:"shield",atk:94,def:88,int:30,lead:74,loyal:95,skill:"rush",hate:[],friend:["caocao"],desc:"高武力盾兵。"},
-  {id:"simayi",name:"司馬懿",camp:"魏",rarity:"UR",arm:"mage",atk:55,def:76,int:98,lead:94,loyal:72,skill:"fire",hate:["zhugeliang"],friend:[],desc:"計略與統率兼具。"},
-  {id:"zhangliao",name:"張遼",camp:"魏",rarity:"SSR",arm:"cavalry",atk:92,def:82,int:78,lead:91,loyal:88,skill:"rush",hate:[],friend:[],desc:"騎兵猛將。"},
-  {id:"sunquan",name:"孫權",camp:"吳",rarity:"SSR",arm:"navy",atk:74,def:78,int:82,lead:88,loyal:99,skill:"guard",hate:[],friend:["zhouyu"],desc:"吳國君主，水軍穩定。"},
-  {id:"zhouyu",name:"周瑜",camp:"吳",rarity:"UR",arm:"mage",atk:72,def:75,int:97,lead:96,loyal:94,skill:"fire",hate:["zhugeliang"],friend:["sunquan"],desc:"火計大師。"},
-  {id:"lvmeng",name:"呂蒙",camp:"吳",rarity:"SSR",arm:"navy",atk:83,def:82,int:88,lead:90,loyal:90,skill:"guard",hate:[],friend:[],desc:"後期名將，攻守兼備。"},
-  {id:"taishici",name:"太史慈",camp:"吳",rarity:"SR",arm:"bow",atk:90,def:76,int:66,lead:82,loyal:84,skill:"arrow",hate:[],friend:[],desc:"遠程猛將。"},
-  {id:"ganning",name:"甘寧",camp:"吳",rarity:"SSR",arm:"navy",atk:93,def:76,int:68,lead:84,loyal:78,skill:"rush",hate:[],friend:[],desc:"水軍突擊強。"},
-  {id:"luxun",name:"陸遜",camp:"吳",rarity:"SSR",arm:"mage",atk:63,def:72,int:96,lead:94,loyal:89,skill:"fire",hate:[],friend:[],desc:"計略與火攻。"},
-  {id:"lubu",name:"呂布",camp:"群",rarity:"UR",arm:"cavalry",atk:100,def:84,int:28,lead:86,loyal:40,skill:"duel",hate:["zhangfei"],friend:[],desc:"天下無雙，但忠誠不穩。"},
-  {id:"diaochan",name:"貂蟬",camp:"群",rarity:"SSR",arm:"mage",atk:40,def:58,int:88,lead:62,loyal:70,skill:"heal",hate:[],friend:["lubu"],desc:"輔助與計略。"},
-  {id:"yuanshao",name:"袁紹",camp:"群",rarity:"SR",arm:"bow",atk:72,def:70,int:72,lead:86,loyal:80,skill:"arrow",hate:[],friend:[],desc:"兵多將廣。"},
-  {id:"huatuo",name:"華佗",camp:"群",rarity:"SR",arm:"mage",atk:25,def:55,int:93,lead:50,loyal:75,skill:"heal",hate:[],friend:[],desc:"治療核心。"}
+const difficulties={
+  "普通":{hp:1,atk:1,boss:1,reward:1,spawn:1},
+  "困難":{hp:1.5,atk:1.35,boss:1.6,reward:1.4,spawn:1.2},
+  "噩夢":{hp:2.3,atk:1.8,boss:2.5,reward:2,spawn:1.4},
+  "魔王級":{hp:3.8,atk:2.8,boss:5,reward:3.8,spawn:1.8}
+};
+
+const heroes=[
+  {id:1,name:"關羽",title:"美髯公",rarity:"SSR",job:"猛將",icon:"🟢",atk:58,hp:520,skill:"青龍偃月"},
+  {id:2,name:"趙雲",title:"常山龍膽",rarity:"SSR",job:"突擊",icon:"🔵",atk:56,hp:460,skill:"七進七出"},
+  {id:3,name:"諸葛亮",title:"臥龍",rarity:"SSR",job:"法師",icon:"🪶",atk:62,hp:360,skill:"八陣雷火"},
+  {id:4,name:"張飛",title:"燕人",rarity:"SR",job:"盾兵",icon:"🟤",atk:42,hp:650,skill:"長坂怒吼"},
+  {id:5,name:"黃忠",title:"老當益壯",rarity:"SR",job:"遠程兵",icon:"🏹",atk:48,hp:390,skill:"百步穿楊"},
+  {id:6,name:"馬超",title:"錦馬超",rarity:"SR",job:"騎兵",icon:"🐎",atk:50,hp:430,skill:"西涼突擊"},
+  {id:7,name:"周瑜",title:"美周郎",rarity:"SSR",job:"法師",icon:"🔥",atk:64,hp:350,skill:"赤壁烈焰"},
+  {id:8,name:"呂蒙",title:"白衣渡江",rarity:"R",job:"軍師",icon:"📘",atk:32,hp:330,skill:"奇襲"},
+  {id:9,name:"太史慈",title:"東萊勇將",rarity:"SR",job:"遠程兵",icon:"🎯",atk:45,hp:410,skill:"神射連擊"},
+  {id:10,name:"貂蟬",title:"閉月",rarity:"SSR",job:"輔助",icon:"🌸",atk:36,hp:390,skill:"亂舞魅影"},
+  {id:11,name:"曹操",title:"魏武帝",rarity:"SSR",job:"君主",icon:"👑",atk:54,hp:480,skill:"魏武號令"},
+  {id:12,name:"孫尚香",title:"弓腰姬",rarity:"SR",job:"遠程兵",icon:"🏵️",atk:46,hp:370,skill:"連弩破陣"},
+  {id:13,name:"司馬懿",title:"冢虎",rarity:"SSR",job:"法師",icon:"🕯️",atk:61,hp:370,skill:"鬼謀黑雷"},
+  {id:14,name:"許褚",title:"虎癡",rarity:"R",job:"盾兵",icon:"🐯",atk:36,hp:610,skill:"虎衛衝撞"},
+  {id:15,name:"甘寧",title:"錦帆賊",rarity:"R",job:"刺客",icon:"⚓",atk:40,hp:360,skill:"錦帆夜襲"}
 ];
 
-const STAGES = [
-  {
-    id:"yellow",
-    name:"黃巾之亂",
-    desc:"張角起兵，天下動盪。",
-    enemy:"張角",
-    boss:false,
-    map:"plain",
-    reward:300
-  },
-  {
-    id:"dong",
-    name:"反董卓聯軍",
-    desc:"洛陽烽火，董卓暴虐。",
-    enemy:"董卓",
-    boss:false,
-    map:"city",
-    reward:450
-  },
-  {
-    id:"guandu",
-    name:"官渡之戰",
-    desc:"曹袁決戰，糧道為先。",
-    enemy:"袁紹",
-    boss:false,
-    map:"river",
-    reward:600
-  },
-  {
-    id:"chibi",
-    name:"赤壁之戰",
-    desc:"火攻連環，水軍決勝。",
-    enemy:"曹操",
-    boss:false,
-    map:"water",
-    reward:750
-  },
-  {
-    id:"baidi",
-    name:"白帝城魔王",
-    desc:"白銀傳說 Boss 現身。",
-    enemy:"白銀魔王",
-    boss:true,
-    map:"mountain",
-    reward:1200
-  }
-];
+const player={
+  x:180,y:300,r:18,
+  hp:1000,maxHp:1000,
+  mp:300,maxMp:300,
+  lv:1,exp:0,nextExp:100,
+  atk:65,speed:260,
+  cd:0,skillCd:0,invuln:0
+};
 
-let state = loadState();
+let boss=null;
+let enemies=[];
+let bullets=[];
+let drops=[];
+let weeds=[];
+let floating=[];
+let dialogQueue=[];
+let currentDialog=0;
 
-function defaultState(){
-  return {
-    lord:"劉備",
-    gold:1500,
-    food:1800,
-    gear:800,
-    gems:10,
-    day:1,
-    difficulty:"normal",
-    tab:"home",
-    owned:["guanyu","zhangfei","zhaoyun","zhugeliang","huangzhong"],
-    team:["guanyu","zhangfei","zhaoyun"],
-    heroes:{},
-    techs:[],
-    usedGifts:[],
-    dailyClaimed:false,
-    admin:false,
-    currentStage:"yellow",
-    battle:null,
-    log:["歡迎進入三國志 Web 戰棋整合版。"]
-  };
-}
+let joy={active:false,dx:0,dy:0};
 
-function initHeroState(s){
-  HEROES.forEach(h=>{
-    if(!s.heroes[h.id]){
-      s.heroes[h.id]={
-        lv:1,
-        exp:0,
-        loyal:h.loyal,
-        equip:null,
-        hp:100 + Math.floor((h.def+h.lead)/2),
-        maxHp:100 + Math.floor((h.def+h.lead)/2)
-      };
-    }
-  });
-}
-
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const s = JSON.parse(raw);
-      const d = defaultState();
-      const merged = Object.assign(d,s);
-      initHeroState(merged);
-      return merged;
-    }
-  }catch(e){}
-  const s = defaultState();
-  initHeroState(s);
-  return s;
-}
-
-function save(){
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-}
-
-function resetGame(){
-  if(!confirm("確定要重置所有存檔？"))return;
-  localStorage.removeItem(STORAGE_KEY);
-  state = defaultState();
-  initHeroState(state);
-  renderAll();
-  drawHome();
-}
-
-function log(msg){
-  state.log.unshift(`第${state.day}日：${msg}`);
-  state.log = state.log.slice(0,80);
-  save();
-  renderLog();
-}
-
-function hero(id){
-  return HEROES.find(x=>x.id===id);
-}
-
-function skill(id){
-  return DB.skills.find(x=>x.id===id);
-}
-
-function arm(id){
-  return DB.arms[id];
-}
-
-function tech(id){
-  return DB.techs.find(x=>x.id===id);
-}
-
-function difficulty(){
-  return DB.difficulties[state.difficulty];
-}
-
-function rarityColor(r){
-  if(r==="UR")return "#ffcf33";
-  if(r==="SSR")return "#d78cff";
-  if(r==="SR")return "#73c9ff";
-  return "#ddd";
-}
-
-function updateResources(){
-  $("goldVal").textContent = state.gold;
-  $("foodVal").textContent = state.food;
-  $("gearVal").textContent = state.gear;
-  $("gemVal").textContent = state.gems;
-  $("lordVal").textContent = state.lord;
-}
-
-function renderAll(){
-  updateResources();
-  renderTabs();
-  renderSide();
-  renderLog();
-  updateHud();
-}
-
-function renderTabs(){
-  document.querySelectorAll(".tabBtn").forEach(btn=>{
-    btn.classList.toggle("active",btn.dataset.tab===state.tab);
-  });
-}
-
-function setTab(tab){
-  state.tab=tab;
-  save();
-  renderAll();
-}
-
-document.querySelectorAll(".tabBtn").forEach(btn=>{
-  btn.addEventListener("click",()=>setTab(btn.dataset.tab));
-});
-
-function renderSide(){
-  const el = $("sideContent");
-  if(state.tab==="home")renderHomePanel(el);
-  if(state.tab==="battle")renderBattlePanel(el);
-  if(state.tab==="team")renderTeamPanel(el);
-  if(state.tab==="cards")renderCardsPanel(el);
-  if(state.tab==="tech")renderTechPanel(el);
-  if(state.tab==="admin")renderAdminPanel(el);
-}
-
-function renderHomePanel(el){
-  const lordOpts = DB.lords.map(l=>`<option value="${l.name}" ${state.lord===l.name?"selected":""}>${l.name}｜${l.city}</option>`).join("");
-  el.innerHTML = `
-    <div class="panel">
-      <h3>主城</h3>
-      <p>第 <b class="gold">${state.day}</b> 日</p>
-      <p>難度：<b class="gold">${difficulty().name}</b></p>
-      <p>目前關卡：<b>${STAGES.find(s=>s.id===state.currentStage).name}</b></p>
-    </div>
-
-    <div class="panel">
-      <h3>君主</h3>
-      <select id="lordSelect">${lordOpts}</select>
-      <p class="muted">更換君主只影響敘事與部分起始傾向，不會刪除武將。</p>
-    </div>
-
-    <div class="panel">
-      <h3>難度</h3>
-      <select id="diffSelect">
-        ${Object.entries(DB.difficulties).map(([k,v])=>`<option value="${k}" ${state.difficulty===k?"selected":""}>${v.name}</option>`).join("")}
-      </select>
-      <p class="muted">魔王級會大幅提高敵軍血量與攻擊，但獎勵也更高。</p>
-    </div>
-
-    <div class="panel">
-      <h3>內政</h3>
-      <div class="grid2">
-        <button class="primary" onclick="collectTax()">徵收</button>
-        <button class="green" onclick="trainTroops()">募兵訓練</button>
-        <button class="blue" onclick="nextDay()">下一日</button>
-        <button onclick="openNotice()">公告</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>禮物碼</h3>
-      <input id="giftInput" placeholder="輸入禮物碼，例如 SAN11WEB" />
-      <button class="primary" style="margin-top:8px;width:100%;" onclick="redeemGift()">兌換</button>
-    </div>
-  `;
-
-  $("lordSelect").onchange = e=>{
-    state.lord=e.target.value;
-    log(`君主改為 ${state.lord}。`);
-    save();
-    renderAll();
-  };
-
-  $("diffSelect").onchange = e=>{
-    state.difficulty=e.target.value;
-    log(`難度改為 ${difficulty().name}。`);
-    save();
-    renderAll();
-  };
-}
-
-function renderBattlePanel(el){
-  el.innerHTML = `
-    <div class="panel">
-      <h3>出征關卡</h3>
-      <div class="cardList">
-        ${STAGES.map(st=>`
-          <div class="card ${state.currentStage===st.id?"selected":""}">
-            <div class="name">
-              <span>${st.name}</span>
-              <span>${st.boss?"BOSS":"戰役"}</span>
-            </div>
-            <div class="meta">
-              敵將：${st.enemy}<br>
-              地形：${st.map}<br>
-              獎勵：金 ${st.reward}<br>
-              ${st.desc}
-            </div>
-            <button class="small primary" style="margin-top:6px;" onclick="selectStage('${st.id}')">選擇</button>
-            <button class="small green" style="margin-top:6px;" onclick="startBattle('${st.id}')">開戰</button>
-          </div>
-        `).join("")}
-      </div>
-    </div>
-    <div class="panel">
-      <h3>戰場規則</h3>
-      <p class="muted">點選我方單位，再點敵人攻擊；點空格移動。弓兵、軍師可遠程攻擊。</p>
-      <p class="muted">兵裝與軍糧不足時，不建議出征。</p>
-    </div>
-  `;
-}
-
-function renderTeamPanel(el){
-  const owned = state.owned.map(id=>hero(id));
-  el.innerHTML = `
-    <div class="panel">
-      <h3>目前隊伍</h3>
-      <p class="muted">最多 5 人。戰鬥中會部署目前隊伍。</p>
-      <div class="cardList">
-        ${state.team.map(id=>heroCard(id,true)).join("")}
-      </div>
-    </div>
-    <div class="panel">
-      <h3>已擁有武將</h3>
-      <div class="cardList">
-        ${owned.map(h=>heroCard(h.id,false)).join("")}
-      </div>
-    </div>
-  `;
-}
-
-function heroCard(id,inTeam){
-  const h = hero(id);
-  const hs = state.heroes[id];
-  return `
-    <div class="card">
-      <div class="name">
-        <span style="color:${rarityColor(h.rarity)}">${h.name}</span>
-        <span>${h.rarity}</span>
-      </div>
-      <div class="meta">
-        陣營：${h.camp}｜兵科：${arm(h.arm).name}｜Lv.${hs.lv}<br>
-        武 ${h.atk}｜防 ${h.def}｜智 ${h.int}｜統 ${h.lead}<br>
-        忠誠：${hs.loyal}｜戰法：${skill(h.skill).name}<br>
-        ${h.desc}
-      </div>
-      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
-        ${inTeam?`<button class="small danger" onclick="removeTeam('${id}')">下陣</button>`:`<button class="small green" onclick="addTeam('${id}')">上陣</button>`}
-        <button class="small blue" onclick="showHeroDetail('${id}')">詳情</button>
-      </div>
-    </div>
-  `;
-}
-
-function renderCardsPanel(el){
-  el.innerHTML = `
-    <div class="panel">
-      <h3>登用 / 抽卡</h3>
-      <p>玉璽：<b class="gold">${state.gems}</b></p>
-      <div class="grid2">
-        <button class="primary" onclick="drawHero(1)">登用 1 次</button>
-        <button class="purple" onclick="drawHero(10)">登用 10 次</button>
-      </div>
-      <p class="muted">UR 5%、SSR 15%、SR 35%、R 45%。重複會轉為經驗與忠誠。</p>
-    </div>
-    <div class="panel">
-      <h3>武將名錄</h3>
-      <div class="cardList">
-        ${HEROES.map(h=>`
-          <div class="card">
-            <div class="name">
-              <span style="color:${rarityColor(h.rarity)}">${h.name}</span>
-              <span>${state.owned.includes(h.id)?"已擁有":"未擁有"}</span>
-            </div>
-            <div class="meta">
-              ${h.camp}｜${h.rarity}｜${arm(h.arm).name}<br>
-              武 ${h.atk}｜防 ${h.def}｜智 ${h.int}｜統 ${h.lead}
-            </div>
-          </div>
-        `).join("")}
-      </div>
-    </div>
-  `;
-}
-
-function renderTechPanel(el){
-  el.innerHTML = `
-    <div class="panel">
-      <h3>技巧研究</h3>
-      <p class="muted">花費金錢研究技巧，效果永久存在。</p>
-      <div class="cardList">
-        ${DB.techs.map(t=>`
-          <div class="card ${state.techs.includes(t.id)?"selected":""}">
-            <div class="name">
-              <span>${t.name}</span>
-              <span>${state.techs.includes(t.id)?"已完成":t.cost+" 金"}</span>
-            </div>
-            <div class="meta">${t.desc}</div>
-            <button class="small primary" style="margin-top:6px;" ${state.techs.includes(t.id)?"disabled":""} onclick="researchTech('${t.id}')">研究</button>
-          </div>
-        `).join("")}
-      </div>
-    </div>
-  `;
-}
-
-function renderAdminPanel(el){
-  el.innerHTML = `
-    <div class="panel">
-      <h3>創作者 / 管理員頁</h3>
-      <p class="muted">這裡用來測試、補資源、重置存檔。</p>
-      <div class="grid2">
-        <button class="primary" onclick="adminLogin()">管理登入</button>
-        <button class="danger" onclick="resetGame()">重置存檔</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>管理功能</h3>
-      <div class="grid2">
-        <button ${state.admin?"":"disabled"} onclick="adminAddRes()">補資源</button>
-        <button ${state.admin?"":"disabled"} onclick="adminUnlockAll()">全武將</button>
-        <button ${state.admin?"":"disabled"} onclick="adminBossTest()">魔王測試</button>
-        <button ${state.admin?"":"disabled"} onclick="exportSave()">匯出存檔</button>
-      </div>
-      <p class="muted">測試密碼：admin</p>
-    </div>
-
-    <div class="panel">
-      <h3>版本公告</h3>
-      <div class="notice">
-        單檔整合版：已把主城、戰鬥、武將、隊伍、抽卡、技巧、禮物碼、管理頁、觸控搖桿、Boss、掉落道具整合進同一個 HTML。
-      </div>
-    </div>
-  `;
-}
-
-function collectTax(){
-  let gold = 300;
-  let food = 250;
-  if(state.techs.includes("market"))gold += 300;
-  if(state.techs.includes("farm"))food += 300;
-  state.gold += gold;
-  state.food += food;
-  log(`完成徵收，獲得金 ${gold}、糧 ${food}。`);
-  save();
-  renderAll();
-}
-
-function trainTroops(){
-  if(state.gold<200 || state.food<200){
-    showModal("資源不足","需要金 200、糧 200。");
-    return;
-  }
-  state.gold-=200;
-  state.food-=200;
-  state.gear+=180;
-  state.owned.forEach(id=>{
-    state.heroes[id].loyal=clamp(state.heroes[id].loyal+1,0,100);
-  });
-  log("完成募兵訓練，兵裝 +180，已擁有武將忠誠 +1。");
-  save();
-  renderAll();
-}
-
-function nextDay(){
-  state.day++;
-  state.dailyClaimed=false;
-
-  let foodCost = state.team.length * 80;
-  state.food = Math.max(0,state.food-foodCost);
-
-  state.owned.forEach(id=>{
-    const h = hero(id);
-    const hs = state.heroes[id];
-    if(h.id==="lubu" && Math.random()<0.25)hs.loyal=clamp(hs.loyal-2,0,100);
-    else hs.loyal=clamp(hs.loyal+0,0,100);
-  });
-
-  log(`進入下一日。隊伍消耗軍糧 ${foodCost}。`);
-  save();
-  renderAll();
-}
-
-function redeemGift(){
-  const code = $("giftInput").value.trim().toUpperCase();
-  if(!code)return;
-  if(state.usedGifts.includes(code)){
-    showModal("禮物碼已使用","這組禮物碼已經兌換過。");
-    return;
-  }
-  const g = DB.gifts[code];
-  if(!g){
-    showModal("禮物碼錯誤","查無此禮物碼。");
-    return;
-  }
-  state.gold += g.gold||0;
-  state.food += g.food||0;
-  state.gear += g.gear||0;
-  state.gems += g.gems||0;
-  state.usedGifts.push(code);
-  log(`兌換禮物碼 ${code} 成功。`);
-  save();
-  renderAll();
-}
-
-function addTeam(id){
-  if(state.team.includes(id))return;
-  if(state.team.length>=5){
-    showModal("隊伍已滿","最多只能上陣 5 人。");
-    return;
-  }
-  state.team.push(id);
-  log(`${hero(id).name} 加入隊伍。`);
-  save();
-  renderAll();
-}
-
-function removeTeam(id){
-  state.team = state.team.filter(x=>x!==id);
-  log(`${hero(id).name} 離開隊伍。`);
-  save();
-  renderAll();
-}
-
-function drawHero(n){
-  const cost = n===10?9:1;
-  if(state.gems<cost){
-    showModal("玉璽不足",`需要玉璽 ${cost}。`);
-    return;
-  }
-  state.gems-=cost;
-  const results=[];
-  for(let i=0;i<n;i++){
-    const roll=Math.random()*100;
-    let pool;
-    if(roll<5)pool=HEROES.filter(h=>h.rarity==="UR");
-    else if(roll<20)pool=HEROES.filter(h=>h.rarity==="SSR");
-    else if(roll<55)pool=HEROES.filter(h=>h.rarity==="SR");
-    else pool=HEROES.filter(h=>!["UR","SSR","SR"].includes(h.rarity));
-
-    if(pool.length===0)pool=HEROES;
-    const h=choice(pool);
-
-    if(state.owned.includes(h.id)){
-      state.heroes[h.id].exp += 60;
-      state.heroes[h.id].loyal = clamp(state.heroes[h.id].loyal+2,0,100);
-      levelCheck(h.id);
-      results.push(`${h.name}（重複，轉經驗）`);
-    }else{
-      state.owned.push(h.id);
-      results.push(`${h.name}（新武將）`);
-    }
-  }
-  log(`完成登用：${results.join("、")}。`);
-  save();
-  renderAll();
-  showModal("登用結果",results.map(x=>`<p>${x}</p>`).join(""));
-}
-
-function levelCheck(id){
-  const hs=state.heroes[id];
-  while(hs.exp>=100){
-    hs.exp-=100;
-    hs.lv++;
-    hs.maxHp+=8;
-    hs.hp=hs.maxHp;
-  }
-}
-
-function showHeroDetail(id){
-  const h=hero(id);
-  const hs=state.heroes[id];
-  showModal(`${h.name} 詳情`,`
-    <p><b>陣營：</b>${h.camp}</p>
-    <p><b>稀有度：</b>${h.rarity}</p>
-    <p><b>兵科：</b>${arm(h.arm).name}（${arm(h.arm).adv}）</p>
-    <p><b>等級：</b>Lv.${hs.lv}｜EXP ${hs.exp}/100</p>
-    <p><b>能力：</b>武 ${h.atk}｜防 ${h.def}｜智 ${h.int}｜統 ${h.lead}</p>
-    <p><b>忠誠：</b>${hs.loyal}</p>
-    <p><b>戰法：</b>${skill(h.skill).name}｜${skill(h.skill).desc}</p>
-    <p><b>義兄弟/親近：</b>${h.friend.map(x=>hero(x)?.name||x).join("、") || "無"}</p>
-    <p><b>厭惡武將：</b>${h.hate.map(x=>hero(x)?.name||x).join("、") || "無"}</p>
-    <p>${h.desc}</p>
-  `);
-}
-
-function researchTech(id){
-  const t=tech(id);
-  if(state.techs.includes(id))return;
-  if(state.gold<t.cost){
-    showModal("金錢不足",`研究 ${t.name} 需要 ${t.cost} 金。`);
-    return;
-  }
-  state.gold-=t.cost;
-  state.techs.push(id);
-  log(`研究完成：${t.name}。`);
-  save();
-  renderAll();
-}
-
-function selectStage(id){
-  state.currentStage=id;
-  log(`選擇關卡：${STAGES.find(s=>s.id===id).name}。`);
-  save();
-  renderAll();
-}
-
-function adminLogin(){
-  const pw = prompt("輸入管理密碼：");
-  if(pw==="admin"){
-    state.admin=true;
-    log("管理員模式已開啟。");
-    save();
-    renderAll();
-  }else{
-    showModal("登入失敗","密碼錯誤。");
-  }
-}
-
-function adminAddRes(){
-  state.gold+=9999;
-  state.food+=9999;
-  state.gear+=9999;
-  state.gems+=50;
-  log("管理員補充資源。");
-  save();
-  renderAll();
-}
-
-function adminUnlockAll(){
-  state.owned = HEROES.map(h=>h.id);
-  log("管理員解鎖所有武將。");
-  save();
-  renderAll();
-}
-
-function adminBossTest(){
-  state.difficulty="demon";
-  startBattle("baidi");
-}
-
-function exportSave(){
-  showModal("存檔資料",`<textarea style="width:100%;height:260px;background:#111;color:#fff;">${JSON.stringify(state,null,2)}</textarea>`);
-}
-
-function openNotice(){
-  showModal("更新公告",`
-    <div class="notice">
-      <p><b>單檔整合完成：</b>不再重複 HTML、不再重複 state、不再多套 canvas。</p>
-      <p><b>已整合功能：</b>主城、隊伍、武將、抽卡、技巧、禮物碼、管理頁、戰棋戰鬥、Boss、掉落、觸控搖桿。</p>
-      <p><b>建議：</b>未來要新增功能時，直接接在這份主程式裡，不要再把多份完整 HTML 串接。</p>
-    </div>
-  `);
-}
-
-function showModal(title,body,buttons){
-  $("modalTitle").textContent=title;
-  $("modalBody").innerHTML=body;
-  $("modalBtns").innerHTML = buttons || `<button class="primary" onclick="closeModal()">確定</button>`;
-  $("modalMask").style.display="flex";
-}
-
-function closeModal(){
-  $("modalMask").style.display="none";
-}
-
-/* ===================== 戰鬥系統 ===================== */
-
-const canvas = $("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-let camera = {x:0,y:0};
-let touch = {active:false,dx:0,dy:0};
-
-function resizeCanvas(){
-  const rect = $("content").getBoundingClientRect();
-  canvas.width = Math.floor(rect.width * devicePixelRatio);
-  canvas.height = Math.floor(rect.height * devicePixelRatio);
-  canvas.style.width = rect.width+"px";
-  canvas.style.height = rect.height+"px";
+function resize(){
+  const rect=canvas.parentElement.getBoundingClientRect();
+  W=rect.width;H=rect.height;
+  canvas.width=W*devicePixelRatio;
+  canvas.height=H*devicePixelRatio;
   ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
 }
-window.addEventListener("resize",resizeCanvas);
+window.addEventListener("resize",resize);
+resize();
 
-function startBattle(stageId){
-  const st = STAGES.find(s=>s.id===stageId);
-  if(state.team.length===0){
-    showModal("無法出征","請先在隊伍頁至少上陣 1 名武將。");
-    return;
-  }
-  const foodNeed = state.team.length*120;
-  const gearNeed = state.team.length*80;
-  if(state.food<foodNeed || state.gear<gearNeed){
-    showModal("資源不足",`出征需要糧 ${foodNeed}、兵裝 ${gearNeed}。`);
-    return;
-  }
-  state.food-=foodNeed;
-  state.gear-=gearNeed;
+function calcPower(){
+  return state.team
+    .map(id=>heroes.find(h=>h.id===id))
+    .reduce((s,h)=>s+h.hp+h.atk*12,0);
+}
 
-  const map = createMap(st.map);
-  const units = [];
+function applyTeamStats(){
+  const p=calcPower();
+  player.maxHp=750+Math.floor(p*.18);
+  player.maxMp=240+state.team.length*50;
+  player.atk=38+Math.floor(p*.02);
+  player.hp=Math.min(player.hp,player.maxHp);
+  player.mp=Math.min(player.mp,player.maxMp);
+}
 
-  state.team.forEach((id,i)=>{
-    const h = hero(id);
-    const hs = state.heroes[id];
-    units.push({
-      uid:"p"+i,
-      side:"player",
-      heroId:id,
-      name:h.name,
-      x:1,
-      y:2+i,
-      hp:hs.maxHp,
-      maxHp:hs.maxHp,
-      mp:20,
-      atk:h.atk + hs.lv*2 + (state.techs.includes("drill")?5:0),
-      def:h.def + hs.lv + (state.techs.includes("armor")?5:0),
-      int:h.int,
-      lead:h.lead,
-      arm:h.arm,
-      range:arm(h.arm).range,
-      move:arm(h.arm).move + (state.techs.includes("march")?1:0),
-      skill:h.skill,
-      acted:false,
-      guard:false
-    });
-  });
+function resetBattle(){
+  applyTeamStats();
+  const d=difficulties[state.difficulty];
+  player.x=160;
+  player.y=H/2;
+  player.hp=player.maxHp;
+  player.mp=player.maxMp;
+  state.kills=0;
 
-  const diff = difficulty();
-  const enemyCount = st.boss ? 5 : 3 + Math.floor(STAGES.findIndex(s=>s.id===stageId)/1);
-  for(let i=0;i<enemyCount;i++){
-    const isBoss = st.boss && i===0;
-    const baseHp = isBoss?420:160+STAGES.findIndex(s=>s.id===stageId)*40;
-    const baseAtk = isBoss?105:68+STAGES.findIndex(s=>s.id===stageId)*10;
-    const arms = ["spear","cavalry","bow","shield","mage"];
-    units.push({
-      uid:"e"+i,
-      side:"enemy",
-      heroId:null,
-      name:isBoss?st.enemy:choice(["賊將","精兵","弓隊","騎隊","軍師"]),
-      x:10 + (i%3),
-      y:2 + i,
-      hp:Math.floor(baseHp*diff.enemyHp),
-      maxHp:Math.floor(baseHp*diff.enemyHp),
-      mp:16,
-      atk:Math.floor(baseAtk*diff.enemyAtk),
-      def:isBoss?90:55+rand(0,20),
-      int:isBoss?92:50+rand(0,30),
-      lead:isBoss?95:60+rand(0,25),
-      arm:isBoss?"mage":choice(arms),
-      range:isBoss?3:arm(choice(arms)).range,
-      move:isBoss?3:2+rand(0,1),
-      skill:isBoss?"fire":choice(["rush","arrow","guard"]),
-      acted:false,
-      guard:false,
-      boss:isBoss
-    });
-  }
-
-  state.battle = {
-    active:true,
-    stageId,
-    stageName:st.name,
-    map,
-    units,
-    turn:"player",
-    round:1,
-    selected:null,
-    mode:"select",
-    cursor:{x:0,y:0},
-    reward:st.reward,
-    boss:st.boss
+  boss={
+    name:"呂布幻影",
+    x:W-210,
+    y:H/2,
+    r:50,
+    hp:Math.floor(3600*d.boss),
+    maxHp:Math.floor(3600*d.boss),
+    atk:48*d.atk,
+    phase:1,
+    attackTimer:1,
+    summonTimer:2.5
   };
 
-  state.tab="battle";
-  log(`出征 ${st.name}，消耗糧 ${foodNeed}、兵裝 ${gearNeed}。`);
-  save();
-  renderAll();
+  enemies=[];
+  bullets=[];
+  drops=[];
+  weeds=[];
+  floating=[];
+
+  spawnWeeds(28);
+  spawnEnemy("盾兵");
+  spawnEnemy("遠程兵");
+  spawnEnemy("法師");
 }
 
-function createMap(type){
-  const w=14,h=10;
-  const tiles=[];
-  for(let y=0;y<h;y++){
-    const row=[];
-    for(let x=0;x<w;x++){
-      let t="plain";
-      if(type==="water" && (y===4||y===5))t="water";
-      if(type==="river" && x===6)t="water";
-      if(type==="mountain" && (x>7&&y<4))t="mountain";
-      if(type==="city" && x>8&&y>5)t="city";
-      if(Math.random()<0.05)t="forest";
-      row.push(t);
-    }
-    tiles.push(row);
+function spawnEnemy(type,x,y){
+  const d=difficulties[state.difficulty];
+  const base={
+    "步兵":{hp:180,atk:14,r:15,speed:105,range:35,color:"#9ca3af"},
+    "遠程兵":{hp:220,atk:20,r:16,speed:92,range:280,color:"#6ab7ff"},
+    "法師":{hp:190,atk:30,r:15,speed:75,range:330,color:"#b980ff"},
+    "盾兵":{hp:470,atk:16,r:20,speed:65,range:48,color:"#ffd36a"},
+    "伏兵":{hp:260,atk:24,r:17,speed:135,range:45,color:"#ff6b6b"}
+  }[type];
+
+  enemies.push({
+    type,
+    x:x??(W*.48+Math.random()*W*.45),
+    y:y??(85+Math.random()*(H-140)),
+    hp:Math.floor(base.hp*d.hp),
+    maxHp:Math.floor(base.hp*d.hp),
+    atk:base.atk*d.atk,
+    r:base.r,
+    speed:base.speed,
+    range:base.range,
+    color:base.color,
+    cd:Math.random()*1.4
+  });
+}
+
+function spawnWeeds(n){
+  for(let i=0;i<n;i++){
+    weeds.push({
+      x:70+Math.random()*(W-140),
+      y:95+Math.random()*(H-145),
+      r:14+Math.random()*8,
+      cut:false,
+      sway:Math.random()*Math.PI*2
+    });
   }
-  return {w,h,tiles};
 }
 
-function tileCost(t){
-  if(t==="water")return 2;
-  if(t==="mountain")return 3;
-  if(t==="forest")return 2;
-  return 1;
+function playerAttack(){
+  if(player.cd>0)return;
+  player.cd=.28;
+
+  let hit=false;
+  if(boss && dist(player,boss)<player.r+boss.r+45){
+    damageBoss(player.atk);
+    hit=true;
+  }
+
+  enemies.forEach(e=>{
+    if(dist(player,e)<player.r+e.r+42){
+      e.hp-=player.atk;
+      floatText(e.x,e.y-22,"-"+player.atk,"#ffdf70");
+      hit=true;
+    }
+  });
+
+  removeDeadEnemies();
+  if(!hit)floatText(player.x,player.y-30,"揮空","#aaa");
 }
 
-function isBlocked(x,y){
-  const b=state.battle;
-  if(!b)return true;
-  if(x<0||y<0||x>=b.map.w||y>=b.map.h)return true;
-  return b.units.some(u=>u.hp>0&&u.x===x&&u.y===y);
+function castSkill(){
+  if(player.skillCd>0 || player.mp<45)return;
+  player.skillCd=1.7;
+  player.mp-=45;
+
+  bullets.push({
+    from:"player",
+    x:player.x,
+    y:player.y,
+    vx:560,
+    vy:0,
+    r:10,
+    dmg:player.atk*2.6,
+    color:"#8bdcff",
+    life:1.3
+  });
+
+  enemies.forEach(e=>{
+    if(dist(player,e)<165){
+      e.hp-=player.atk*1.1;
+      floatText(e.x,e.y-20,"戰法","#8bdcff");
+    }
+  });
+
+  if(boss && dist(player,boss)<190){
+    damageBoss(player.atk*1.2);
+  }
+  removeDeadEnemies();
 }
 
-function unitAt(x,y){
-  const b=state.battle;
-  if(!b)return null;
-  return b.units.find(u=>u.hp>0&&u.x===x&&u.y===y)||null;
-}
+function cutWeed(){
+  let target=null;
+  let best=9999;
+  weeds.forEach(w=>{
+    if(w.cut)return;
+    const dd=dist(player,w);
+    if(dd<best){
+      best=dd;
+      target=w;
+    }
+  });
 
-function dist(a,b){
-  return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
-}
-
-function updateHud(){
-  const b=state.battle;
-  if(!b || !b.active){
-    $("hudTitle").textContent="主城待命";
-    $("hudInfo").textContent="請從左側選擇功能。";
-    $("hudTurn").textContent="";
-    $("hudSelected").textContent="";
+  if(!target || best>55){
+    floatText(player.x,player.y-26,"附近沒有草","#aaa");
     return;
   }
-  $("hudTitle").textContent=b.stageName;
-  $("hudInfo").textContent=`回合：${b.turn==="player"?"我方":"敵方"}`;
-  $("hudTurn").textContent=`第 ${b.round} 回合`;
-  const u=b.units.find(x=>x.uid===b.selected);
-  $("hudSelected").textContent=u?`選取：${u.name} HP ${u.hp}/${u.maxHp} MP ${u.mp}`:"尚未選取單位";
+
+  target.cut=true;
+  state.weedsCut++;
+
+  const r=Math.random();
+  if(r<.32){
+    const g=80+Math.floor(Math.random()*160);
+    state.gold+=g;
+    floatText(target.x,target.y,"金幣+"+g,"#ffd36a");
+  }else if(r<.52){
+    state.inventory.herb++;
+    floatText(target.x,target.y,"藥草+1","#69e28d");
+  }else if(r<.68){
+    state.inventory.grain++;
+    state.energy+=3;
+    floatText(target.x,target.y,"糧草+1","#d7b56d");
+  }else if(r<.82){
+    state.inventory.iron++;
+    floatText(target.x,target.y,"鐵礦+1","#b8c0cc");
+  }else if(r<.93){
+    state.inventory.treasure++;
+    state.gem+=20;
+    floatText(target.x,target.y,"寶箱+1","#b980ff");
+  }else{
+    spawnEnemy("伏兵",target.x+20,target.y+20);
+    floatText(target.x,target.y,"伏兵！","#ff6b6b");
+  }
+
+  if(weeds.filter(w=>!w.cut).length<6)spawnWeeds(10);
+  updateUI();
+  renderLeft();
 }
 
-function renderLog(){
-  $("logBox").innerHTML = state.log.slice(0,25).map(x=>`<div class="logLine">${x}</div>`).join("");
+function usePotion(){
+  if(state.inventory.potion<=0)return;
+  state.inventory.potion--;
+  player.hp=Math.min(player.maxHp,player.hp+Math.floor(player.maxHp*.35));
+  floatText(player.x,player.y-25,"補血","#69e28d");
+  renderLeft();
 }
 
-function battleLoop(){
-  resizeCanvas();
-  requestAnimationFrame(loop);
+function dodge(){
+  if(player.invuln>0)return;
+  player.invuln=.45;
+  player.x+=85;
+  player.x=Math.min(W-70,player.x);
 }
 
-function loop(){
-  updateCamera();
+function damageBoss(amount){
+  boss.hp-=amount;
+  floatText(boss.x,boss.y-25,"-"+Math.floor(amount),"#ffdf70");
+  if(boss.hp<=0)winBattle();
+}
+
+function playerDamage(amount){
+  if(player.invuln>0)return;
+  player.hp-=amount;
+  player.invuln=.55;
+  floatText(player.x,player.y-25,"-"+Math.floor(amount),"#ff6b6b");
+  if(player.hp<=0)loseBattle();
+}
+
+function removeDeadEnemies(){
+  enemies=enemies.filter(e=>{
+    if(e.hp<=0){
+      state.kills++;
+      gainExp(18);
+      dropItem(e.x,e.y);
+      return false;
+    }
+    return true;
+  });
+}
+
+function gainExp(v){
+  player.exp+=v;
+  while(player.exp>=player.nextExp){
+    player.exp-=player.nextExp;
+    player.lv++;
+    player.nextExp=Math.floor(player.nextExp*1.25);
+    player.maxHp+=80;
+    player.atk+=8;
+    player.hp=player.maxHp;
+    floatText(player.x,player.y-45,"升級！","#ffd36a");
+  }
+}
+
+function dropItem(x,y){
+  const r=Math.random();
+  let item="gold";
+  if(r>.88)item="potion";
+  else if(r>.74)item="herb";
+  else if(r>.60)item="grain";
+  else if(r>.46)item="iron";
+  drops.push({x,y,item,r:12});
+}
+
+function collectDrop(d){
+  if(d.item==="gold"){
+    const g=Math.floor(70*difficulties[state.difficulty].reward);
+    state.gold+=g;
+    floatText(d.x,d.y,"金幣+"+g,"#ffd36a");
+  }
+  if(d.item==="potion"){
+    state.inventory.potion++;
+    floatText(d.x,d.y,"藥水+1","#69e28d");
+  }
+  if(d.item==="herb"){
+    state.inventory.herb++;
+    floatText(d.x,d.y,"藥草+1","#69e28d");
+  }
+  if(d.item==="grain"){
+    state.inventory.grain++;
+    state.energy+=2;
+    floatText(d.x,d.y,"糧草+1","#d7b56d");
+  }
+  if(d.item==="iron"){
+    state.inventory.iron++;
+    floatText(d.x,d.y,"鐵礦+1","#b8c0cc");
+  }
+  updateUI();
+  renderLeft();
+}
+
+function winBattle(){
+  const d=difficulties[state.difficulty];
+  const reward=Math.floor(1300*d.reward);
+  state.gold+=reward;
+  state.gem+=Math.floor(60*d.reward);
+  state.inventory.bossSoul++;
+  openSimpleModal("勝利",`
+    <p class="green">你擊敗了呂布幻影！</p>
+    <p>獲得金幣 ${reward}、玉璧、Boss 魂魄 x1。</p>
+    <p>擊破數：${state.kills}，除草數：${state.weedsCut}</p>
+    <button class="primary" onclick="closeModal();resetBattle();">再戰一次</button>
+  `);
+  updateUI();
+}
+
+function loseBattle(){
+  openSimpleModal("戰敗",`
+    <p class="red">部隊被魔王級幻境擊退。</p>
+    <p>建議：提升隊伍戰力、用除草取得補給、先清遠程兵與法師。</p>
+    <button class="primary" onclick="closeModal();resetBattle();">重新挑戰</button>
+  `);
+}
+
+function update(dt){
+  player.cd=Math.max(0,player.cd-dt);
+  player.skillCd=Math.max(0,player.skillCd-dt);
+  player.invuln=Math.max(0,player.invuln-dt);
+  player.mp=Math.min(player.maxMp,player.mp+18*dt);
+
+  let mx=0,my=0;
+  if(keys.w||keys.ArrowUp)my--;
+  if(keys.s||keys.ArrowDown)my++;
+  if(keys.a||keys.ArrowLeft)mx--;
+  if(keys.d||keys.ArrowRight)mx++;
+  if(joy.active || fixedJoystick){
+    mx+=joy.dx;
+    my+=joy.dy;
+  }
+  const len=Math.hypot(mx,my)||1;
+  if(Math.hypot(mx,my)>0){
+    player.x+=mx/len*player.speed*dt;
+    player.y+=my/len*player.speed*dt;
+  }
+  player.x=Math.max(30,Math.min(W-30,player.x));
+  player.y=Math.max(70,Math.min(H-35,player.y));
+
+  if(boss && boss.hp>0){
+    boss.summonTimer-=dt;
+    boss.attackTimer-=dt;
+
+    if(boss.hp<boss.maxHp*.55)boss.phase=2;
+    if(boss.hp<boss.maxHp*.25)boss.phase=3;
+
+    if(boss.summonTimer<=0){
+      boss.summonTimer=boss.phase===1?4.2:boss.phase===2?3:2.1;
+      const pool=["步兵","盾兵","遠程兵","法師"];
+      spawnEnemy(pool[Math.floor(Math.random()*pool.length)]);
+    }
+
+    if(boss.attackTimer<=0){
+      boss.attackTimer=boss.phase===1?1.4:boss.phase===2?1:.72;
+      const a=angleTo(boss,player);
+      bullets.push({
+        from:"boss",
+        x:boss.x,
+        y:boss.y,
+        vx:Math.cos(a)*(240+boss.phase*55),
+        vy:Math.sin(a)*(240+boss.phase*55),
+        r:12,
+        dmg:boss.atk,
+        color:"#ff4ca8",
+        life:4
+      });
+    }
+
+    if(dist(player,boss)<player.r+boss.r){
+      playerDamage(boss.atk*dt*1.5);
+    }
+  }
+
+  enemies.forEach(e=>{
+    e.cd-=dt;
+    const a=angleTo(e,player);
+    const dd=dist(e,player);
+    if(dd>e.range*.75){
+      e.x+=Math.cos(a)*e.speed*dt;
+      e.y+=Math.sin(a)*e.speed*dt;
+    }
+    if(e.cd<=0){
+      e.cd=e.type==="法師"?1.8:e.type==="遠程兵"?1.15:.75;
+      if(e.type==="法師"||e.type==="遠程兵"){
+        bullets.push({
+          from:"enemy",
+          x:e.x,
+          y:e.y,
+          vx:Math.cos(a)*(e.type==="法師"?190:270),
+          vy:Math.sin(a)*(e.type==="法師"?190:270),
+          r:e.type==="法師"?10:7,
+          dmg:e.atk,
+          color:e.color,
+          life:3
+        });
+      }else{
+        if(dd<e.r+player.r+18)playerDamage(e.atk);
+      }
+    }
+  });
+
+  bullets.forEach(b=>{
+    b.x+=b.vx*dt;
+    b.y+=b.vy*dt;
+    b.life-=dt;
+    if(b.from==="player"){
+      if(boss && dist(b,boss)<b.r+boss.r){
+        damageBoss(b.dmg);
+        b.life=0;
+      }
+      enemies.forEach(e=>{
+        if(dist(b,e)<b.r+e.r){
+          e.hp-=b.dmg;
+          b.life=0;
+        }
+      });
+    }else{
+      if(dist(b,player)<b.r+player.r){
+        playerDamage(b.dmg);
+        b.life=0;
+      }
+    }
+  });
+
+  removeDeadEnemies();
+  bullets=bullets.filter(b=>b.life>0&&b.x>-60&&b.x<W+60&&b.y>-60&&b.y<H+60);
+
+  drops.forEach(d=>{
+    if(dist(d,player)<d.r+player.r+12)d.collected=true;
+  });
+  drops.filter(d=>d.collected).forEach(collectDrop);
+  drops=drops.filter(d=>!d.collected);
+
+  floating.forEach(f=>{
+    f.life-=dt;
+    f.y-=35*dt;
+  });
+  floating=floating.filter(f=>f.life>0);
+
+  updateUI();
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  drawGround();
+  weeds.forEach(drawWeed);
+  drops.forEach(drawDrop);
+  enemies.forEach(drawEnemy);
+  if(boss)drawBoss();
+  bullets.forEach(drawBullet);
+  drawPlayer();
+
+  floating.forEach(f=>{
+    ctx.globalAlpha=Math.max(0,f.life);
+    ctx.fillStyle=f.color;
+    ctx.font="bold 16px sans-serif";
+    ctx.textAlign="center";
+    ctx.fillText(f.text,f.x,f.y);
+    ctx.globalAlpha=1;
+  });
+}
+
+function drawGround(){
+  ctx.fillStyle="#0b1324";
+  ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="rgba(255,255,255,.04)";
+  for(let x=0;x<W;x+=48){
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+  for(let y=0;y<H;y+=48){
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  ctx.strokeStyle="rgba(255,211,106,.25)";
+  ctx.lineWidth=3;
+  ctx.strokeRect(25,62,W-50,H-92);
+}
+
+function drawWeed(w){
+  if(w.cut)return;
+  ctx.save();
+  ctx.translate(w.x,w.y);
+  ctx.strokeStyle="#58c56e";
+  ctx.lineWidth=3;
+  for(let i=-2;i<=2;i++){
+    ctx.beginPath();
+    ctx.moveTo(i*4,8);
+    ctx.quadraticCurveTo(i*6,-4,i*9,-w.r);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawPlayer(){
+  ctx.save();
+  ctx.translate(player.x,player.y);
+  ctx.globalAlpha=player.invuln>0?.55:1;
+  ctx.fillStyle="#6ab7ff";
+  ctx.beginPath();
+  ctx.arc(0,0,player.r,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#fff";
+  ctx.font="22px sans-serif";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText("將",0,1);
+  ctx.restore();
+}
+
+function drawBoss(){
+  ctx.save();
+  ctx.translate(boss.x,boss.y);
+  ctx.fillStyle=boss.phase===1?"#a855f7":boss.phase===2?"#ff4ca8":"#ff3030";
+  ctx.beginPath();
+  ctx.arc(0,0,boss.r,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#fff";
+  ctx.font="36px sans-serif";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText("呂",0,1);
+  ctx.font="13px sans-serif";
+  ctx.fillText("Phase "+boss.phase,0,boss.r+18);
+  ctx.restore();
+}
+
+function drawEnemy(e){
+  ctx.save();
+  ctx.translate(e.x,e.y);
+  ctx.fillStyle=e.color;
+  ctx.beginPath();
+  ctx.arc(0,0,e.r,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#111";
+  ctx.font="16px sans-serif";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  const text={
+    "步兵":"兵",
+    "遠程兵":"弓",
+    "法師":"術",
+    "盾兵":"盾",
+    "伏兵":"伏"
+  }[e.type];
+  ctx.fillText(text,0,1);
+  ctx.fillStyle="#263046";
+  ctx.fillRect(-22,-e.r-12,44,5);
+  ctx.fillStyle="#69e28d";
+  ctx.fillRect(-22,-e.r-12,44*(e.hp/e.maxHp),5);
+  ctx.restore();
+}
+
+function drawBullet(b){
+  ctx.fillStyle=b.color;
+  ctx.beginPath();
+  ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawDrop(d){
+  ctx.save();
+  ctx.translate(d.x,d.y);
+  const color={
+    gold:"#ffd36a",
+    potion:"#69e28d",
+    herb:"#58c56e",
+    grain:"#d7b56d",
+    iron:"#b8c0cc"
+  }[d.item]||"#fff";
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.arc(0,0,d.r,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#111";
+  ctx.font="12px sans-serif";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  const t={
+    gold:"金",
+    potion:"藥",
+    herb:"草",
+    grain:"糧",
+    iron:"鐵"
+  }[d.item]||"?";
+  ctx.fillText(t,0,1);
+  ctx.restore();
+}
+
+function floatText(x,y,text,color){
+  floating.push({x,y,text,color,life:.9});
+}
+
+function loop(t){
+  const dt=Math.min(.033,(t-last)/1000||0);
+  last=t;
+  update(dt);
   draw();
   requestAnimationFrame(loop);
 }
 
-function updateCamera(){
-  camera.x += touch.dx*5;
-  camera.y += touch.dy*5;
-  camera.x = clamp(camera.x, -200, 200);
-  camera.y = clamp(camera.y, -150, 150);
-}
+function renderLeft(type=currentLeft){
+  currentLeft=type;
+  const el=document.getElementById("leftContent");
+  document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
 
-function draw(){
-  const w=canvas.clientWidth;
-  const h=canvas.clientHeight;
-  ctx.clearRect(0,0,w,h);
-
-  if(!state.battle || !state.battle.active){
-    drawHome();
-    return;
+  if(type==="battle"){
+    document.querySelectorAll(".tab")[0].classList.add("active");
+    el.innerHTML=`
+      <div class="section">
+        <h3>難度選擇</h3>
+        <select onchange="state.difficulty=this.value;resetBattle();renderLeft();">
+          ${Object.keys(difficulties).map(d=>`<option ${state.difficulty===d?"selected":""}>${d}</option>`).join("")}
+        </select>
+        <p class="muted">魔王級：敵軍血量、攻擊、Boss 血量與召喚頻率大幅提高。</p>
+      </div>
+      <div class="section">
+        <h3>虎牢幻境 Boss</h3>
+        <div class="item"><span>Boss</span><b>${boss?boss.name:"-"}</b></div>
+        <div class="item"><span>階段</span><b>${boss?boss.phase:"-"}</b></div>
+        <div class="item"><span>敵兵</span><b>${enemies.length}</b></div>
+        <button class="primary" onclick="resetBattle()">重新開始</button>
+      </div>
+      <div class="section">
+        <h3>除草機制</h3>
+        <div class="item"><span>已除草</span><b>${state.weedsCut}</b></div>
+        <div class="item"><span>剩餘草叢</span><b>${weeds.filter(w=>!w.cut).length}</b></div>
+        <button class="green" onclick="cutWeed()">除草</button>
+        <p class="muted">靠近草叢後按 E 或「除草」。可能掉落資源，也可能觸發伏兵。</p>
+      </div>
+      <div class="section">
+        <h3>道具</h3>
+        <div class="item"><span>補血藥</span><b>${state.inventory.potion}</b></div>
+        <div class="item"><span>藥草</span><b>${state.inventory.herb}</b></div>
+        <div class="item"><span>糧草</span><b>${state.inventory.grain}</b></div>
+        <div class="item"><span>鐵礦</span><b>${state.inventory.iron}</b></div>
+        <div class="item"><span>Boss 魂魄</span><b>${state.inventory.bossSoul}</b></div>
+      </div>
+    `;
   }
-  drawBattle();
+
+  if(type==="team"){
+    document.querySelectorAll(".tab")[1].classList.add("active");
+    el.innerHTML=`
+      <div class="section">
+        <h3>目前隊伍</h3>
+        ${state.team.map(id=>heroRow(id,true)).join("")}
+      </div>
+      <div class="section">
+        <h3>卡庫</h3>
+        ${state.owned.map(id=>heroRow(id,false)).join("")}
+      </div>
+    `;
+  }
+
+  if(type==="gacha"){
+    document.querySelectorAll(".tab")[2].classList.add("active");
+    el.innerHTML=`
+      <div class="section">
+        <h3>抽卡</h3>
+        <p class="muted">單抽 200 玉璧，十抽 1800 玉璧。</p>
+        <button class="primary" onclick="drawGacha(1)">單抽</button>
+        <button class="purple" onclick="drawGacha(10)">十抽</button>
+      </div>
+      <div class="section">
+        <h3>禮物碼</h3>
+        <input id="giftInput" placeholder="輸入：HUANZHAN、LUBU999、WEED777">
+        <button onclick="redeemGift()">兌換</button>
+      </div>
+      <div class="section">
+        <h3>儲值</h3>
+        <button class="green" onclick="recharge(60)">小包 60</button>
+        <button class="primary" onclick="recharge(300)">月卡 300</button>
+        <button class="purple" onclick="recharge(990)">豪華包 990</button>
+      </div>
+    `;
+  }
+
+  if(type==="daily"){
+    document.querySelectorAll(".tab")[3].classList.add("active");
+    el.innerHTML=`
+      <div class="section">
+        <h3>每日</h3>
+        <div class="item"><span>登入獎勵</span><b>${state.dailyClaimed?"已領":"可領"}</b></div>
+        <button class="primary" onclick="claimDaily()">領取每日</button>
+      </div>
+      <div class="section">
+        <h3>固定搖桿模式</h3>
+        <button onclick="fixedJoystick=!fixedJoystick;renderLeft('daily')">${fixedJoystick?"已開啟":"已關閉"}</button>
+      </div>
+      <div class="section">
+        <h3>公告</h3>
+        ${state.announcements.map(a=>`<div class="notice">${a}</div>`).join("")}
+      </div>
+    `;
+  }
 }
 
-function drawHome(){
-  const w=canvas.clientWidth;
-  const h=canvas.clientHeight;
-  ctx.fillStyle="#151515";
-  ctx.fillRect(0,0,w,h);
-
-  ctx.fillStyle="#2f2416";
-  ctx.fillRect(0,0,w,h);
-
-  drawCastle(w/2,h/2-20,1.4);
-
-  ctx.fillStyle="#ffd36a";
-  ctx.font="bold 28px Microsoft JhengHei";
-  ctx.textAlign="center";
-  ctx.fillText(`${state.lord} 軍 主城`,w/2,80);
-
-  ctx.fillStyle="#eee";
-  ctx.font="16px Microsoft JhengHei";
-  ctx.fillText("請從左側選擇：內政、出征、隊伍、武將、技巧或管理。",w/2,112);
-
-  ctx.fillStyle="#fff";
-  ctx.font="14px Microsoft JhengHei";
-  ctx.fillText(`金 ${state.gold}｜糧 ${state.food}｜兵裝 ${state.gear}｜玉璽 ${state.gems}`,w/2,h-45);
-}
-
-function drawCastle(x,y,s){
-  ctx.save();
-  ctx.translate(x,y);
-  ctx.scale(s,s);
-  ctx.fillStyle="#4b2e18";
-  ctx.fillRect(-90,20,180,80);
-  ctx.fillStyle="#6b3d1e";
-  ctx.fillRect(-70,-20,140,50);
-  ctx.fillStyle="#8b5a2b";
-  ctx.fillRect(-45,-60,90,45);
-  ctx.fillStyle="#222";
-  ctx.fillRect(-20,55,40,45);
-  ctx.fillStyle="#ffd36a";
-  ctx.fillRect(-80,30,20,20);
-  ctx.fillRect(60,30,20,20);
-  ctx.fillStyle="#b22222";
-  ctx.beginPath();
-  ctx.moveTo(-100,20);ctx.lineTo(0,-25);ctx.lineTo(100,20);ctx.closePath();ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(-60,-20);ctx.lineTo(0,-70);ctx.lineTo(60,-20);ctx.closePath();ctx.fill();
-  ctx.restore();
-}
-
-function drawBattle(){
-  const b=state.battle;
-  const tile=56;
-  const ox=80+camera.x;
-  const oy=80+camera.y;
-
-  ctx.fillStyle="#0f1513";
-  ctx.fillRect(0,0,canvas.clientWidth,canvas.clientHeight);
-
-  for(let y=0;y<b.map.h;y++){
-    for(let x=0;x<b.map.w;x++){
-      const t=b.map.tiles[y][x];
-      const px=ox+x*tile;
-      const py=oy+y*tile;
-      drawTile(px,py,t,tile);
-      if(b.selected){
-        const u=b.units.find(z=>z.uid===b.selected);
-        if(u && dist(u,{x,y})<=u.move && !u.acted){
-          ctx.fillStyle="rgba(255,211,106,.14)";
-          ctx.fillRect(px,py,tile,tile);
-        }
+function heroRow(id,inTeam){
+  const h=heroes.find(x=>x.id===id);
+  return `
+    <div class="item">
+      <span>
+        <b class="rarity-${h.rarity}">${h.icon} ${h.name}</b><br>
+        <span class="muted">${h.title}｜${h.rarity}｜${h.job}｜${h.skill}</span>
+      </span>
+      ${inTeam
+        ? `<button class="small danger" onclick="removeTeam(${id})">下陣</button>`
+        : `<button class="small primary" onclick="addTeam(${id})">上陣</button>`
       }
-    }
-  }
-
-  b.units.filter(u=>u.hp>0).forEach(u=>{
-    drawUnit(ox+u.x*tile+tile/2, oy+u.y*tile+tile/2, u, tile);
-  });
-
-  const sel=b.units.find(u=>u.uid===b.selected);
-  if(sel){
-    ctx.strokeStyle="#ffd36a";
-    ctx.lineWidth=3;
-    ctx.strokeRect(ox+sel.x*tile+4,oy+sel.y*tile+4,tile-8,tile-8);
-  }
+    </div>
+  `;
 }
 
-function drawTile(x,y,t,size){
-  const colors={
-    plain:"#3d7a3d",
-    forest:"#245b2a",
-    water:"#246b8f",
-    mountain:"#6f6250",
-    city:"#7b5c39"
+function switchLeft(type){renderLeft(type);}
+
+function addTeam(id){
+  if(state.team.includes(id))return;
+  if(state.team.length>=3){
+    alert("隊伍最多 3 人");
+    return;
+  }
+  state.team.push(id);
+  applyTeamStats();
+  renderLeft("team");
+  updateUI();
+}
+
+function removeTeam(id){
+  if(state.team.length<=1){
+    alert("至少保留 1 人");
+    return;
+  }
+  state.team=state.team.filter(x=>x!==id);
+  applyTeamStats();
+  renderLeft("team");
+  updateUI();
+}
+
+function drawGacha(n){
+  const cost=n===10?1800:200;
+  if(state.gem<cost){
+    alert("玉璧不足");
+    return;
+  }
+  state.gem-=cost;
+  const result=[];
+  for(let i=0;i<n;i++){
+    const r=Math.random();
+    let pool;
+    if(r>.92)pool=heroes.filter(h=>h.rarity==="SSR");
+    else if(r>.62)pool=heroes.filter(h=>h.rarity==="SR");
+    else pool=heroes.filter(h=>h.rarity==="R");
+    const h=pool[Math.floor(Math.random()*pool.length)];
+    result.push(h);
+    if(!state.owned.includes(h.id))state.owned.push(h.id);
+    else state.gold+=300;
+  }
+  openSimpleModal("抽卡結果",`
+    <div class="cardGrid">
+      ${result.map(h=>`
+        <div class="heroCard">
+          <div class="portrait">${h.icon}</div>
+          <b class="rarity-${h.rarity}">${h.name}</b>
+          <div class="muted">${h.title}</div>
+          <div>${h.rarity}｜${h.job}</div>
+        </div>
+      `).join("")}
+    </div>
+  `);
+  updateUI();
+  renderLeft("gacha");
+}
+
+function redeemGift(){
+  const code=document.getElementById("giftInput").value.trim().toUpperCase();
+  const rewards={
+    HUANZHAN:{gem:500,gold:3000,potion:3},
+    LUBU999:{gem:999,gold:9999,potion:5},
+    WEED777:{gem:300,gold:7777,herb:7,grain:7}
   };
-  ctx.fillStyle=colors[t]||"#444";
-  ctx.fillRect(x,y,size,size);
-  ctx.strokeStyle="rgba(0,0,0,.35)";
-  ctx.strokeRect(x,y,size,size);
-
-  if(t==="forest"){
-    ctx.fillStyle="#143d18";
-    ctx.beginPath();
-    ctx.arc(x+18,y+22,10,0,Math.PI*2);
-    ctx.arc(x+34,y+30,12,0,Math.PI*2);
-    ctx.fill();
-  }
-  if(t==="water"){
-    ctx.strokeStyle="rgba(255,255,255,.25)";
-    ctx.beginPath();
-    ctx.moveTo(x+8,y+20);
-    ctx.quadraticCurveTo(x+22,y+12,x+36,y+20);
-    ctx.quadraticCurveTo(x+48,y+28,x+55,y+20);
-    ctx.stroke();
-  }
-  if(t==="mountain"){
-    ctx.fillStyle="#4b4036";
-    ctx.beginPath();
-    ctx.moveTo(x+10,y+45);
-    ctx.lineTo(x+28,y+12);
-    ctx.lineTo(x+46,y+45);
-    ctx.closePath();
-    ctx.fill();
-  }
-  if(t==="city"){
-    ctx.fillStyle="#4b2e18";
-    ctx.fillRect(x+15,y+20,26,24);
-    ctx.fillStyle="#b22222";
-    ctx.beginPath();
-    ctx.moveTo(x+12,y+20);
-    ctx.lineTo(x+28,y+8);
-    ctx.lineTo(x+44,y+20);
-    ctx.closePath();
-    ctx.fill();
-  }
-}
-
-function drawUnit(cx,cy,u,size){
-  ctx.save();
-  ctx.translate(cx,cy);
-
-  const isPlayer=u.side==="player";
-  ctx.fillStyle=isPlayer?"#2d8cff":"#d94444";
-  ctx.beginPath();
-  ctx.arc(0,0,20,0,Math.PI*2);
-  ctx.fill();
-
-  ctx.strokeStyle=u.boss?"#ffd36a":"#111";
-  ctx.lineWidth=u.boss?4:2;
-  ctx.stroke();
-
-  ctx.fillStyle="#fff";
-  ctx.font="bold 12px Microsoft JhengHei";
-  ctx.textAlign="center";
-  ctx.fillText(u.name,0,-28);
-
-  ctx.fillStyle="#000";
-  ctx.fillRect(-24,23,48,6);
-  ctx.fillStyle=u.hp/u.maxHp>.5?"#61c46e":u.hp/u.maxHp>.25?"#ffd36a":"#ff6666";
-  ctx.fillRect(-24,23,48*(u.hp/u.maxHp),6);
-
-  ctx.fillStyle="#fff";
-  ctx.font="11px Arial";
-  ctx.fillText(arm(u.arm).name,0,5);
-
-  if(u.acted){
-    ctx.fillStyle="rgba(0,0,0,.45)";
-    ctx.beginPath();
-    ctx.arc(0,0,22,0,Math.PI*2);
-    ctx.fill();
-  }
-
-  if(u.guard){
-    ctx.strokeStyle="#9ee7ff";
-    ctx.lineWidth=3;
-    ctx.beginPath();
-    ctx.arc(0,0,26,0,Math.PI*2);
-    ctx.stroke();
-  }
-
-  ctx.restore();
-}
-
-canvas.addEventListener("click",handleCanvasClick);
-
-function canvasToGrid(e){
-  const rect=canvas.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
-  const tile=56;
-  const ox=80+camera.x;
-  const oy=80+camera.y;
-  return {
-    gx:Math.floor((x-ox)/tile),
-    gy:Math.floor((y-oy)/tile)
-  };
-}
-
-function handleCanvasClick(e){
-  const b=state.battle;
-  if(!b || !b.active || b.turn!=="player")return;
-  const {gx,gy}=canvasToGrid(e);
-  const clicked=unitAt(gx,gy);
-
-  if(clicked && clicked.side==="player" && !clicked.acted){
-    b.selected=clicked.uid;
-    updateHud();
-    save();
+  if(!rewards[code]){
+    alert("禮物碼無效");
     return;
   }
-
-  const sel=b.units.find(u=>u.uid===b.selected);
-  if(!sel || sel.acted)return;
-
-  if(clicked && clicked.side==="enemy"){
-    if(dist(sel,clicked)<=sel.range){
-      attack(sel,clicked,false);
-    }else{
-      log(`${sel.name} 距離不足，無法攻擊 ${clicked.name}。`);
-    }
-    afterPlayerAction();
+  if(state.giftUsed[code]){
+    alert("此禮物碼已使用");
     return;
   }
-
-  if(!clicked && gx>=0&&gy>=0&&gx<b.map.w&&gy<b.map.h){
-    if(dist(sel,{x:gx,y:gy})<=sel.move){
-      sel.x=gx;
-      sel.y=gy;
-      sel.acted=true;
-      log(`${sel.name} 移動至 (${gx},${gy})。`);
-      afterPlayerAction();
-    }
-  }
+  const r=rewards[code];
+  state.giftUsed[code]=true;
+  state.gem+=r.gem||0;
+  state.gold+=r.gold||0;
+  state.inventory.potion+=r.potion||0;
+  state.inventory.herb+=r.herb||0;
+  state.inventory.grain+=r.grain||0;
+  alert("兌換成功");
+  updateUI();
+  renderLeft("gacha");
 }
 
-function attack(a,d,skillMode){
-  let power = a.atk - d.def*0.45;
-  if(a.arm==="mage")power = a.int - d.def*0.25;
-  let mul=1;
-  if(skillMode)mul=1.3;
-  if(a.guard)mul*=0.8;
-
-  let dmg = Math.max(8,Math.floor(power*mul + rand(-8,10)));
-  if(d.guard)dmg=Math.floor(dmg*0.55);
-  d.hp = Math.max(0,d.hp-dmg);
-
-  log(`${a.name} 攻擊 ${d.name}，造成 ${dmg} 傷害。`);
-
-  if(d.hp<=0){
-    log(`${d.name} 被擊破。`);
-  }
-
-  checkBattleEnd();
-}
-
-function afterPlayerAction(){
-  const b=state.battle;
-  b.selected=null;
-  updateHud();
-  if(b.units.filter(u=>u.side==="player"&&u.hp>0).every(u=>u.acted)){
-    endPlayerTurn();
-  }
-  save();
-  renderAll();
-}
-
-function endPlayerTurn(){
-  const b=state.battle;
-  if(!b || !b.active)return;
-  b.turn="enemy";
-  b.units.forEach(u=>{if(u.side==="enemy"){u.acted=false;u.guard=false;}});
-  updateHud();
-  setTimeout(enemyTurn,500);
-}
-
-function enemyTurn(){
-  const b=state.battle;
-  if(!b || !b.active)return;
-
-  const enemies=b.units.filter(u=>u.side==="enemy"&&u.hp>0);
-  for(const e of enemies){
-    const players=b.units.filter(u=>u.side==="player"&&u.hp>0);
-    if(players.length===0)break;
-    let target=players.sort((a,b)=>dist(e,a)-dist(e,b))[0];
-
-    if(dist(e,target)>e.range){
-      moveToward(e,target);
-    }
-
-    target=b.units.filter(u=>u.side==="player"&&u.hp>0).sort((a,b)=>dist(e,a)-dist(e,b))[0];
-    if(target && dist(e,target)<=e.range){
-      attack(e,target,false);
-    }else if(Math.random()<0.25){
-      e.guard=true;
-      log(`${e.name} 採取防禦。`);
-    }
-    e.acted=true;
-  }
-
-  if(!checkBattleEnd()){
-    b.turn="player";
-    b.round++;
-    b.units.forEach(u=>{if(u.side==="player"){u.acted=false;u.guard=false;u.mp=Math.min(20,u.mp+4);}});
-    log(`進入第 ${b.round} 回合。`);
-    updateHud();
-    save();
-    renderAll();
-  }
-}
-
-function moveToward(u,t){
-  let best={x:u.x,y:u.y,d:dist(u,t)};
-  const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
-  for(let step=0;step<u.move;step++){
-    let moved=false;
-    for(const [dx,dy] of dirs.sort(()=>Math.random()-0.5)){
-      const nx=u.x+dx, ny=u.y+dy;
-      if(nx<0||ny<0||nx>=state.battle.map.w||ny>=state.battle.map.h)continue;
-      if(isBlocked(nx,ny))continue;
-      const nd=dist({x:nx,y:ny},t);
-      if(nd<best.d){
-        best={x:nx,y:ny,d:nd};
-        moved=true;
-      }
-    }
-    if(moved){
-      u.x=best.x;
-      u.y=best.y;
-    }else break;
-  }
-}
-
-function checkBattleEnd(){
-  const b=state.battle;
-  if(!b || !b.active)return false;
-
-  const aliveP=b.units.some(u=>u.side==="player"&&u.hp>0);
-  const aliveE=b.units.some(u=>u.side==="enemy"&&u.hp>0);
-
-  if(!aliveP){
-    b.active=false;
-    log("戰鬥失敗，全軍撤退。");
-    save();
-    renderAll();
-    showModal("戰敗","我方全滅，請整備後再戰。");
-    return true;
-  }
-
-  if(!aliveE){
-    b.active=false;
-    const st=STAGES.find(s=>s.id===b.stageId);
-    const diff=difficulty();
-    const reward=Math.floor(st.reward*diff.reward);
-    state.gold+=reward;
-    state.food+=Math.floor(reward*0.6);
-    state.gear+=Math.floor(reward*0.35);
-
-    const drop = rollDrop();
-    applyDrop(drop);
-
-    state.team.forEach(id=>{
-      state.heroes[id].exp+=60+(st.boss?60:0);
-      levelCheck(id);
-      state.heroes[id].hp=state.heroes[id].maxHp;
-    });
-
-    unlockNextStage(st.id);
-
-    log(`戰鬥勝利，獲得金 ${reward}，掉落 ${drop.name}。`);
-    save();
-    renderAll();
-    showModal("勝利",`
-      <p>攻克 ${st.name}。</p>
-      <p>獲得金：${reward}</p>
-      <p>獲得糧：${Math.floor(reward*0.6)}</p>
-      <p>獲得兵裝：${Math.floor(reward*0.35)}</p>
-      <p>掉落：<b class="gold">${drop.name}</b>｜${drop.desc}</p>
-    `);
-    return true;
-  }
-  return false;
-}
-
-function unlockNextStage(id){
-  const idx=STAGES.findIndex(s=>s.id===id);
-  if(idx>=0 && idx<STAGES.length-1){
-    state.currentStage=STAGES[idx+1].id;
-  }
-}
-
-function rollDrop(){
-  const pool=DB.items;
-  return choice(pool);
-}
-
-function applyDrop(item){
-  if(item.id==="rice")state.food+=500;
-  if(item.id==="coin")state.gold+=500;
-  if(item.id==="gear")state.gear+=300;
-  if(item.id==="book"){
-    const id=choice(state.team);
-    state.heroes[id].exp+=80;
-    levelCheck(id);
-  }
-  if(item.id==="horse"){
-    state.gold+=300;
-  }
-  if(item.id==="blade"){
-    state.gear+=300;
-  }
-  if(item.id==="armor"){
-    state.gear+=300;
-  }
-}
-
-$("btnEndTurn").onclick=()=>{
-  const b=state.battle;
-  if(!b || !b.active || b.turn!=="player")return;
-  b.units.forEach(u=>{if(u.side==="player")u.acted=true;});
-  log("我方結束回合。");
-  endPlayerTurn();
-};
-
-$("btnWait").onclick=()=>{
-  const b=state.battle;
-  if(!b || !b.active)return;
-  const u=b.units.find(x=>x.uid===b.selected);
-  if(!u)return;
-  u.acted=true;
-  log(`${u.name} 待機。`);
-  afterPlayerAction();
-};
-
-$("btnRetreat").onclick=()=>{
-  const b=state.battle;
-  if(!b || !b.active)return;
-  if(!confirm("確定撤退？"))return;
-  b.active=false;
-  log("我方撤退。");
-  save();
-  renderAll();
-};
-
-$("btnSkill").onclick=()=>{
-  const b=state.battle;
-  if(!b || !b.active || b.turn!=="player")return;
-  const u=b.units.find(x=>x.uid===b.selected);
-  if(!u){
-    showModal("尚未選取","請先選取一名我方武將。");
+function claimDaily(){
+  if(state.dailyClaimed){
+    alert("今日已領");
     return;
   }
-  const sk=skill(u.skill);
-  if(u.mp<sk.cost){
-    showModal("氣力不足",`${u.name} 使用 ${sk.name} 需要 MP ${sk.cost}。`);
-    return;
-  }
-
-  if(sk.type==="heal"){
-    const allies=b.units.filter(x=>x.side==="player"&&x.hp>0);
-    const target=allies.sort((a,b)=>(a.hp/a.maxHp)-(b.hp/b.maxHp))[0];
-    const heal=Math.floor(target.maxHp*sk.power);
-    target.hp=clamp(target.hp+heal,0,target.maxHp);
-    u.mp-=sk.cost;
-    u.acted=true;
-    log(`${u.name} 使用 ${sk.name}，${target.name} 恢復 ${heal}。`);
-    afterPlayerAction();
-    return;
-  }
-
-  if(sk.type==="buff"){
-    u.guard=true;
-    u.mp-=sk.cost;
-    u.acted=true;
-    log(`${u.name} 使用 ${sk.name}，進入防禦狀態。`);
-    afterPlayerAction();
-    return;
-  }
-
-  showModal("選擇目標",`
-    <p>${u.name} 的戰法：<b>${sk.name}</b></p>
-    <p>請關閉視窗後，點選射程內敵人。此版本的戰法會套用在下一次普通攻擊倍率中。</p>
-    <p class="muted">簡化處理：點選敵人時仍會以普通攻擊流程計算，但可先扣 MP 並提高傷害。</p>
-  `,`<button class="primary" onclick="prepareSkillAttack()">準備戰法</button><button onclick="closeModal()">取消</button>`);
-};
-
-function prepareSkillAttack(){
-  const b=state.battle;
-  const u=b.units.find(x=>x.uid===b.selected);
-  if(!u)return;
-  const sk=skill(u.skill);
-  if(u.mp<sk.cost)return;
-  u.mp-=sk.cost;
-  u.skillReady=true;
-  closeModal();
-  log(`${u.name} 準備使用 ${sk.name}。請點選敵方目標。`);
+  state.dailyClaimed=true;
+  state.gold+=1500;
+  state.gem+=150;
+  state.energy+=30;
+  state.inventory.potion+=2;
+  alert("每日領取成功");
+  updateUI();
+  renderLeft("daily");
 }
 
-/* 覆蓋攻擊：若有 skillReady，使用戰法倍率 */
-const oldAttack = attack;
-attack = function(a,d,skillMode){
-  let useSkill = a.skillReady || skillMode;
-  let sk = useSkill ? skill(a.skill) : null;
+function recharge(amount){
+  state.rechargeTotal+=amount;
+  state.gem+=amount*12;
+  state.gold+=amount*100;
+  alert("模擬儲值成功");
+  updateUI();
+  renderLeft("gacha");
+}
 
-  let power = a.atk - d.def*0.45;
-  if(a.arm==="mage")power = a.int - d.def*0.25;
+function openModal(type){
+  const el=document.getElementById("modalContent");
 
-  let mul=1;
-  if(useSkill && sk){
-    mul = sk.power || 1.25;
-    a.skillReady=false;
-  }
-  if(d.guard)mul*=0.55;
-
-  let dmg = Math.max(8,Math.floor(power*mul + rand(-8,10)));
-
-  if(useSkill && sk && sk.type==="aoe"){
-    const b=state.battle;
-    const targets=b.units.filter(x=>x.side!==a.side&&x.hp>0&&dist(d,x)<=1);
-    targets.forEach(t=>{
-      const aoeDmg=Math.max(6,Math.floor(dmg*(t.uid===d.uid?1:0.65)));
-      t.hp=Math.max(0,t.hp-aoeDmg);
-      log(`${a.name} 使用 ${sk.name}，${t.name} 受到 ${aoeDmg} 傷害。`);
-      if(t.hp<=0)log(`${t.name} 被擊破。`);
-    });
-  }else{
-    d.hp = Math.max(0,d.hp-dmg);
-    log(`${a.name}${useSkill&&sk?` 使用 ${sk.name}`:""}攻擊 ${d.name}，造成 ${dmg} 傷害。`);
-    if(d.hp<=0)log(`${d.name} 被擊破。`);
+  if(type==="menu"){
+    el.innerHTML=`
+      <h2>三國幻戰選單</h2>
+      <div class="cardGrid">
+        <button onclick="closeModal();switchLeft('battle')">戰鬥 / 除草</button>
+        <button onclick="closeModal();switchLeft('team')">卡庫 / 隊伍</button>
+        <button onclick="closeModal();switchLeft('gacha')">抽卡 / 禮物碼</button>
+        <button onclick="closeModal();switchLeft('daily')">每日 / 公告</button>
+        <button onclick="openModal('heroes')">武將圖鑑</button>
+        <button onclick="openModal('admin')">創作者 / 管理員頁</button>
+      </div>
+    `;
   }
 
-  checkBattleEnd();
-};
+  if(type==="heroes"){
+    el.innerHTML=`
+      <h2>更多武將資料 / 角色繪圖</h2>
+      <div class="cardGrid">
+        ${heroes.map(h=>`
+          <div class="heroCard">
+            <div class="portrait">${h.icon}</div>
+            <b class="rarity-${h.rarity}">${h.name}</b>
+            <div class="muted">${h.title}</div>
+            <div>${h.rarity}｜${h.job}</div>
+            <div class="blue">${h.skill}</div>
+            <div class="muted">ATK ${h.atk} / HP ${h.hp}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
 
-/* ===================== 觸控搖桿 ===================== */
-const pad=$("touchPad");
-const stick=$("touchStick");
+  if(type==="admin"){
+    el.innerHTML=`
+      <h2>創作者 / 管理員頁</h2>
+      <div class="section">
+        <h3>測試工具</h3>
+        <button class="primary" onclick="adminGiveAll()">取得全部武將</button>
+        <button class="green" onclick="adminAddResource()">增加資源</button>
+        <button class="danger" onclick="adminWeakBoss()">弱化 Boss</button>
+        <button onclick="adminSpawnWeeds()">生成草叢</button>
+        <button onclick="adminResetDaily()">重置每日</button>
+      </div>
+      <div class="section">
+        <h3>公告編輯</h3>
+        <input id="adminNotice" placeholder="輸入新公告">
+        <button onclick="adminAddNotice()">新增公告</button>
+      </div>
+      <div class="section">
+        <h3>狀態</h3>
+        <div class="item"><span>武將</span><b>${state.owned.length}/${heroes.length}</b></div>
+        <div class="item"><span>儲值總額</span><b>${state.rechargeTotal}</b></div>
+        <div class="item"><span>除草數</span><b>${state.weedsCut}</b></div>
+      </div>
+    `;
+  }
 
-pad.addEventListener("touchstart",e=>{
-  touch.active=true;
-  e.preventDefault();
+  document.getElementById("modal").style.display="flex";
+}
+
+function openSimpleModal(title,html){
+  document.getElementById("modalContent").innerHTML=`<h2>${title}</h2>${html}`;
+  document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+function adminGiveAll(){
+  state.owned=heroes.map(h=>h.id);
+  alert("已取得全部武將");
+  updateUI();
+}
+function adminAddResource(){
+  state.gold+=99999;
+  state.gem+=9999;
+  state.energy+=999;
+  state.inventory.potion+=99;
+  state.inventory.herb+=99;
+  state.inventory.grain+=99;
+  alert("資源已增加");
+  updateUI();
+}
+function adminWeakBoss(){
+  if(boss)boss.hp=Math.min(boss.hp,300);
+  alert("Boss 已弱化");
+}
+function adminSpawnWeeds(){
+  spawnWeeds(30);
+  alert("草叢已生成");
+}
+function adminResetDaily(){
+  state.dailyClaimed=false;
+  alert("每日已重置");
+}
+function adminAddNotice(){
+  const v=document.getElementById("adminNotice").value.trim();
+  if(!v)return;
+  state.announcements.unshift(v);
+  alert("公告已新增");
+  openModal("admin");
+}
+
+function startStory(){
+  dialogQueue=[
+    {name:"劉備",text:"虎牢幻境異變，呂布幻影率兵重現，諸位須破此局。"},
+    {name:"關羽",text:"敵方盾兵堅硬，遠程兵與法師會在後方牽制，不可只追 Boss。"},
+    {name:"諸葛亮",text:"草叢中藏有補給，也可能有伏兵。善用除草，才能在魔王級撐下去。"},
+    {name:"趙雲",text:"我先突入陣中，主公請調整隊伍與戰法。"},
+    {name:"呂布幻影",text:"凡人也敢踏入虎牢幻境？來試試魔王級的壓迫吧。"},
+    {name:"系統",text:"劇情結束。進入三國幻戰。"}
+  ];
+  currentDialog=0;
+  showDialog();
+}
+
+function showDialog(){
+  const box=document.getElementById("dialogBox");
+  const d=dialogQueue[currentDialog];
+  if(!d){
+    box.style.display="none";
+    return;
+  }
+  document.getElementById("dialogName").textContent=d.name;
+  document.getElementById("dialogText").textContent=d.text;
+  box.style.display="block";
+}
+function nextDialog(){
+  currentDialog++;
+  showDialog();
+}
+
+function updateUI(){
+  document.getElementById("goldText").textContent=state.gold;
+  document.getElementById("gemText").textContent=state.gem;
+  document.getElementById("energyText").textContent=state.energy;
+  document.getElementById("powerText").textContent=calcPower();
+
+  document.getElementById("hpText").textContent=Math.max(0,Math.floor(player.hp))+"/"+player.maxHp;
+  document.getElementById("mpText").textContent=Math.floor(player.mp)+"/"+player.maxMp;
+  document.getElementById("lvText").textContent=player.lv;
+  document.getElementById("hpBar").style.width=Math.max(0,player.hp/player.maxHp*100)+"%";
+  document.getElementById("mpBar").style.width=Math.max(0,player.mp/player.maxMp*100)+"%";
+  document.getElementById("expBar").style.width=Math.max(0,player.exp/player.nextExp*100)+"%";
+
+  document.getElementById("stageText").textContent=state.stage;
+  document.getElementById("difficultyText").textContent=state.difficulty;
+  document.getElementById("killText").textContent=state.kills;
+  document.getElementById("weedText").textContent=state.weedsCut;
+
+  if(boss){
+    document.getElementById("bossHpText").textContent=Math.max(0,Math.floor(boss.hp))+"/"+boss.maxHp;
+    document.getElementById("bossBar").style.width=Math.max(0,boss.hp/boss.maxHp*100)+"%";
+  }
+}
+
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function angleTo(a,b){return Math.atan2(b.y-a.y,b.x-a.x);}
+
+window.addEventListener("keydown",e=>{
+  keys[e.key]=true;
+  if(e.key==="j")playerAttack();
+  if(e.key==="k")castSkill();
+  if(e.key==="e")cutWeed();
+  if(e.key==="l")usePotion();
+  if(e.key===" ")dodge();
 });
-pad.addEventListener("touchmove",e=>{
-  const rect=pad.getBoundingClientRect();
-  const t=e.touches[0];
+window.addEventListener("keyup",e=>keys[e.key]=false);
+
+const base=document.getElementById("joystickBase");
+const knob=document.getElementById("joystickKnob");
+
+function joyMove(clientX,clientY){
+  const rect=base.getBoundingClientRect();
   const cx=rect.left+rect.width/2;
   const cy=rect.top+rect.height/2;
-  let dx=(t.clientX-cx)/50;
-  let dy=(t.clientY-cy)/50;
+  let dx=clientX-cx;
+  let dy=clientY-cy;
+  const max=42;
   const len=Math.hypot(dx,dy);
-  if(len>1){dx/=len;dy/=len;}
-  touch.dx=dx;
-  touch.dy=dy;
-  stick.style.left=(39+dx*35)+"px";
-  stick.style.top=(39+dy*35)+"px";
-  e.preventDefault();
+  if(len>max){
+    dx=dx/len*max;
+    dy=dy/len*max;
+  }
+  joy.dx=dx/max;
+  joy.dy=dy/max;
+  knob.style.left=(35+dx)+"px";
+  knob.style.top=(35+dy)+"px";
+}
+
+base.addEventListener("touchstart",e=>{
+  joy.active=true;
+  joyMove(e.touches[0].clientX,e.touches[0].clientY);
 });
-pad.addEventListener("touchend",e=>{
-  touch.active=false;
-  touch.dx=0;
-  touch.dy=0;
-  stick.style.left="39px";
-  stick.style.top="39px";
+base.addEventListener("touchmove",e=>{
   e.preventDefault();
+  joyMove(e.touches[0].clientX,e.touches[0].clientY);
+},{passive:false});
+base.addEventListener("touchend",()=>{
+  joy.active=false;
+  joy.dx=0;
+  joy.dy=0;
+  knob.style.left="35px";
+  knob.style.top="35px";
+});
+base.addEventListener("mousedown",e=>{
+  joy.active=true;
+  joyMove(e.clientX,e.clientY);
+});
+window.addEventListener("mousemove",e=>{
+  if(joy.active)joyMove(e.clientX,e.clientY);
+});
+window.addEventListener("mouseup",()=>{
+  joy.active=false;
+  joy.dx=0;
+  joy.dy=0;
+  knob.style.left="35px";
+  knob.style.top="35px";
 });
 
-/* ===================== 鍵盤 ===================== */
-window.addEventListener("keydown",e=>{
-  if(e.key==="ArrowLeft")camera.x+=30;
-  if(e.key==="ArrowRight")camera.x-=30;
-  if(e.key==="ArrowUp")camera.y+=30;
-  if(e.key==="ArrowDown")camera.y-=30;
-});
-
-/* ===================== 初始化 ===================== */
-renderAll();
-battleLoop();
+applyTeamStats();
+resetBattle();
+renderLeft("battle");
+updateUI();
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
