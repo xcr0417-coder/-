@@ -6078,6 +6078,244 @@ window.onload = () => {
   topbar();
   showMap();
 };
+  <script>
+/* ===== 加入原程式即可：除草級 Endless Mode Patch v1 =====
+   使用方法：把這整段貼在原程式最後一個 </script> 的前面。
+   不需要刪除原本任何程式。
+*/
+(function(){
+  if (typeof DIFFICULTY === 'undefined') {
+    alert('找不到 DIFFICULTY，請確認貼在原本遊戲 <script> 內、</script> 前。');
+    return;
+  }
+
+  // 1) 新增難度：除草級
+  DIFFICULTY.grass = {
+    name: '除草級',
+    hp: 0.42,
+    atk: 0.18,
+    spd: 0.95,
+    spawn: 3.2,
+    ranged: 0.03,
+    mage: 0.01,
+    shield: 0.02,
+    drop: 2.5,
+    revive: 10,
+    timeScale: 0.18,
+    bossPhase: false,
+    bossRage: false,
+    demon: false,
+    grass: true,
+    desc: '無限小兵、沒有 Boss，挑戰最高擊破數'
+  };
+
+  // 2) 覆蓋地圖頁：自動把除草級一起顯示出來
+  const __oldShowMap = window.showMap;
+  window.showMap = function(){
+    let diffHtml = Object.keys(DIFFICULTY).map(k => {
+      let d = DIFFICULTY[k];
+      let extraClass = d.demon ? 'demon' : (d.grass ? 'grass' : '');
+      return `
+      <button class="diffBtn ${extraClass} ${selectedDifficulty === k ? 'selected' : ''}" onclick="selectDifficulty('${k}')">
+        ${d.name}<br>
+        <small>${d.desc}</small>
+      </button>`;
+    }).join('');
+
+    set(`
+    <div class="panel">
+      <div class="title">選擇難度</div>
+      <style>
+        .diffBtn.grass{border-color:#62ff86;background:linear-gradient(#074d1c,#041208);color:#b9ffc8;box-shadow:0 0 14px #35ff6b55}
+        .diffBtn.grass.selected{background:linear-gradient(#8cff9e,#137c2b);color:#041208;box-shadow:0 0 25px #62ff86}
+      </style>
+      <div class="diffBox">${diffHtml}</div>
+      <p class="note">
+        除草級規則：<br>
+        1. 小兵會一直出現。<br>
+        2. 沒有 Boss、沒有勝利結束。<br>
+        3. 目標是看你能打死幾隻。<br>
+        4. 每 50 擊破會自動給少量金錢與珍珠。<br>
+        5. 適合測試角色、技能、無雙、觸控搖桿與割草爽感。<br><br>
+        魔王級規則：<br>
+        1. 小兵都是 Boss 等級。<br>
+        2. 精英怪等同大 Boss。<br>
+        3. 最終 Boss 是電腦控制的白銀傳說武將。<br>
+        4. 白銀傳說 Boss 會有高血量、高攻擊、二階段、狂暴、範圍技與遠程追擊。<br>
+        5. 打贏可獲得大量金錢與珍珠。
+      </p>
+    </div>
+
+    <div class="panel">
+      <div class="title">選擇戰鬥模式</div>
+      <p class="note">每次出戰花費 30 金錢。除草級不會出 Boss，會一直打到你撤退或戰死。</p>
+
+      <h3 style="color:#4ba3ff;border-bottom:1px solid #333">闖關制</h3>
+      <button class="stageBtn" onclick="initBattle('stage','火系')">挑戰 火系 關卡</button>
+      <button class="stageBtn" onclick="initBattle('stage','水系')">挑戰 水系 關卡</button>
+
+      <h3 style="color:#ff66aa;border-bottom:1px solid #333;margin-top:15px">劇本制</h3>
+      <button class="stageBtn" onclick="initBattle('story','黃巾之亂')">黃巾之亂</button>
+      <button class="stageBtn" onclick="initBattle('story','群雄集結')">群雄集結</button>
+
+      <h3 style="color:#62ff86;border-bottom:1px solid #333;margin-top:15px">除草級推薦</h3>
+      <button class="stageBtn" onclick="selectedDifficulty='grass';initBattle('stage','無限除草')">直接開始除草級</button>
+
+      <h3 style="color:#f44;border-bottom:1px solid #333;margin-top:15px">限時討伐</h3>
+      <button class="stageBtn" onclick="initBattle('online','限時討伐')">限時討伐戰</button>
+    </div>`);
+  };
+
+  // 3) 覆蓋擊破需求：除草級永遠不觸發 Boss
+  const __oldGetKillRequirement = window.getKillRequirement;
+  window.getKillRequirement = function(){
+    if (difficultyKey === 'grass') return 999999999;
+    return __oldGetKillRequirement();
+  };
+
+  // 4) 覆蓋敵人種類：除草級只出小兵，偶爾出弓、法、盾、精英，但都不是 Boss
+  const __oldChooseEnemyKind = window.chooseEnemyKind;
+  window.chooseEnemyKind = function(isBoss){
+    if (difficultyKey === 'grass') {
+      let r = Math.random();
+      if (r < 0.04) return 'elite';
+      if (r < 0.08) return 'shield';
+      if (r < 0.11) return 'archer';
+      if (r < 0.13) return 'mage';
+      return 'soldier';
+    }
+    return __oldChooseEnemyKind(isBoss);
+  };
+
+  // 5) 覆蓋開戰：除草級設定成無限地圖、無限兵、無 Boss
+  const __oldInitBattle = window.initBattle;
+  window.initBattle = function(mType, param){
+    __oldInitBattle(mType, param);
+
+    if (selectedDifficulty === 'grass' || difficultyKey === 'grass') {
+      difficultyKey = 'grass';
+      diff = DIFFICULTY.grass;
+      bossOut = 0;
+      timeLeft = 0;
+      worldW = 3600;
+      $('timerUI').style.display = 'none';
+      $('diffUI').textContent = '難度：除草級';
+      $('mission').textContent = '【除草級】無限小兵，沒有 Boss，挑戰最高擊破數';
+      msg('除草級開始！能打幾隻算幾隻！', '#62ff86', '42px');
+    }
+  };
+
+  // 6) 覆蓋敵人更新：除草級不召喚 Boss、不結束，只補兵與給里程碑獎勵
+  const __oldUpdateE = window.updateE;
+  window.updateE = function(){
+    if (difficultyKey !== 'grass') {
+      __oldUpdateE();
+      return;
+    }
+
+    es.forEach(e => {
+      if (e.hp <= 0) return;
+
+      if (e.stun > 0) {
+        e.stun--;
+        e.x += e.vx;
+        e.y += e.vy;
+        e.vx *= 0.8;
+        e.vy *= 0.8;
+        return;
+      }
+
+      let dx = pData.x - e.x;
+      let dy = pData.y - e.y;
+      let dist = Math.hypot(dx, dy);
+      let a = Math.atan2(dy, dx);
+
+      let rangedEnemy = e.kind === 'archer' || e.kind === 'mage';
+
+      if (rangedEnemy) {
+        e.shootCd--;
+        let preferred = e.kind === 'mage' ? 290 : 340;
+        if (dist < preferred - 80) {
+          e.x -= Math.cos(a) * e.spd;
+          e.y -= Math.sin(a) * e.spd;
+        } else if (dist > preferred + 80) {
+          e.x += Math.cos(a) * e.spd;
+          e.y += Math.sin(a) * e.spd;
+        }
+        if (e.shootCd <= 0) {
+          enemyProjectile(e);
+          e.shootCd = e.kind === 'mage' ? 150 : 105;
+        }
+        return;
+      }
+
+      if (dist > e.r + pData.r) {
+        let surroundOffset = Math.sin((battleFrame + e.x) / 34) * 0.45;
+        e.x += Math.cos(a + surroundOffset) * e.spd;
+        e.y += Math.sin(a + surroundOffset) * e.spd;
+      } else if (pData.inv <= 0) {
+        pData.hp -= Math.max(1, e.atk - pData.def);
+        pData.sys.charge('musou', 5);
+        pData.inv = 10;
+        screenShake = 5;
+      }
+    });
+
+    let old = es.length;
+
+    es = es.filter(e => {
+      if (e.hp <= 0) {
+        maybeDropItem(e.x, e.y);
+        return false;
+      }
+      return true;
+    });
+
+    let killed = old - es.length;
+
+    if (killed) {
+      let before = KOs;
+      KOs += killed;
+      $('ko').textContent = '擊破 ' + KOs;
+      pData.sys.charge('ultimate', killed * 5);
+      pData.sys.charge('skill', killed * 2);
+
+      let oldMilestone = Math.floor(before / 50);
+      let newMilestone = Math.floor(KOs / 50);
+      if (newMilestone > oldMilestone) {
+        let bonusCoin = 120 * (newMilestone - oldMilestone);
+        let bonusJade = 20 * (newMilestone - oldMilestone);
+        state.coin += bonusCoin;
+        state.jade += bonusJade;
+        save();
+        topbar();
+        msg(`除草獎勵 +${bonusCoin} 金錢 +${bonusJade} 珍珠`, '#62ff86', '32px');
+      }
+    }
+
+    let target = mode.type === 'story' ? 95 : 72;
+    while (es.length < target) spawnE(false, false);
+  };
+
+  // 7) 加強除草級掉落，讓玩家可以撐更久
+  const __oldMaybeDropItem = window.maybeDropItem;
+  window.maybeDropItem = function(x, y){
+    if (difficultyKey !== 'grass') {
+      __oldMaybeDropItem(x, y);
+      return;
+    }
+
+    if (Math.random() > 0.24) return;
+    let pool = ['baozi','coin','coin','wine'];
+    let type = pool[Math.floor(Math.random() * pool.length)];
+    items.push({type, x, y, r:14, life:900});
+  };
+
+  // 8) 頁面已載入時，重新畫一次地圖，把除草級按鈕顯示出來
+  if (typeof topbar === 'function') topbar();
+  if (typeof showMap === 'function') showMap();
+})();
+</script>
 </script>
 </body>
 </html>
