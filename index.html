@@ -1,4 +1,859 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1">
+<title>三國幻戰 × 無雙｜單張圖片角色版</title>
+<style>
+*{box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080a0f;color:#eee;font-family:"Microsoft JhengHei",Arial;touch-action:none}
+button{border:1px solid #d8ae45;background:linear-gradient(#3b2808,#120902);color:#ffe08a;border-radius:9px;padding:10px;font-weight:900;cursor:pointer}
+button:active{filter:brightness(1.35)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.app{height:100vh;display:flex;flex-direction:column;background:radial-gradient(circle,#17233a,#05070b)}
+header{height:56px;background:linear-gradient(#1b1b1b,#050505);border-bottom:2px solid #d8ae45;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+h1{margin:0;color:#ffe08a;font-size:17px;text-shadow:0 0 10px #a65b00}
+.money{font-size:13px}.money span{color:#fff;margin-right:8px;font-weight:900}
+main{flex:1;display:flex;min-height:0}
+.side{width:190px;background:#07090eea;border-right:1px solid #333;padding:10px;overflow-y:auto}
+.nav{width:100%;margin:5px 0}
+.content{flex:1;overflow:auto;padding:14px}
+.panel{background:#151c2dcc;border:1px solid #39475e;border-radius:12px;padding:14px;margin-bottom:12px}
+.title{font-size:20px;color:#ffe08a;border-left:4px solid #ffe08a;padding-left:10px;margin-bottom:10px;font-weight:900}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
+.card{background:linear-gradient(145deg,#20283a,#0b0f18);border:2px solid #606b7c;border-radius:16px;padding:9px;text-align:center;overflow:hidden}
+.card.hero{border-color:#4ba3ff}
+.card.soldier{border-color:#4dff85}
+.card.boss{border-color:#ff4444;box-shadow:0 0 16px #ff333355}
+.portrait{height:128px;border-radius:10px;background:#050505;border:2px solid #fff8;overflow:hidden;position:relative}
+.portrait canvas{width:100%;height:100%}
+.name{font-size:18px;font-weight:900;color:#111;background:linear-gradient(90deg,#fff1bd,#ffe08a,#fff1bd);border-radius:8px;margin:6px 0;padding:4px}
+.row{display:flex;margin:3px 0;font-size:12px}
+.lab{width:42%;background:#ffe4a1;color:#111;border:2px solid #111;border-right:0;transform:skewX(-12deg);font-weight:900}
+.val{flex:1;background:#050505;color:#fff;border:2px solid #111;transform:skewX(-12deg);font-weight:900}
+.lab span,.val span{display:block;transform:skewX(12deg);padding:2px}
+.skill{background:#f2eadb;color:#111;border:2px solid #111;border-radius:8px;margin-top:6px;padding:6px;font-size:12px;min-height:48px;text-align:left}
+.card button{width:96%;font-size:12px;padding:7px;margin-top:6px}
+.note{color:#cfd7e8;line-height:1.65;font-size:14px}
+#wrap{display:none;position:fixed;inset:0;background:#000;z-index:50}
+#game{width:100vw;height:100vh;display:block;background:radial-gradient(circle,#3b2414,#080402)}
+#hud{position:fixed;top:10px;left:10px;z-index:60;min-width:250px;background:#08101ddd;border:1px solid #4ba3ff;border-radius:12px;padding:9px;font-size:13px;pointer-events:none}
+#ko{position:fixed;top:10px;right:12px;z-index:60;color:#ffe08a;font-size:28px;font-weight:900;text-shadow:0 0 10px #ffb400,2px 2px #000;pointer-events:none}
+#mission{position:fixed;top:48px;right:12px;z-index:60;border:1px solid #d8ae45;background:#0009;border-radius:10px;padding:7px 10px;font-size:13px;text-align:right;pointer-events:none}
+#msg{position:fixed;top:28%;left:0;right:0;text-align:center;z-index:70;color:#ffe08a;font-size:42px;font-weight:900;text-shadow:0 0 20px red,3px 3px #000;pointer-events:none}
+.barrow{display:flex;gap:6px;align-items:center;margin:4px 0}
+.barrow span{width:38px}
+.bar{height:10px;background:#111;border:1px solid #333;border-radius:999px;overflow:hidden;flex:1}
+.fill{height:100%}
+.hp{background:linear-gradient(90deg,#15833c,#4dff85)}
+.sk{background:linear-gradient(90deg,#125cab,#58b7ff)}
+.ms{background:linear-gradient(90deg,#9a8200,#ffe35b)}
+#mobile{display:none;position:fixed;inset:0;z-index:75;pointer-events:none}
+#joy{display:none;position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,#ffe08a33,#0009);border:3px solid #ffe08aee;box-shadow:0 0 26px #ffe08aaa,inset 0 0 38px #000;pointer-events:none;z-index:100}
+#stick{position:absolute;left:50%;top:50%;margin-left:-28px;margin-top:-28px;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8c8,#ffe08a 32%,#9a5a11);border:3px solid #fff2ba;box-shadow:0 0 18px #ffe08a;pointer-events:none}
+.cluster{position:absolute;right:20px;bottom:120px;width:210px;height:170px;pointer-events:auto}
+.tb{position:absolute;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #ffe08a;background:linear-gradient(#9c5627,#381608);color:#ffe8a0;font-weight:900;font-size:14px;box-shadow:0 0 10px #ffe08a55}
+.tb:active{transform:scale(.92);filter:brightness(1.5)}
+#ta{right:72px;bottom:45px;width:76px;height:76px}
+#ts{right:5px;bottom:55px}
+#tm{right:140px;bottom:55px}
+#td{right:72px;bottom:118px}
+#exit{position:absolute;right:20px;top:88px;width:76px;height:38px;background:#742020;pointer-events:auto;color:#fff}
+@media(max-width:760px){
+  header{height:52px;padding:0 7px}
+  h1{font-size:14px}
+  .money{font-size:11px}
+  main{flex-direction:column}
+  .side{width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;border-right:0;border-bottom:1px solid #333;overflow:visible;flex-shrink:0}
+  .nav{font-size:12px;margin:0;padding:6px 0}
+  .content{padding:8px}
+  .grid{grid-template-columns:repeat(2,minmax(140px,1fr));gap:8px}
+  .portrait{height:112px}
+  #hud{font-size:11px;min-width:180px;padding:6px}
+  #ko{font-size:22px}
+  #mission{top:42px;font-size:11px}
+  .tb{width:54px;height:54px;font-size:12px}
+  #ta{width:66px;height:66px;right:66px;bottom:44px}
+  #ts{right:8px;bottom:54px}
+  #tm{right:126px;bottom:54px}
+  #td{right:66px;bottom:108px}
+  #exit{top:74px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <header>
+    <h1>三國幻戰 × 無雙｜單張圖片角色版</h1>
+    <div class="money">金錢:<span id="coin">0</span>出戰:<span id="chosenName">劉備</span></div>
+  </header>
+
+  <main>
+    <div class="side">
+      <button class="nav" id="m_bag">角色卡庫</button>
+      <button class="nav" id="m_team">出戰角色</button>
+      <button class="nav" id="m_map" style="color:#fff;border-color:#f44;background:linear-gradient(#a22,#400)">開始戰鬥</button>
+      <button class="nav" id="m_help">說明</button>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="ko">擊破 0</div>
+  <div id="mission">任務</div>
+  <div id="hud"></div>
+  <div id="msg"></div>
+
+  <div id="mobile">
+    <div id="joy"><div id="stick"></div></div>
+    <button id="exit">撤退</button>
+    <div class="cluster">
+      <div class="tb" id="ta">攻擊</div>
+      <div class="tb" id="ts">絕招</div>
+      <div class="tb" id="tm">無雙</div>
+      <div class="tb" id="td">閃避</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/*
+  重要：
+  你的那張大圖請存成 sanguo_sprite_sheet.jpg
+  並且跟這個 HTML 放在同一個資料夾。
+*/
+const SHEET = new Image();
+SHEET.src = "sanguo_sprite_sheet.jpg";
+let sheetReady = false;
+SHEET.onload = () => {
+  sheetReady = true;
+  drawAllPortraits();
+};
+
+/*
+  這裡就是把「大圖中的角色」加入遊戲。
+
+  sx, sy, sw, sh 的意思：
+  sx = 從大圖左邊算起第幾像素開始裁
+  sy = 從大圖上方算起第幾像素開始裁
+  sw = 裁切寬度
+  sh = 裁切高度
+
+  你的原圖是 1536 x 1024。
+  下面座標是依照你上傳那張圖的大概位置抓的。
+  如果某些角色切到旁邊，可以微調 sx / sy / sw / sh。
+*/
+
+const heroes = [
+  {id:"liuBei", name:"劉備", faction:"蜀", sx:24,  sy:88,  sw:82, sh:116, hp:1050, atk:115, def:60, skill:"仁德劍心", effect:"攻防平均，適合作為初始角色。"},
+  {id:"guanYu", name:"關羽", faction:"蜀", sx:150, sy:88,  sw:82, sh:116, hp:1200, atk:145, def:75, skill:"青龍偃月", effect:"攻擊範圍大，適合清兵。"},
+  {id:"zhangFei", name:"張飛", faction:"蜀", sx:286, sy:88,  sw:82, sh:116, hp:1350, atk:155, def:82, skill:"燕人怒吼", effect:"高血量高攻擊，近戰壓制力強。"},
+  {id:"zhaoYun", name:"趙雲", faction:"蜀", sx:424, sy:88,  sw:82, sh:116, hp:1000, atk:132, def:58, skill:"龍膽突刺", effect:"速度快，突進能力強。"},
+  {id:"zhuGeLiang", name:"諸葛亮", faction:"蜀", sx:558, sy:88,  sw:82, sh:116, hp:850, atk:150, def:45, skill:"八陣風雷", effect:"技能傷害高，但身板較脆。"},
+  {id:"maChao", name:"馬超", faction:"蜀", sx:690, sy:88,  sw:82, sh:116, hp:1080, atk:142, def:62, skill:"西涼突騎", effect:"衝刺與連擊能力優秀。"},
+  {id:"huangZhong", name:"黃忠", faction:"蜀", sx:826, sy:88,  sw:82, sh:116, hp:920, atk:138, def:50, skill:"百步穿楊", effect:"遠距攻擊能力佳。"},
+  {id:"pangTong", name:"龐統", faction:"蜀", sx:960, sy:88,  sw:82, sh:116, hp:860, atk:148, def:48, skill:"連環奇謀", effect:"範圍控制型角色。"},
+
+  {id:"caoCao", name:"曹操", faction:"魏", sx:24,  sy:470, sw:82, sh:116, hp:1120, atk:128, def:66, skill:"霸道之劍", effect:"攻守均衡，適合穩定推進。"},
+  {id:"xiaHouDun", name:"夏侯惇", faction:"魏", sx:150, sy:470, sw:82, sh:116, hp:1250, atk:138, def:78, skill:"獨眼猛擊", effect:"防禦高，適合硬打。"},
+  {id:"zhangLiao", name:"張遼", faction:"魏", sx:286, sy:470, sw:82, sh:116, hp:1080, atk:145, def:64, skill:"威震逍遙津", effect:"高機動武將，普攻強。"},
+  {id:"siMaYi", name:"司馬懿", faction:"魏", sx:424, sy:470, sw:82, sh:116, hp:880, atk:152, def:52, skill:"鬼謀黑雷", effect:"法術型角色，技能爆發高。"},
+  {id:"xuChu", name:"許褚", faction:"魏", sx:558, sy:470, sw:82, sh:116, hp:1450, atk:150, def:85, skill:"虎癡重擊", effect:"血厚攻高，但速度較慢。"},
+  {id:"guoJia", name:"郭嘉", faction:"魏", sx:690, sy:470, sw:82, sh:116, hp:820, atk:155, def:44, skill:"十勝十敗", effect:"高輸出謀士型角色。"},
+  {id:"dianWei", name:"典韋", faction:"魏", sx:826, sy:470, sw:82, sh:116, hp:1400, atk:158, def:80, skill:"惡來狂戰", effect:"近戰爆發很高。"},
+  {id:"xunYu", name:"荀彧", faction:"魏", sx:960, sy:470, sw:82, sh:116, hp:850, atk:140, def:50, skill:"王佐之策", effect:"輔助與範圍技兼具。"},
+
+  {id:"sunQuan", name:"孫權", faction:"吳", sx:24,  sy:746, sw:82, sh:116, hp:1080, atk:122, def:62, skill:"江東號令", effect:"穩定型武將。"},
+  {id:"sunCe", name:"孫策", faction:"吳", sx:150, sy:746, sw:82, sh:116, hp:1180, atk:150, def:68, skill:"小霸王突進", effect:"衝鋒強，打小兵很快。"},
+  {id:"zhouYu", name:"周瑜", faction:"吳", sx:286, sy:746, sw:82, sh:116, hp:900, atk:155, def:50, skill:"赤壁烈焰", effect:"範圍火焰攻擊。"},
+  {id:"luXun", name:"陸遜", faction:"吳", sx:424, sy:746, sw:82, sh:116, hp:880, atk:150, def:52, skill:"火燒連營", effect:"法術連擊型角色。"},
+  {id:"taiShiCi", name:"太史慈", faction:"吳", sx:558, sy:746, sw:82, sh:116, hp:1150, atk:148, def:66, skill:"雙戟亂舞", effect:"連擊速度快。"},
+  {id:"ganNing", name:"甘寧", faction:"吳", sx:690, sy:746, sw:82, sh:116, hp:1080, atk:152, def:60, skill:"錦帆突襲", effect:"移動快，爆發佳。"},
+  {id:"lingTong", name:"凌統", faction:"吳", sx:826, sy:746, sw:82, sh:116, hp:1030, atk:142, def:58, skill:"凌風斬", effect:"靈活型武將。"},
+  {id:"daQiao", name:"大喬", faction:"吳", sx:960, sy:746, sw:82, sh:116, hp:820, atk:138, def:44, skill:"流櫻幻舞", effect:"速度快，技能範圍佳。"}
+].map((x,i)=>({
+  ...x,
+  type:"hero",
+  rarity: i < 8 ? 2 : i < 16 ? 2 : 2
+}));
+
+const soldiers = [
+  {id:"soldierSpear", name:"槍兵", sx:1096, sy:610, sw:62, sh:56, hp:180, atk:18, def:4, skill:"槍兵", effect:"普通近戰小兵。"},
+  {id:"soldierSword", name:"劍兵", sx:1184, sy:610, sw:62, sh:56, hp:170, atk:20, def:3, skill:"劍兵", effect:"攻擊稍快的小兵。"},
+  {id:"soldierBow", name:"弓兵", sx:1272, sy:610, sw:62, sh:56, hp:140, atk:22, def:2, skill:"弓兵", effect:"遠距小兵。"},
+  {id:"soldierShield", name:"盾兵", sx:1360, sy:610, sw:62, sh:56, hp:240, atk:16, def:10, skill:"盾兵", effect:"血量較高的小兵。"},
+  {id:"soldierMage", name:"術士", sx:1450, sy:610, sw:62, sh:56, hp:130, atk:28, def:2, skill:"術士", effect:"法術型小兵。"}
+].map(x=>({
+  ...x,
+  type:"soldier",
+  faction:"小兵",
+  rarity:0
+}));
+
+const bosses = [
+  {id:"bossZhangJiao", name:"張角", sx:1095, sy:790, sw:88, sh:125, hp:2800, atk:75, def:28, skill:"黃天雷法", effect:"會釋放大範圍雷擊。"},
+  {id:"bossLuBu", name:"呂布", sx:1205, sy:790, sw:88, sh:125, hp:3500, atk:105, def:38, skill:"鬼神無雙", effect:"最強近戰 Boss。"},
+  {id:"bossDongZhuo", name:"董卓", sx:1320, sy:790, sw:88, sh:125, hp:4200, atk:88, def:55, skill:"暴虐重壓", effect:"血厚防高 Boss。"},
+  {id:"bossZuoCi", name:"左慈", sx:1430, sy:790, sw:88, sh:125, hp:3000, atk:115, def:26, skill:"仙術幻雷", effect:"高傷害法術 Boss。"}
+].map(x=>({
+  ...x,
+  type:"boss",
+  faction:"Boss",
+  rarity:3
+}));
+
+const allCards = [...heroes, ...soldiers, ...bosses];
+
+let chosen = heroes[0];
+let coin = 300;
+
+function topbar(){
+  $("coin").textContent = coin;
+  $("chosenName").textContent = chosen.name;
+}
+
+function drawSprite(ctx, obj, dx, dy, dw, dh){
+  if(!sheetReady){
+    ctx.fillStyle = "#333";
+    ctx.fillRect(dx,dy,dw,dh);
+    ctx.fillStyle = "#fff";
+    ctx.font = "12px Microsoft JhengHei";
+    ctx.textAlign = "center";
+    ctx.fillText("圖片讀取中", dx+dw/2, dy+dh/2);
+    return;
+  }
+  ctx.drawImage(SHEET, obj.sx, obj.sy, obj.sw, obj.sh, dx, dy, dw, dh);
+}
+
+function portrait(c){
+  return `<div class="portrait"><canvas data-id="${c.id}"></canvas></div>`;
+}
+
+function drawAllPortraits(){
+  document.querySelectorAll("canvas[data-id]").forEach(cv=>{
+    const c = allCards.find(x=>x.id===cv.dataset.id);
+    if(!c) return;
+
+    const ctx = cv.getContext("2d");
+    cv.width = 220;
+    cv.height = 150;
+
+    ctx.fillStyle = "#080808";
+    ctx.fillRect(0,0,220,150);
+
+    ctx.strokeStyle = c.type==="boss" ? "#ff4444" : c.type==="soldier" ? "#4dff85" : "#ffe08a";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(4,4,212,142);
+
+    const ratio = c.sw / c.sh;
+    let h = c.type==="soldier" ? 76 : 126;
+    let w = h * ratio;
+    if(w > 135){
+      w = 135;
+      h = w / ratio;
+    }
+
+    drawSprite(ctx, c, 110-w/2, 16, w, h);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 18px Microsoft JhengHei";
+    ctx.textAlign = "center";
+    ctx.shadowColor = "#000";
+    ctx.shadowBlur = 5;
+    ctx.fillText(c.name,110,140);
+    ctx.shadowBlur = 0;
+  });
+}
+
+function card(c){
+  return `
+  <div class="card ${c.type}">
+    ${portrait(c)}
+    <div class="name">${c.name}</div>
+    <div class="row"><div class="lab"><span>陣營</span></div><div class="val"><span>${c.faction}</span></div></div>
+    <div class="row"><div class="lab"><span>類型</span></div><div class="val"><span>${c.type==="hero"?"武將":c.type==="boss"?"Boss":"小兵"}</span></div></div>
+    <div class="row"><div class="lab"><span>HP</span></div><div class="val"><span>${c.hp}</span></div></div>
+    <div class="row"><div class="lab"><span>攻擊</span></div><div class="val"><span>${c.atk}</span></div></div>
+    <div class="row"><div class="lab"><span>防禦</span></div><div class="val"><span>${c.def}</span></div></div>
+    <div class="skill"><b>${c.skill}</b><br>${c.effect}</div>
+    ${c.type==="hero" ? `<button onclick="chooseHero('${c.id}')">設為出戰角色</button>` : ""}
+  </div>`;
+}
+
+function set(html){
+  $("content").innerHTML = html;
+  topbar();
+  setTimeout(drawAllPortraits,50);
+}
+
+function chooseHero(id){
+  const h = heroes.find(x=>x.id===id);
+  if(!h) return;
+  chosen = h;
+  topbar();
+  alert("已設為出戰角色：" + chosen.name);
+  showTeam();
+}
+
+$("m_bag").onclick = showBag;
+$("m_team").onclick = showTeam;
+$("m_map").onclick = showMap;
+$("m_help").onclick = showHelp;
+
+function showBag(){
+  set(`
+  <div class="panel">
+    <div class="title">角色卡庫：圖中人物已加入</div>
+    <p class="note">
+      這裡的角色不是另外畫的，而是從同一張 <b>sanguo_sprite_sheet.jpg</b> 裡裁出來顯示。
+      你可以選擇任一武將出戰。
+    </p>
+    <h3 style="color:#4ba3ff">武將</h3>
+    <div class="grid">${heroes.map(card).join("")}</div>
+    <h3 style="color:#4dff85;margin-top:20px">小兵</h3>
+    <div class="grid">${soldiers.map(card).join("")}</div>
+    <h3 style="color:#ff4444;margin-top:20px">Boss</h3>
+    <div class="grid">${bosses.map(card).join("")}</div>
+  </div>`);
+}
+
+function showTeam(){
+  set(`
+  <div class="panel">
+    <div class="title">目前出戰角色</div>
+    <div class="grid">${card(chosen)}</div>
+    <p class="note">
+      進入戰鬥後，玩家人物會使用這個角色的圖案。
+    </p>
+  </div>`);
+}
+
+function showMap(){
+  set(`
+  <div class="panel">
+    <div class="title">開始戰鬥</div>
+    <p class="note">
+      玩家會使用你選的武將圖案。<br>
+      小兵會從圖中的「槍兵、劍兵、弓兵、盾兵、術士」隨機出現。<br>
+      擊破一定數量後，Boss 會從「張角、呂布、董卓、左慈」隨機出現。
+    </p>
+    <button onclick="initBattle()">開始戰鬥</button>
+  </div>`);
+}
+
+function showHelp(){
+  set(`
+  <div class="panel">
+    <div class="title">圖片角色加入方式說明</div>
+    <p class="note">
+      這版程式已經把你的大圖當作角色素材表使用。<br><br>
+      重點是這行：<br>
+      <b>SHEET.src = "sanguo_sprite_sheet.jpg";</b><br><br>
+      然後每個角色都有裁切座標，例如：<br>
+      <b>sx:24, sy:88, sw:82, sh:116</b><br><br>
+      代表從圖片的 x=24、y=88 開始，裁出寬 82、高 116 的角色圖。
+      要調整角色長相，就微調 sx、sy、sw、sh。
+    </p>
+  </div>`);
+}
+
+/* =========================
+   戰鬥系統
+========================= */
+
+const canvas = $("game");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+let keys = {};
+let touch = {x:0,y:0};
+let act = {};
+let player = null;
+let enemies = [];
+let effects = [];
+let texts = [];
+let loop = null;
+let ko = 0;
+let bossOut = false;
+let gameOver = false;
+let camX = 0;
+let worldW = 2600;
+let frame = 0;
+
+addEventListener("keydown", e=>{
+  keys[e.key.toLowerCase()] = true;
+  if(e.key === " ") keys.space = true;
+  if(e.key === "Escape") exitBattle();
+});
+addEventListener("keyup", e=>{
+  keys[e.key.toLowerCase()] = false;
+  if(e.key === " ") keys.space = false;
+});
+
+if("ontouchstart" in window || navigator.maxTouchPoints > 0){
+  $("mobile").style.display = "block";
+}
+
+const joy = $("joy");
+const stick = $("stick");
+let joyTid = null;
+let joyBaseX = 0;
+let joyBaseY = 0;
+
+document.addEventListener("touchstart", e=>{
+  if(e.target.closest("button") || e.target.closest(".tb")) return;
+  for(let t of e.changedTouches){
+    if(t.clientX < innerWidth/2 && joyTid === null && player && !gameOver){
+      joyTid = t.identifier;
+      joyBaseX = t.clientX;
+      joyBaseY = t.clientY;
+      joy.style.display = "block";
+      joy.style.left = (joyBaseX - 75) + "px";
+      joy.style.top = (joyBaseY - 75) + "px";
+      moveJoy(t);
+    }
+  }
+},{passive:false});
+
+document.addEventListener("touchmove", e=>{
+  for(let t of e.changedTouches){
+    if(t.identifier === joyTid){
+      e.preventDefault();
+      moveJoy(t);
+    }
+  }
+},{passive:false});
+
+document.addEventListener("touchend", e=>{
+  for(let t of e.changedTouches){
+    if(t.identifier === joyTid){
+      joyTid = null;
+      joy.style.display = "none";
+      touch.x = 0;
+      touch.y = 0;
+      stick.style.transform = "translate(0px,0px)";
+    }
+  }
+});
+
+function moveJoy(t){
+  let dx = t.clientX - joyBaseX;
+  let dy = t.clientY - joyBaseY;
+  let len = Math.hypot(dx,dy);
+  let max = 45;
+  if(len > max){
+    dx = dx / len * max;
+    dy = dy / len * max;
+  }
+  touch.x = dx / max;
+  touch.y = dy / max;
+  stick.style.transform = `translate(${dx}px,${dy}px)`;
+}
+
+[
+  ["ta","atk"],
+  ["ts","skill"],
+  ["tm","musou"],
+  ["td","dash"]
+].forEach(([id,k])=>{
+  $(id).addEventListener("touchstart", e=>{
+    e.preventDefault();
+    act[k] = true;
+  },{passive:false});
+  $(id).addEventListener("touchend", e=>{
+    e.preventDefault();
+    act[k] = false;
+  },{passive:false});
+});
+
+$("exit").onclick = exitBattle;
+
+function msg(t,c="#ffe08a",s="42px"){
+  $("msg").textContent = t;
+  $("msg").style.color = c;
+  $("msg").style.fontSize = s;
+  setTimeout(()=>$("msg").textContent="",1500);
+}
+
+function addText(x,y,t,c="#fff"){
+  texts.push({x,y,t,c,life:35});
+}
+
+function initBattle(){
+  coin = Math.max(0, coin - 30);
+  topbar();
+
+  player = {
+    card: chosen,
+    x: 320,
+    y: canvas.height/2,
+    r: 30,
+    hp: chosen.hp,
+    maxHp: chosen.hp,
+    atk: chosen.atk,
+    def: chosen.def,
+    spd: 5,
+    fx: 1,
+    fy: 0,
+    cd: 0,
+    skill: 0,
+    musou: 0,
+    inv: 0,
+    dash: 0
+  };
+
+  enemies = [];
+  effects = [];
+  texts = [];
+  ko = 0;
+  bossOut = false;
+  gameOver = false;
+  frame = 0;
+
+  $("ko").textContent = "擊破 0";
+  $("mission").textContent = "擊破 40 隻小兵後 Boss 出現";
+  $("wrap").style.display = "block";
+
+  resize();
+
+  for(let i=0;i<22;i++) spawnEnemy(true);
+
+  cancelAnimationFrame(loop);
+  battleLoop();
+}
+
+function exitBattle(){
+  $("wrap").style.display = "none";
+  cancelAnimationFrame(loop);
+  showMap();
+}
+
+function spawnEnemy(init=false, forceBoss=false){
+  let card;
+  if(forceBoss){
+    card = bosses[Math.floor(Math.random()*bosses.length)];
+  }else{
+    card = soldiers[Math.floor(Math.random()*soldiers.length)];
+  }
+
+  let dist = init ? Math.random()*800 + 200 : canvas.width/2 + 120;
+  let a = Math.random() * Math.PI * 2;
+
+  let hpScale = forceBoss ? 1 : 1 + frame / 9000;
+  let atkScale = forceBoss ? 1 : 1 + frame / 12000;
+
+  enemies.push({
+    card,
+    isBoss: forceBoss,
+    x: Math.max(80, Math.min(worldW-80, player.x + Math.cos(a)*dist)),
+    y: Math.max(110, Math.min(canvas.height-100, player.y + Math.sin(a)*dist)),
+    r: forceBoss ? 48 : 24,
+    hp: card.hp * hpScale,
+    maxHp: card.hp * hpScale,
+    atk: card.atk * atkScale,
+    def: card.def,
+    spd: forceBoss ? 2.1 : 1.6 + Math.random()*1.1,
+    cd: 0,
+    stun: 0,
+    vx: 0,
+    vy: 0
+  });
+}
+
+function playerAttack(radius, dmg, color="#ffe08a"){
+  effects.push({
+    type:"arc",
+    x:player.x,
+    y:player.y,
+    a:Math.atan2(player.fy,player.fx),
+    rad:radius,
+    sp:Math.PI*1.15,
+    color,
+    life:12,
+    max:12
+  });
+
+  enemies.forEach(e=>{
+    let dx = e.x - player.x;
+    let dy = e.y - player.y;
+    let d = Math.hypot(dx,dy);
+    if(d < radius + e.r){
+      let final = Math.max(1, dmg - e.def);
+      e.hp -= final;
+      e.stun = 10;
+      e.vx = dx / Math.max(1,d) * 8;
+      e.vy = dy / Math.max(1,d) * 8;
+      addText(e.x,e.y,Math.floor(final),"#fff");
+      player.skill = Math.min(100, player.skill + 3);
+      player.musou = Math.min(100, player.musou + 2);
+    }
+  });
+}
+
+function updatePlayer(){
+  if(!player) return;
+
+  let dx = 0;
+  let dy = 0;
+
+  if(keys.w) dy--;
+  if(keys.s) dy++;
+  if(keys.a) dx--;
+  if(keys.d) dx++;
+
+  dx += touch.x;
+  dy += touch.y;
+
+  let len = Math.hypot(dx,dy);
+  if(len){
+    player.fx = dx / len;
+    player.fy = dy / len;
+    player.x += player.fx * player.spd;
+    player.y += player.fy * player.spd;
+  }
+
+  if(player.cd <= 0){
+    if(keys.j || act.atk){
+      player.cd = 12;
+      playerAttack(145, player.atk, "#ffe08a");
+    }else if((keys.k || act.skill) && player.skill >= 30){
+      player.skill -= 30;
+      player.cd = 28;
+      player.inv = 20;
+      playerAttack(260, player.atk * 2.8, "#58b7ff");
+      msg(chosen.skill, "#58b7ff", "36px");
+    }else if((keys.u || act.musou) && player.musou >= 100){
+      player.musou = 0;
+      player.cd = 45;
+      player.inv = 60;
+      playerAttack(450, player.atk * 6, "#ffe35b");
+      msg("無雙亂舞！", "#ffe35b", "46px");
+    }else if((keys.space || act.dash) && player.dash <= 0){
+      player.dash = 35;
+      player.inv = 14;
+      player.x += player.fx * 120;
+      player.y += player.fy * 120;
+    }
+  }
+
+  player.x = Math.max(40, Math.min(worldW-40, player.x));
+  player.y = Math.max(90, Math.min(canvas.height-80, player.y));
+
+  player.cd = Math.max(0, player.cd-1);
+  player.inv = Math.max(0, player.inv-1);
+  player.dash = Math.max(0, player.dash-1);
+}
+
+function updateEnemies(){
+  enemies.forEach(e=>{
+    if(e.hp <= 0) return;
+
+    if(e.stun > 0){
+      e.stun--;
+      e.x += e.vx;
+      e.y += e.vy;
+      e.vx *= 0.82;
+      e.vy *= 0.82;
+      return;
+    }
+
+    let dx = player.x - e.x;
+    let dy = player.y - e.y;
+    let d = Math.hypot(dx,dy);
+    let a = Math.atan2(dy,dx);
+
+    if(d > e.r + player.r){
+      e.x += Math.cos(a) * e.spd;
+      e.y += Math.sin(a) * e.spd;
+    }else if(player.inv <= 0){
+      let hurt = Math.max(1, e.atk - player.def);
+      player.hp -= hurt;
+      player.inv = 18;
+      addText(player.x,player.y,Math.floor(hurt),"#ff4444");
+    }
+  });
+
+  let old = enemies.length;
+  enemies = enemies.filter(e=>e.hp > 0);
+  let killed = old - enemies.length;
+
+  if(killed){
+    ko += killed;
+    $("ko").textContent = "擊破 " + ko;
+
+    if(ko >= 40 && !bossOut){
+      bossOut = true;
+      spawnEnemy(false,true);
+      $("mission").textContent = "Boss 已出現，擊敗 Boss！";
+      msg("Boss 出現！", "#ff4444", "48px");
+    }
+
+    if(bossOut && !enemies.some(e=>e.isBoss)){
+      gameOver = true;
+      coin += 500;
+      topbar();
+      msg("勝利！獲得 500 金錢", "#4dff85", "42px");
+      setTimeout(exitBattle,2000);
+    }
+  }
+
+  let target = bossOut ? 18 : 28;
+  while(enemies.length < target){
+    spawnEnemy(false,false);
+  }
+}
+
+function updateEffects(){
+  effects = effects.filter(e=>e.life-- > 0);
+  texts.forEach(t=>{t.y-=1.3;t.life--;});
+  texts = texts.filter(t=>t.life > 0);
+}
+
+function drawGameSprite(obj,x,y,r,isBoss=false){
+  const ratio = obj.sw / obj.sh;
+  let h = isBoss ? r*2.6 : r*2.3;
+  let w = h * ratio;
+  drawSprite(ctx, obj, x-w/2, y-h/2, w, h);
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!player) return;
+
+  camX = Math.max(0, Math.min(worldW-canvas.width, player.x - canvas.width/2));
+
+  let bg = ctx.createLinearGradient(0,0,0,canvas.height);
+  bg.addColorStop(0,"#26180d");
+  bg.addColorStop(0.6,"#1e1308");
+  bg.addColorStop(1,"#080402");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.05)";
+  for(let i=-camX%100;i<canvas.width;i+=100){
+    ctx.beginPath();
+    ctx.moveTo(i,0);
+    ctx.lineTo(i,canvas.height);
+    ctx.stroke();
+  }
+
+  effects.forEach(e=>{
+    ctx.save();
+    ctx.globalAlpha = e.life / e.max;
+    if(e.type === "arc"){
+      ctx.translate(e.x-camX,e.y);
+      ctx.rotate(e.a);
+      ctx.strokeStyle = e.color;
+      ctx.lineWidth = 28;
+      ctx.lineCap = "round";
+      ctx.shadowColor = e.color;
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(0,0,e.rad,-e.sp/2,e.sp/2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  });
+
+  enemies.forEach(e=>{
+    let sx = e.x - camX;
+
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    ctx.beginPath();
+    ctx.ellipse(sx,e.y+e.r*0.75,e.r*0.8,e.r*0.22,0,0,Math.PI*2);
+    ctx.fill();
+
+    drawGameSprite(e.card, sx, e.y, e.r, e.isBoss);
+
+    let bw = e.isBoss ? 100 : 48;
+    ctx.fillStyle = "#111";
+    ctx.fillRect(sx-bw/2,e.y-e.r-22,bw,6);
+    ctx.fillStyle = e.isBoss ? "#ff4444" : "#f33";
+    ctx.fillRect(sx-bw/2,e.y-e.r-22,bw*Math.max(0,e.hp/e.maxHp),6);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 11px Microsoft JhengHei";
+    ctx.textAlign = "center";
+    ctx.fillText(e.card.name, sx, e.y-e.r-30);
+  });
+
+  ctx.fillStyle = "rgba(0,0,0,.35)";
+  ctx.beginPath();
+  ctx.ellipse(player.x-camX,player.y+player.r*0.75,player.r*0.8,player.r*0.22,0,0,Math.PI*2);
+  ctx.fill();
+
+  if(player.inv > 0 && Math.floor(player.inv/4)%2===0){
+    ctx.globalAlpha = .45;
+  }
+  drawGameSprite(player.card, player.x-camX, player.y, player.r, false);
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 14px Microsoft JhengHei";
+  ctx.textAlign = "center";
+  ctx.fillText(player.card.name, player.x-camX, player.y-player.r-36);
+
+  texts.forEach(t=>{
+    ctx.globalAlpha = t.life/35;
+    ctx.fillStyle = t.c;
+    ctx.font = "bold 20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(t.t,t.x-camX,t.y);
+  });
+  ctx.globalAlpha = 1;
+
+  drawHUD();
+}
+
+function drawHUD(){
+  if(!player) return;
+
+  $("hud").innerHTML = `
+  <b style="color:#ffe08a">${player.card.name}</b>
+  <div class="barrow"><span>HP</span><div class="bar"><div class="fill hp" style="width:${Math.max(0,player.hp/player.maxHp*100)}%"></div></div></div>
+  <div class="barrow"><span>絕招</span><div class="bar"><div class="fill sk" style="width:${player.skill}%"></div></div></div>
+  <div class="barrow"><span>無雙</span><div class="bar"><div class="fill ms" style="width:${player.musou}%"></div></div></div>
+  <div style="font-size:11px;color:#aaa">WASD移動｜J攻擊｜K絕招｜U無雙｜空白閃避</div>
+  `;
+}
+
+function battleLoop(){
+  if(!gameOver && player){
+    frame++;
+
+    if(player.hp <= 0){
+      gameOver = true;
+      msg("敗退...", "#ff4444", "42px");
+      setTimeout(exitBattle,1600);
+    }
+
+    updatePlayer();
+    updateEnemies();
+    updateEffects();
+  }
+
+  draw();
+  loop = requestAnimationFrame(battleLoop);
+}
+
+window.onload = ()=>{
+  topbar();
+  showBag();
+};
+</script>
+</body>
+</html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
